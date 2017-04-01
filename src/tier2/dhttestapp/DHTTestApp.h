@@ -158,7 +158,8 @@ private:
     int numPutSent; /**< number of put sent*/
     int numPutError; /**< number of error in put responses*/
     int numPutSuccess; /**< number of success in put responses*/
-
+    int global_i;
+    int targetOverlayTerminalNum_;
     cMessage *dhttestput_timer, *dhttestget_timer, *dhttestmod_timer, *somakeyput_timer;
     bool nodeIsLeavingSoon; //!< true if the node is going to be killed shortly
 

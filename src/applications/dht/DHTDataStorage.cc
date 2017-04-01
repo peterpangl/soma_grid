@@ -191,6 +191,7 @@ DhtDataEntry* DHTDataStorage::addData(const OverlayKey& key, uint32_t kind,
 void DHTDataStorage::removeData(const OverlayKey& key, uint32_t kind,
                                 uint32_t id)
 {
+    EV << "petros DHT::removeData" << endl;
     pair<DhtDataMap::iterator, DhtDataMap::iterator> pos =
         dataMap.equal_range(key);
 

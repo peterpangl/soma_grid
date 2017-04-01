@@ -43,6 +43,8 @@ DHTTestApp::~DHTTestApp()
     cancelAndDelete(dhttestput_timer);
     cancelAndDelete(dhttestget_timer);
     cancelAndDelete(dhttestmod_timer);
+
+
 }
 
 DHTTestApp::DHTTestApp()
@@ -52,6 +54,9 @@ DHTTestApp::DHTTestApp()
     dhttestput_timer = NULL;
     dhttestget_timer = NULL;
     dhttestmod_timer = NULL;
+    global_i =0;
+
+
 }
 
 void DHTTestApp::initializeApp(int stage)
@@ -83,7 +88,7 @@ void DHTTestApp::initializeApp(int stage)
     underlayConfigurator = UnderlayConfiguratorAccess().get();
     globalStatistics = GlobalStatisticsAccess().get();
 
-    globalDhtTestMap = dynamic_cast<GlobalDhtTestMap*>(simulation.getModuleByPath(
+        globalDhtTestMap = dynamic_cast<GlobalDhtTestMap*>(simulation.getModuleByPath(
             "globalObserver.globalFunctions[0].function"));
 
     if (globalDhtTestMap == NULL) {
@@ -116,8 +121,8 @@ void DHTTestApp::initializeApp(int stage)
     FPqri0cb2JZfXJ/DgYSF6vUpwmJG8wVQZKjeGcjDOL5UlsuusFncCzWBQ7RKNUSesmQRMSGkVb1/\
     3j+skZ6UtW+5u09lHNsj6tQ51s1SPrCBkedbNf0Tp0GbMJDyR4e9T04ZZwIDAQAB";
 
-    // initiate test message transmission
-    dhttestput_timer = new cMessage("dhttest_put_timer");
+
+    /*dhttestput_timer = new cMessage("dhttest_put_timer");
     dhttestget_timer = new cMessage("dhttest_get_timer");
     dhttestmod_timer = new cMessage("dhttest_mod_timer");
 
@@ -130,7 +135,9 @@ void DHTTestApp::initializeApp(int stage)
         scheduleAt(simTime() + truncnormal(mean + 2 * mean / 3,
                                                       deviation),
                                                       dhttestmod_timer);
-    }
+
+
+    }*/
     EV << "[DHTTestApp::initializeApp() mean: " << mean
     << "\np2pnsTraffic:" << p2pnsTraffic
     << "\n deviation:" << deviation
@@ -154,34 +161,35 @@ bool DHTTestApp::handleRpcCall(BaseCallMessage* msg)
 
 void DHTTestApp::delayFromChord(ChordDHTNotifyDelayCall *delayMsg){
 
+   string nodeIp = thisNode.getIp().str();
+   string pkIp = string(publickey) + string(nodeIp);
+
+   OverlayKey somaKey(OverlayKey::sha1(pkIp));
+
+   EV << "SOMA [DHTTestApp::handleRpc()]" << somaKey.toString() << "\n";
+
+   // initiate SOMA key-value put
+   //somakeyput_timer = new cMessage("somakey_put_timer");
+   //scheduleAt(simTime(), somakeyput_timer);
+
+   // create a put test message with random destination key
+   //OverlayKey destKey = OverlayKey::random();
+   DHTputCAPICall* dhtPutMsg = new DHTputCAPICall();
+   dhtPutMsg->setKey(somaKey);
+   dhtPutMsg->setValue(generateRandomValue());
+   dhtPutMsg->setTtl(ttl);
+   dhtPutMsg->setIsModifiable(true);
+
+   RECORD_STATS(numSent++; numPutSent++);
+
+   sendInternalRpcCall(TIER1_COMP, dhtPutMsg,
+           new DHTStatsContext(globalStatistics->isMeasuring(),
+                               simTime(), somaKey, dhtPutMsg->getValue()));
+
     EV << "[DHTTestApp::delayFromChord() - ChordDHTNotifyTime Rxed -in handleTimeFromChord] time:\n"
        << delayMsg->getTimeToReady()
 
-           << endl;
-    //string nodeIp = thisNode.getIp().str();
-    //string pkIp = string(publickey) + string(nodeIp);
-
-   // OverlayKey somaKey(OverlayKey::sha1(pkIp));
-
-    //EV << "SOMA [DHTTestApp::handleRpc()]" << somaKey.toString() << "\n";
-
-    // initiate SOMA key-value put
-    //somakeyput_timer = new cMessage("somakey_put_timer");
-    //scheduleAt(simTime(), somakeyput_timer);
-
-    // create a put test message with random destination key
-    //OverlayKey destKey = OverlayKey::random();
-    /*DHTputCAPICall* dhtPutMsg = new DHTputCAPICall();
-    dhtPutMsg->setKey(somaKey);
-    dhtPutMsg->setValue(generateRandomValue());
-    dhtPutMsg->setTtl(ttl);
-    dhtPutMsg->setIsModifiable(true);
-
-    RECORD_STATS(numSent++; numPutSent++);
-    sendInternalRpcCall(TIER1_COMP, dhtPutMsg,
-            new DHTStatsContext(globalStatistics->isMeasuring(),
-                                simTime(), somaKey, dhtPutMsg->getValue()));
-*/
+       << endl;
 
 }
 
@@ -475,7 +483,6 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
             cancelEvent(msg);
             return;
         }
-
         // create a put test message with random destination key
         OverlayKey destKey = OverlayKey::random();
         DHTputCAPICall* dhtPutMsg = new DHTputCAPICall();

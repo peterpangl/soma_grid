@@ -146,6 +146,7 @@ void DHT::handleRpcResponse(BaseResponseMessage* msg, cPolymorphic* context,
 {
     if (debugOutput) {
         EV << "petros handleRpcResponse DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
+        EV << "petrossss handleRpcResponse" << overlay->getThisNode().getIp() <<" DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
     }
     if (debugOutput) {
         EV << "petros [DHT::handleRpcResponse]"  << endl;
@@ -545,8 +546,6 @@ void DHT::handlePutCAPIRequest(DHTputCAPICall* capiPutMsg)
 {
     if (debugOutput) {
         EV << "petros [DHT::handlePutCAPIRequest]"  << endl;
-
-        EV << "petros handlePutCAPIRequest DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
     }
     // asks the replica list
     LookupCall* lookupCall = new LookupCall();
@@ -781,9 +780,9 @@ void DHT::handleGetResponse(DHTGetResponse* dhtMsg, int rpcId)
 
 void DHT::update(const NodeHandle& node, bool joined)
 {
-    /*if (debugOutput) {
+    if (debugOutput) {
         EV << "petros [DHT::update]"  << endl;
-        EV << "petros update DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
+        EV << "petrossss handleRpcResponse" << overlay->getThisNode().getIp() <<" DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
     }
     OverlayKey key;
     bool err = false;
@@ -818,7 +817,7 @@ void DHT::update(const NodeHandle& node, bool joined)
                         overlay->distance(siblings->back().getKey(), it->first)) {
 
                         // petros commented at 3/28/2017
-                        // sendMaintenancePutCall(node, it->first, it->second);
+                        //sendMaintenancePutCall(node, it->first, it->second);
                     }
 
                     if (overlay->distance(overlay->getThisNode().getKey(), it->first) >
@@ -830,8 +829,8 @@ void DHT::update(const NodeHandle& node, bool joined)
                     if (overlay->distance(node.getKey(), it->first) <
                         overlay->distance(siblings->back().getKey(), it->first)) {
                         // petros commented at 3/28/2017
-                        // sendMaintenancePutCall(siblings->back(), it->first,
-                        //                       it->second);
+                         //sendMaintenancePutCall(siblings->back(), it->first,
+                         //                      it->second);
                     }
                 }
 
@@ -867,13 +866,13 @@ void DHT::update(const NodeHandle& node, bool joined)
                 }
 
                 // petros commented at 3/28/2017
-               // sendMaintenancePutCall(node, key, entry);
+                //sendMaintenancePutCall(node, key, entry);
             }
         }
         //TODO: move this to the inner block above?
         entry.responsible = overlay->isSiblingFor(overlay->getThisNode(),
                                                   key, 1, &err);
-    }*/
+    }
 }
 
 void DHT::sendMaintenancePutCall(const TransportAddress& node,
