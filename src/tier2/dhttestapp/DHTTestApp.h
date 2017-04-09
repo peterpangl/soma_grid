@@ -72,7 +72,7 @@ private:
             measurementPhase(measurementPhase), requestTime(requestTime),
             key(key), value(value) {};
     };
-
+    std::string  myKey;
     void initializeApp(int stage);
 
     /**
@@ -86,6 +86,7 @@ private:
     BinaryValue generateRandomValue();
     bool handleRpcCall(BaseCallMessage* msg);
     void delayFromChord(ChordDHTNotifyDelayCall *delayMsg);
+    void certSignDelay(DHTAddKeyNotifyCall *addedKeyMsg);
     void finishApp();
 
     /**

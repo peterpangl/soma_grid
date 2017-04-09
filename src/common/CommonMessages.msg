@@ -490,6 +490,16 @@ packet ChordDHTNotifyDelayResponse extends BaseResponseMessage
 }
 
 //
+// Internal RPC to notify tier2 when the node adds data in its DHTDataStorage
+// @author Petros Panagopoulos
+//
+packet DHTAddKeyNotifyCall extends BaseCallMessage
+{
+    OverlayKey key;
+    simtime_t timeAdded;
+}
+
+//
 // Internal RPC to ask overlay to start a lookup
 // @author Ingmar Baumgart
 //

@@ -143,11 +143,11 @@ void Chord::joinOverlay()
 {
     SG_measure_timer = simTime(); // start the to measure the time for the node
 
-    if (debugOutput) {
+/*    if (debugOutput) {
         EV << "petros [Chord::joinOverlay()], SG_measure_timer: "
            << SG_measure_timer
            << endl;
-    }
+    }*/
 
     changeState(INIT);
     changeState(JOIN);
@@ -156,10 +156,12 @@ void Chord::joinOverlay()
 
 void Chord::joinForeignPartition(const NodeHandle &node)
 {
+/*
     if (debugOutput) {
         EV << "petros [Chord::joinForeignPartition()] "
                 << endl;
     }
+*/
 
     Enter_Method_Silent();
 
@@ -182,10 +184,10 @@ void Chord::changeState(int toState)
     // Defines tasks to be executed when a state change occurs.
     //
     simtime_t time_now;
-    if (debugOutput) {
+/*    if (debugOutput) {
         EV << "petros [Chord::changeState()] "
                 << endl;
-    }
+    }*/
     switch (toState) {
     case INIT:
         state = INIT;
@@ -201,19 +203,19 @@ void Chord::changeState(int toState)
         updateTooltip();
 
         // debug message
-        if (debugOutput) {
+ /*       if (debugOutput) {
             EV << "[Chord::changeState() @ " << thisNode.getIp()
             << " (" << thisNode.getKey().toString(16) << ")]\n"
             << "    Entered INIT stage"
             << endl;
         }
-
+*/
         SG_node_init_time = simTime() - SG_measure_timer;
-        if (debugOutput) {
+/*        if (debugOutput) {
             EV << "petros [Chord::changeState() INIT], time_to_init: "
                << SG_node_init_time
                << endl;
-        }
+        }*/
 
 
         getParentModule()->getParentModule()->bubble("Enter INIT state.");
@@ -243,11 +245,11 @@ void Chord::changeState(int toState)
         bootstrapNode = bootstrapList->getBootstrapNode(overlayId);
 
         SG_node_join_time = simTime() - SG_measure_timer;
-        if (debugOutput) {
+/*        if (debugOutput) {
             EV << "petros [Chord::changeState() JOIN], time_to_join: "
                << SG_node_join_time
                << endl;
-        }
+        }*/
 
 
         // is this the first node?
@@ -312,10 +314,10 @@ void Chord::changeState(int toState)
 
 void Chord::handleTimerEvent(cMessage* msg)
 {
-    if (debugOutput) {
+/*    if (debugOutput) {
         EV << "petros [Chord::handleTimerEvent()] "
            << endl;
-    }
+    }*/
 
     // catch JOIN timer
     if (msg == join_timer) {
@@ -351,10 +353,10 @@ void Chord::handleTimerEvent(cMessage* msg)
 
 void Chord::handleUDPMessage(BaseOverlayMessage* msg)
 {
-    if (debugOutput) {
+/*    if (debugOutput) {
         EV << "petros [Chord::handleUDPMessage()] "
                 << endl;
-    }
+    }*/
 
     ChordMessage* chordMsg = check_and_cast<ChordMessage*>(msg);
     switch(chordMsg->getCommand()) {
@@ -400,10 +402,10 @@ void Chord::handleRpcResponse(BaseResponseMessage* msg,
                               cPolymorphic* context, int rpcId,
                               simtime_t rtt)
 {
-    if (debugOutput) {
+/*    if (debugOutput) {
         EV << "petros [Chord::handleRpcResponse()] "
                 << endl;
-    }
+    }*/
 
     RPC_SWITCH_START(msg)
     RPC_ON_RESPONSE( Join ) {
@@ -450,10 +452,10 @@ void Chord::handleRpcTimeout(BaseCallMessage* msg,
                              cPolymorphic* context, int rpcId,
                              const OverlayKey&)
 {
-    if (debugOutput) {
+/*    if (debugOutput) {
         EV << "petros [Chord::handleRpcTimeout()] "
                 << endl;
-    }
+    }*/
     RPC_SWITCH_START(msg)
     RPC_ON_CALL( FindNode ) {
         EV << "[Chord::handleRpcTimeout() @ " << thisNode.getIp()
@@ -502,19 +504,19 @@ void Chord::handleRpcTimeout(BaseCallMessage* msg,
 
 int Chord::getMaxNumSiblings()
 {
-    if (debugOutput) {
+/*    if (debugOutput) {
         EV << "petros [Chord::getMaxNumSiblings()] "
                 << endl;
-    }
+    }*/
     return successorListSize;
 }
 
 int Chord::getMaxNumRedundantNodes()
 {
-    if (debugOutput) {
+/*    if (debugOutput) {
             EV << "petros [Chord::getMaxNumRedundantNodes()] "
                     << endl;
-    }
+    }*/
     return extendedFingerTable ? numFingerCandidates : 1;
 }
 
@@ -531,11 +533,11 @@ bool Chord::isSiblingFor(const NodeHandle& node,
         *err = true;
         return false;
     }
-
+/*
     if (debugOutput) {
             EV << "petros [Chord::isSiblingFor()] "
                     << endl;
-    }
+    }*/
     if (numSiblings > getMaxNumSiblings()) {
         opp_error("Chord::isSiblingFor(): numSiblings too big!");
     }
@@ -663,10 +665,10 @@ NodeVector* Chord::findNode(const OverlayKey& key,
 
     if (state != READY)
         return new NodeVector();
-    if (debugOutput) {
+/*    if (debugOutput) {
             EV << "petros [Chord::findNode()] "
                     << endl;
-    }
+    }*/
     if (successorList->isEmpty() && !predecessorNode.isUnspecified()) {
         throw new cRuntimeError("Chord: Node is READY, has a "
                                 "predecessor but no successor!");
@@ -713,10 +715,10 @@ NodeVector* Chord::findNode(const OverlayKey& key,
 NodeVector* Chord::closestPreceedingNode(const OverlayKey& key)
 {
     NodeHandle tempHandle = NodeHandle::UNSPECIFIED_NODE;
-    if (debugOutput) {
+/*    if (debugOutput) {
             EV << "petros [Chord::closestPreceedingNode()] "
                     << endl;
-    }
+    }*/
     // find the closest preceding node in the successor list
     for (int j = successorList->getSize() - 1; j >= 0; j--) {
         // return a predecessor of the key, unless we know a node with an Id = destKey
@@ -758,10 +760,11 @@ NodeVector* Chord::closestPreceedingNode(const OverlayKey& key)
     }
 
     nextHop = new NodeVector();
-    EV << "[Chord::closestPreceedingNode() @ " << thisNode.getIp()
+/*    EV << "[Chord::closestPreceedingNode() @ " << thisNode.getIp()
        << " (" << thisNode.getKey().toString(16) << ")]\n"
        << "    No finger found"
        << endl;
+       */
 
     // if no finger is found lookup the rest of the successor list
     for (int i = successorList->getSize() - 1; i >= 0

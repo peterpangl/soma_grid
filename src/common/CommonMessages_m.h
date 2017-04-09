@@ -1723,6 +1723,49 @@ inline void doUnpacking(cCommBuffer *b, ChordDHTNotifyDelayResponse& obj) {obj.p
 /**
  * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
  * <pre>
+ * packet DHTAddKeyNotifyCall extends BaseCallMessage
+ * {
+ *     OverlayKey key;
+ *     simtime_t timeAdded;
+ * }
+ * </pre>
+ */
+class DHTAddKeyNotifyCall : public ::BaseCallMessage
+{
+  protected:
+    OverlayKey key_var;
+    simtime_t timeAdded_var;
+
+  private:
+    void copy(const DHTAddKeyNotifyCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const DHTAddKeyNotifyCall&);
+
+  public:
+    DHTAddKeyNotifyCall(const char *name=NULL, int kind=0);
+    DHTAddKeyNotifyCall(const DHTAddKeyNotifyCall& other);
+    virtual ~DHTAddKeyNotifyCall();
+    DHTAddKeyNotifyCall& operator=(const DHTAddKeyNotifyCall& other);
+    virtual DHTAddKeyNotifyCall *dup() const {return new DHTAddKeyNotifyCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual OverlayKey& getKey();
+    virtual const OverlayKey& getKey() const {return const_cast<DHTAddKeyNotifyCall*>(this)->getKey();}
+    virtual void setKey(const OverlayKey& key);
+    virtual simtime_t getTimeAdded() const;
+    virtual void setTimeAdded(simtime_t timeAdded);
+};
+
+inline void doPacking(cCommBuffer *b, DHTAddKeyNotifyCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, DHTAddKeyNotifyCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
+ * <pre>
  * packet LookupCall extends BaseCallMessage
  * {
  *     OverlayKey key;

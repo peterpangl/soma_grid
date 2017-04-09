@@ -146,11 +146,11 @@ void DHT::handleRpcResponse(BaseResponseMessage* msg, cPolymorphic* context,
 {
     if (debugOutput) {
         EV << "petros handleRpcResponse DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
-        EV << "petrossss handleRpcResponse" << overlay->getThisNode().getIp() <<" DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
+        EV << "petrossss handleRpcResponse" << overlay->getThisNode().getIp()
+                <<" DHTstorage: " << dataStorage->getSize()
+                << "  timestamp: " << simTime() << endl;
     }
-    if (debugOutput) {
-        EV << "petros [DHT::handleRpcResponse]"  << endl;
-    }
+
     RPC_SWITCH_START(msg)
         RPC_ON_RESPONSE(DHTPut){
         handlePutResponse(_DHTPutResponse, rpcId);
@@ -160,6 +160,7 @@ void DHT::handleRpcResponse(BaseResponseMessage* msg, cPolymorphic* context,
            << endl;
         break;
     }
+
     RPC_ON_RESPONSE(DHTGet) {
         handleGetResponse(_DHTGetResponse, rpcId);
         EV << "[DHT::handleRpcResponse()]\n"
@@ -168,6 +169,7 @@ void DHT::handleRpcResponse(BaseResponseMessage* msg, cPolymorphic* context,
            << endl;
         break;
     }
+
     RPC_ON_RESPONSE(Lookup) {
         handleLookupResponse(_LookupResponse, rpcId);
         EV << "[DHT::handleRpcResponse()]\n"
@@ -176,6 +178,7 @@ void DHT::handleRpcResponse(BaseResponseMessage* msg, cPolymorphic* context,
            << endl;
         break;
     }
+
     RPC_SWITCH_END()
 }
 
@@ -332,6 +335,7 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
     if (debugOutput) {
         EV << "petros [DHT::handlePutRequest]"  << endl;
     }
+    bool addedData = false;
     std::string tempString = "PUT_REQUEST received: "
             + std::string(dhtMsg->getKey().toString(16));
     getParentModule()->getParentModule()->bubble(tempString.c_str());
@@ -344,16 +348,10 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
     }
 
     if (secureMaintenance && dhtMsg->getMaintenance()) {
-        if (debugOutput) {
-            EV << "petros [DHT::handlePutRequest] secureMaintenance && dhtMsg->getMaintenance()"  << endl;
-        }
         DhtDataEntry* entry = dataStorage->getDataEntry(dhtMsg->getKey(),
                                                         dhtMsg->getKind(),
                                                         dhtMsg->getId());
         if (entry == NULL) {
-            if (debugOutput) {
-                EV << "petros [DHT::handlePutRequest] entry==NULL"  << endl;
-            }
             // add ttl timer
             DHTTtlTimer *timerMsg = new DHTTtlTimer("ttl_timer");
             timerMsg->setKey(dhtMsg->getKey());
@@ -361,6 +359,7 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
             timerMsg->setId(dhtMsg->getId());
             scheduleAt(simTime() + dhtMsg->getTtl(), timerMsg);
 
+            addedData = true;
             entry = dataStorage->addData(dhtMsg->getKey(), dhtMsg->getKind(),
                                  dhtMsg->getId(), dhtMsg->getValue(), timerMsg,
                                  dhtMsg->getIsModifiable(), dhtMsg->getSrcNode(),
@@ -449,10 +448,16 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
         timerMsg->setId(dhtMsg->getId());
         scheduleAt(simTime() + dhtMsg->getTtl(), timerMsg);
         // storage data item in local data storage
+
         if (debugOutput) {
-            EV << "petros [DHT::handlePutRequest] storage data item in local data storage "
-               << " key:" << dhtMsg->getKey() << " id:" << dhtMsg->getId() << " isSibling:" << isSibling << endl;
+            EV << "petros [DHT::handlePutRequest]  "
+               << " key:" << dhtMsg->getKey()
+               << " is stored in *DHTT Node:" << overlay->getThisNode().getIp()
+               << " node, timestamp: " << simTime()
+               << endl;
         }
+
+        addedData = true;
         dataStorage->addData(dhtMsg->getKey(), dhtMsg->getKind(),
                              dhtMsg->getId(), dhtMsg->getValue(), timerMsg,
                              dhtMsg->getIsModifiable(), dhtMsg->getSrcNode(),
@@ -464,7 +469,12 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
     responseMsg->setSuccess(true);
     responseMsg->setBitLength(PUTRESPONSE_L(responseMsg));
     RECORD_STATS(normalMessages++; numBytesNormal += responseMsg->getByteLength());
-
+    if (addedData) {
+        DHTAddKeyNotifyCall *addedKeyMsg = new DHTAddKeyNotifyCall();
+        addedKeyMsg->setKey(dhtMsg->getKey());
+        addedKeyMsg->setTimeAdded(simTime());
+        sendInternalRpcCall(TIER2_COMP, addedKeyMsg);
+    }
     sendRpcResponse(dhtMsg, responseMsg);
 }
 
@@ -553,7 +563,10 @@ void DHT::handlePutCAPIRequest(DHTputCAPICall* capiPutMsg)
     lookupCall->setNumSiblings(numReplica);
 
     if (debugOutput) {
-        EV << "petros handlePutCAPIRequest make lookupCall for key: " << capiPutMsg->getKey()<< endl;
+        EV << "petros handlePutCAPIRequest make lookupCall for key: " << capiPutMsg->getKey()
+                << "   for node: " << overlay->getThisNode().getIp()
+                << " timestamp: " << simTime()
+                << endl;
     }
     sendInternalRpcCall(OVERLAY_COMP, lookupCall, NULL, -1, 0,
                         capiPutMsg->getNonce());
@@ -609,8 +622,6 @@ void DHT::handlePutResponse(DHTPutResponse* dhtMsg, int rpcId)
 {
     if (debugOutput) {
         EV << "petros [DHT::handlePutResponse]"  << endl;
-
-        EV << "petros handlePutResponse DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
     }
     PendingRpcs::iterator it = pendingRpcs.find(rpcId);
 
@@ -619,10 +630,17 @@ void DHT::handlePutResponse(DHTPutResponse* dhtMsg, int rpcId)
 
     if (dhtMsg->getSuccess()) {
         it->second.numResponses++;
-    } else {
+        if (debugOutput) {
+            EV << "petros [DHT::handlePutResponse] it->second.numResponses: "  << it->second.numResponses << " for node: "
+                    << overlay->getThisNode().getIp()
+                    << " timestamp: " << simTime()
+                    << " DHTstorage: " << dataStorage->getSize() << endl;
+        }
+    }
+    else
+    {
         it->second.numFailed++;
     }
-
 
 //    if ((it->second.numFailed + it->second.numResponses) == it->second.numSent) {
     if (it->second.numResponses / (double)it->second.numSent > 0.5) {
@@ -782,19 +800,18 @@ void DHT::update(const NodeHandle& node, bool joined)
 {
     if (debugOutput) {
         EV << "petros [DHT::update]"  << endl;
-        EV << "petrossss handleRpcResponse" << overlay->getThisNode().getIp() <<" DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
+        EV << "petrossss DHT::update" << overlay->getThisNode().getIp() <<" DHTstorage: " << dataStorage->getSize() << "  timestamp: " << simTime()
+  << endl;    // fetch parameters
     }
     OverlayKey key;
     bool err = false;
     DhtDataEntry entry;
     std::map<OverlayKey, DhtDataEntry>::iterator it;
 
-
      EV << "[DHT::update() @ " << overlay->getThisNode().getIp()
        << " (" << overlay->getThisNode().getKey().toString(16) << ")]\n"
        << "    Update called()"
        << endl;
-
 
     if (secureMaintenance) {
         for (it = dataStorage->begin(); it != dataStorage->end(); it++) {

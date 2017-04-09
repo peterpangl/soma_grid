@@ -122,6 +122,7 @@ void DHTTestApp::initializeApp(int stage)
     3j+skZ6UtW+5u09lHNsj6tQ51s1SPrCBkedbNf0Tp0GbMJDyR4e9T04ZZwIDAQAB";
 
 
+
     /*dhttestput_timer = new cMessage("dhttest_put_timer");
     dhttestget_timer = new cMessage("dhttest_get_timer");
     dhttestmod_timer = new cMessage("dhttest_mod_timer");
@@ -153,21 +154,30 @@ bool DHTTestApp::handleRpcCall(BaseCallMessage* msg)
     RPC_SWITCH_START(msg)
         // Internal RPCs
         RPC_DELEGATE(ChordDHTNotifyDelay, delayFromChord);
-
+        RPC_DELEGATE(DHTAddKeyNotify, certSignDelay);
     RPC_SWITCH_END( )
 
     return RPC_HANDLED;
 }
 
-void DHTTestApp::delayFromChord(ChordDHTNotifyDelayCall *delayMsg){
+void DHTTestApp::certSignDelay(DHTAddKeyNotifyCall *addedKeyMsg)
+{
+    EV << "DHTTestApp::certSignDelay Rxed" << endl;
+
+}
+
+void DHTTestApp::delayFromChord(ChordDHTNotifyDelayCall *delayMsg)
+{
 
    string nodeIp = thisNode.getIp().str();
    string pkIp = string(publickey) + string(nodeIp);
 
    OverlayKey somaKey(OverlayKey::sha1(pkIp));
 
-   EV << "SOMA [DHTTestApp::handleRpc()]" << somaKey.toString() << "\n";
+   EV << "SOMA [DHTTestApp::delayFromChord()] " << somaKey.toString()
+           << " the key is sent @" << simTime()   << endl;
 
+   myKey = somaKey.toString();
    // initiate SOMA key-value put
    //somakeyput_timer = new cMessage("somakey_put_timer");
    //scheduleAt(simTime(), somakeyput_timer);
@@ -180,7 +190,13 @@ void DHTTestApp::delayFromChord(ChordDHTNotifyDelayCall *delayMsg){
    dhtPutMsg->setTtl(ttl);
    dhtPutMsg->setIsModifiable(true);
 
+
    RECORD_STATS(numSent++; numPutSent++);
+
+   EV << "petros Send key to the net DHTT Node: " << overlay->getThisNode().getIp()
+         << " send key: " << somaKey.toString()
+         << " timestamp: " << simTime()
+         << endl;
 
    sendInternalRpcCall(TIER1_COMP, dhtPutMsg,
            new DHTStatsContext(globalStatistics->isMeasuring(),
@@ -196,34 +212,35 @@ void DHTTestApp::delayFromChord(ChordDHTNotifyDelayCall *delayMsg){
 void DHTTestApp::handleRpcResponse(BaseResponseMessage* msg,
                                    const RpcState& state, simtime_t rtt)
 {
-    if (debugOutput) {
-        EV << "petros [DHTTestApp::handleRpcResponse]"  << endl;
-    }
     EV << "[DHTTestApp::handleRpcResponse() @ " << thisNode.getIp()
     << " (" << thisNode.getKey().toString(16) << ")]\n"
     << " timestamp: " << simTime()
     << endl;    // fetch parameters
 
     RPC_SWITCH_START(msg)
-    RPC_ON_RESPONSE( DHTputCAPI ) {
+
+    RPC_ON_RESPONSE( DHTputCAPI )
+    {
         handlePutResponse(_DHTputCAPIResponse,
                           check_and_cast<DHTStatsContext*>(state.getContext()));
-        EV << "[DHTTestApp::handleRpcResponse()]\n"
+        EV << "[DHTTestApp::handlePutResponse()]\n"
            << "    DHT Put RPC Response received: id=" << state.getId()
            << " msg=" << *_DHTputCAPIResponse << " rtt=" << rtt
            << endl;
         break;
     }
+
     RPC_ON_RESPONSE(DHTgetCAPI)
     {
         handleGetResponse(_DHTgetCAPIResponse,
                           check_and_cast<DHTStatsContext*>(state.getContext()));
-        EV << "[DHTTestApp::handleRpcResponse()]\n"
+        EV << "[DHTTestApp::handleGetResponse()]\n"
            << "    DHT Get RPC Response received: id=" << state.getId()
            << " msg=" << *_DHTgetCAPIResponse << " rtt=" << rtt
            << endl;
         break;
     }
+
     RPC_SWITCH_END()
 }
 
@@ -233,18 +250,19 @@ void DHTTestApp::handlePutResponse(DHTputCAPIResponse* msg,
     if (debugOutput) {
         EV << "petros [DHTTestApp::handlePutResponse]"  << endl;
     }
-    EV << "[DHTTestApp::handlePutResponse() @ " << thisNode.getIp()
-    << " (" << thisNode.getKey().toString(16) << ")]\n"
-    << " timestamp: " << simTime()
-    << endl;    // fetch parameters
+//    EV << "[DHTTestApp::handlePutResponse() @ " << thisNode.getIp()
+//    << " (" << thisNode.getKey().toString(16) << ")]\n"
+//    << " timestamp: " << simTime()
+//    << endl;    // fetch parameters
 
     DHTEntry entry = {context->value, simTime() + ttl, simTime()};
 
     globalDhtTestMap->insertEntry(context->key, entry);
 
-    if (debugOutput) {
-        EV << "**petros [DHTTestApp::handlePutResponse] Key: "  << context->key << " value: " << entry.value << endl;
-    }
+    EV << "petros handlePutResponse DHTT Node: " << overlay->getThisNode().getIp()
+          << " PUT success for key: " << myKey
+          << " timestamp: " << simTime()
+          << endl;
 
     if (context->measurementPhase == false) {
         // don't count response, if the request was not sent
@@ -271,10 +289,6 @@ void DHTTestApp::handleGetResponse(DHTgetCAPIResponse* msg,
     if (debugOutput) {
         EV << "petros [DHTTestApp::handleGetResponse]"  << endl;
     }
-    EV << "[DHTTestApp::handleGetResponse() @ " << thisNode.getIp()
-    << " (" << thisNode.getKey().toString(16) << ")]\n"
-    << " timestamp: " << simTime()
-    << endl;    // fetch parameters
 
     if (context->measurementPhase == false) {
         // don't count response, if the request was not sent
@@ -282,6 +296,11 @@ void DHTTestApp::handleGetResponse(DHTgetCAPIResponse* msg,
         delete context;
         return;
     }
+
+    EV << "[DHTTestApp::handleGetResponse() @ " << thisNode.getIp()
+    << " (" << thisNode.getKey().toString(16) << ")]\n"
+    << " timestamp: " << simTime()
+    << endl;    // fetch parameters
 
     RECORD_STATS(globalStatistics->addStdDev("DHTTestApp: GET Latency (s)",
                                SIMTIME_DBL(simTime() - context->requestTime)));
@@ -597,7 +616,6 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                                     simTime(), key, dhtPutMsg->getValue()));
     }
 }
-
 
 BinaryValue DHTTestApp::generateRandomValue()
 {
