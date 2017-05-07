@@ -8575,6 +8575,448 @@ void *DHTdumpResponseDescriptor::getFieldStructPointer(void *object, int field, 
     }
 }
 
+Register_Class(DHTDataStorageSizeCall);
+
+DHTDataStorageSizeCall::DHTDataStorageSizeCall(const char *name, int kind) : BaseCallMessage(name,kind)
+{
+}
+
+DHTDataStorageSizeCall::DHTDataStorageSizeCall(const DHTDataStorageSizeCall& other) : BaseCallMessage(other)
+{
+    copy(other);
+}
+
+DHTDataStorageSizeCall::~DHTDataStorageSizeCall()
+{
+}
+
+DHTDataStorageSizeCall& DHTDataStorageSizeCall::operator=(const DHTDataStorageSizeCall& other)
+{
+    if (this==&other) return *this;
+    BaseCallMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void DHTDataStorageSizeCall::copy(const DHTDataStorageSizeCall& other)
+{
+}
+
+void DHTDataStorageSizeCall::parsimPack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimPack(b);
+}
+
+void DHTDataStorageSizeCall::parsimUnpack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimUnpack(b);
+}
+
+class DHTDataStorageSizeCallDescriptor : public cClassDescriptor
+{
+  public:
+    DHTDataStorageSizeCallDescriptor();
+    virtual ~DHTDataStorageSizeCallDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(DHTDataStorageSizeCallDescriptor);
+
+DHTDataStorageSizeCallDescriptor::DHTDataStorageSizeCallDescriptor() : cClassDescriptor("DHTDataStorageSizeCall", "BaseCallMessage")
+{
+}
+
+DHTDataStorageSizeCallDescriptor::~DHTDataStorageSizeCallDescriptor()
+{
+}
+
+bool DHTDataStorageSizeCallDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<DHTDataStorageSizeCall *>(obj)!=NULL;
+}
+
+const char *DHTDataStorageSizeCallDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int DHTDataStorageSizeCallDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 0+basedesc->getFieldCount(object) : 0;
+}
+
+unsigned int DHTDataStorageSizeCallDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return 0;
+}
+
+const char *DHTDataStorageSizeCallDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+int DHTDataStorageSizeCallDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *DHTDataStorageSizeCallDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+const char *DHTDataStorageSizeCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int DHTDataStorageSizeCallDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTDataStorageSizeCall *pp = (DHTDataStorageSizeCall *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string DHTDataStorageSizeCallDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTDataStorageSizeCall *pp = (DHTDataStorageSizeCall *)object; (void)pp;
+    switch (field) {
+        default: return "";
+    }
+}
+
+bool DHTDataStorageSizeCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTDataStorageSizeCall *pp = (DHTDataStorageSizeCall *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *DHTDataStorageSizeCallDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+void *DHTDataStorageSizeCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTDataStorageSizeCall *pp = (DHTDataStorageSizeCall *)object; (void)pp;
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+Register_Class(DHTDataStorageSizeResponse);
+
+DHTDataStorageSizeResponse::DHTDataStorageSizeResponse(const char *name, int kind) : BaseResponseMessage(name,kind)
+{
+    this->myDHTStorageSize_var = 0;
+}
+
+DHTDataStorageSizeResponse::DHTDataStorageSizeResponse(const DHTDataStorageSizeResponse& other) : BaseResponseMessage(other)
+{
+    copy(other);
+}
+
+DHTDataStorageSizeResponse::~DHTDataStorageSizeResponse()
+{
+}
+
+DHTDataStorageSizeResponse& DHTDataStorageSizeResponse::operator=(const DHTDataStorageSizeResponse& other)
+{
+    if (this==&other) return *this;
+    BaseResponseMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void DHTDataStorageSizeResponse::copy(const DHTDataStorageSizeResponse& other)
+{
+    this->myDHTStorageSize_var = other.myDHTStorageSize_var;
+}
+
+void DHTDataStorageSizeResponse::parsimPack(cCommBuffer *b)
+{
+    BaseResponseMessage::parsimPack(b);
+    doPacking(b,this->myDHTStorageSize_var);
+}
+
+void DHTDataStorageSizeResponse::parsimUnpack(cCommBuffer *b)
+{
+    BaseResponseMessage::parsimUnpack(b);
+    doUnpacking(b,this->myDHTStorageSize_var);
+}
+
+uint32_t DHTDataStorageSizeResponse::getMyDHTStorageSize() const
+{
+    return myDHTStorageSize_var;
+}
+
+void DHTDataStorageSizeResponse::setMyDHTStorageSize(uint32_t myDHTStorageSize)
+{
+    this->myDHTStorageSize_var = myDHTStorageSize;
+}
+
+class DHTDataStorageSizeResponseDescriptor : public cClassDescriptor
+{
+  public:
+    DHTDataStorageSizeResponseDescriptor();
+    virtual ~DHTDataStorageSizeResponseDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(DHTDataStorageSizeResponseDescriptor);
+
+DHTDataStorageSizeResponseDescriptor::DHTDataStorageSizeResponseDescriptor() : cClassDescriptor("DHTDataStorageSizeResponse", "BaseResponseMessage")
+{
+}
+
+DHTDataStorageSizeResponseDescriptor::~DHTDataStorageSizeResponseDescriptor()
+{
+}
+
+bool DHTDataStorageSizeResponseDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<DHTDataStorageSizeResponse *>(obj)!=NULL;
+}
+
+const char *DHTDataStorageSizeResponseDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int DHTDataStorageSizeResponseDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
+}
+
+unsigned int DHTDataStorageSizeResponseDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static unsigned int fieldTypeFlags[] = {
+        FD_ISEDITABLE,
+    };
+    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
+}
+
+const char *DHTDataStorageSizeResponseDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldNames[] = {
+        "myDHTStorageSize",
+    };
+    return (field>=0 && field<1) ? fieldNames[field] : NULL;
+}
+
+int DHTDataStorageSizeResponseDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    int base = basedesc ? basedesc->getFieldCount(object) : 0;
+    if (fieldName[0]=='m' && strcmp(fieldName, "myDHTStorageSize")==0) return base+0;
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *DHTDataStorageSizeResponseDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldTypeStrings[] = {
+        "uint32_t",
+    };
+    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
+}
+
+const char *DHTDataStorageSizeResponseDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int DHTDataStorageSizeResponseDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTDataStorageSizeResponse *pp = (DHTDataStorageSizeResponse *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string DHTDataStorageSizeResponseDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTDataStorageSizeResponse *pp = (DHTDataStorageSizeResponse *)object; (void)pp;
+    switch (field) {
+        case 0: return ulong2string(pp->getMyDHTStorageSize());
+        default: return "";
+    }
+}
+
+bool DHTDataStorageSizeResponseDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTDataStorageSizeResponse *pp = (DHTDataStorageSizeResponse *)object; (void)pp;
+    switch (field) {
+        case 0: pp->setMyDHTStorageSize(string2ulong(value)); return true;
+        default: return false;
+    }
+}
+
+const char *DHTDataStorageSizeResponseDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldStructNames[] = {
+        NULL,
+    };
+    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
+}
+
+void *DHTDataStorageSizeResponseDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTDataStorageSizeResponse *pp = (DHTDataStorageSizeResponse *)object; (void)pp;
+    switch (field) {
+        default: return NULL;
+    }
+}
+
 Register_Class(SignMyKeyDelayCall);
 
 SignMyKeyDelayCall::SignMyKeyDelayCall(const char *name, int kind) : BaseCallMessage(name,kind)

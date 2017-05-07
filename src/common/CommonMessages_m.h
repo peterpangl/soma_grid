@@ -1651,6 +1651,79 @@ inline void doUnpacking(cCommBuffer *b, DHTdumpResponse& obj) {obj.parsimUnpack(
 /**
  * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
  * <pre>
+ * packet DHTDataStorageSizeCall extends BaseCallMessage
+ * {
+ *     
+ * }
+ * </pre>
+ */
+class DHTDataStorageSizeCall : public ::BaseCallMessage
+{
+  protected:
+
+  private:
+    void copy(const DHTDataStorageSizeCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const DHTDataStorageSizeCall&);
+
+  public:
+    DHTDataStorageSizeCall(const char *name=NULL, int kind=0);
+    DHTDataStorageSizeCall(const DHTDataStorageSizeCall& other);
+    virtual ~DHTDataStorageSizeCall();
+    DHTDataStorageSizeCall& operator=(const DHTDataStorageSizeCall& other);
+    virtual DHTDataStorageSizeCall *dup() const {return new DHTDataStorageSizeCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+};
+
+inline void doPacking(cCommBuffer *b, DHTDataStorageSizeCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, DHTDataStorageSizeCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
+ * <pre>
+ * packet DHTDataStorageSizeResponse extends BaseResponseMessage
+ * {
+ *     uint32_t myDHTStorageSize;             
+ * }
+ * </pre>
+ */
+class DHTDataStorageSizeResponse : public ::BaseResponseMessage
+{
+  protected:
+    uint32_t myDHTStorageSize_var;
+
+  private:
+    void copy(const DHTDataStorageSizeResponse& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const DHTDataStorageSizeResponse&);
+
+  public:
+    DHTDataStorageSizeResponse(const char *name=NULL, int kind=0);
+    DHTDataStorageSizeResponse(const DHTDataStorageSizeResponse& other);
+    virtual ~DHTDataStorageSizeResponse();
+    DHTDataStorageSizeResponse& operator=(const DHTDataStorageSizeResponse& other);
+    virtual DHTDataStorageSizeResponse *dup() const {return new DHTDataStorageSizeResponse(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual uint32_t getMyDHTStorageSize() const;
+    virtual void setMyDHTStorageSize(uint32_t myDHTStorageSize);
+};
+
+inline void doPacking(cCommBuffer *b, DHTDataStorageSizeResponse& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, DHTDataStorageSizeResponse& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
+ * <pre>
  * packet SignMyKeyDelayCall extends BaseCallMessage
  * {
  *     simtime_t delay;             

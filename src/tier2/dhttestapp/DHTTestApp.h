@@ -91,7 +91,11 @@ private:
     BinaryValue getCertValue();
 
     bool handleRpcCall(BaseCallMessage* msg);
+    void handleRPCResponse(BaseResponseMessage* msg,
+            cPolymorphic* context,
+            int rpcId, simtime_t rtt);
     void delayFromChord(ChordDHTNotifyDelayCall *delayMsg);
+    void signOfKeysRespDelay(DHTDataStorageSizeResponse* msg);
     void certSignDelay(DHTAddKeyNotifyCall *addedKeyMsg);
     void signMyKeyDelay(SignMyKeyDelayCall *rttSignDelayMsg);
     void finishApp();

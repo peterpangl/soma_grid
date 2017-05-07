@@ -160,9 +160,7 @@ void DHTTestApp::initializeApp(int stage)
 
 bool DHTTestApp::handleRpcCall(BaseCallMessage* msg)
 {
-    if (debugOutput) {
-        EV << "petros [DHTTestApp::handleRpcCall]"  << endl;
-    }
+
     RPC_SWITCH_START(msg)
         // Internal RPCs
         RPC_DELEGATE(ChordDHTNotifyDelay, delayFromChord);
@@ -173,6 +171,11 @@ bool DHTTestApp::handleRpcCall(BaseCallMessage* msg)
     return RPC_HANDLED;
 }
 
+
+void DHTTestApp::signOfKeysRespDelay(DHTDataStorageSizeResponse* msg){
+    EV << "DHTTestApp::handleRPCResponse2 " << endl;
+    //EV << "DHTTestApp::signOfKeysRespDelay " << msg->getMyDHTStorageSize()  << endl;
+}
 
 /*
  * In this function is measured the time delay that it takes for the node's certification
@@ -228,10 +231,10 @@ void DHTTestApp::delayFromChord(ChordDHTNotifyDelayCall *delayMsg)
    EV << "SOMA [DHTTestApp::delayFromChord()] " << somaKey.toString()
            << " the key is sent @" << simTime()   << endl;
 
-   readyDelay = delayMsg->getTimeToReady();
+   readyDelay = delayMsg->getTimeToReady();  // time delay for node to go to Ready state
    totalNodeTimeDelay = readyDelay.dbl();
 
-   rttSignMyKeyDelay = simTime().dbl();
+   rttSignMyKeyDelay = simTime().dbl();     // measure the time from now till getting the signature response from another node
 
    EV << "DHTTestApp::totalNodeTimeDelay: " <<  overlay->getThisNode().getIp() << " - " <<totalNodeTimeDelay
            << endl;
@@ -250,8 +253,11 @@ void DHTTestApp::delayFromChord(ChordDHTNotifyDelayCall *delayMsg)
    dhtPutMsg->setTtl(ttl);
    dhtPutMsg->setIsModifiable(true);
 
-
    RECORD_STATS(numSent++; numPutSent++);
+
+
+   DHTDataStorageSizeCall* getDHTStorSizeMsg = new DHTDataStorageSizeCall();
+   sendInternalRpcCall(TIER1_COMP, getDHTStorSizeMsg);
 
    EV << "Node: " << overlay->getThisNode().getIp()
          << " sends key: " << somaKey.toString()
@@ -266,10 +272,11 @@ void DHTTestApp::delayFromChord(ChordDHTNotifyDelayCall *delayMsg)
          << endl;
 
 
-
    sendInternalRpcCall(TIER1_COMP, dhtPutMsg,
            new DHTStatsContext(globalStatistics->isMeasuring(),
                                simTime(), somaKey, dhtPutMsg->getValue()));
+
+
 
     EV << "[DHTTestApp::delayFromChord() - ChordDHTNotifyTime Rxed -in handleTimeFromChord] time:\n"
        << delayMsg->getTimeToReady()
@@ -307,6 +314,14 @@ void DHTTestApp::handleRpcResponse(BaseResponseMessage* msg,
            << " msg=" << *_DHTgetCAPIResponse << " rtt=" << rtt
            << endl;
         break;
+    }
+
+    RPC_ON_RESPONSE(DHTDataStorageSize){
+        signOfKeysRespDelay(_DHTDataStorageSizeResponse);
+        EV << "[DHTTestApp::handleGetResponse()]\n"
+                   << "    DHT Get RPC Response received: id=" << state.getId()
+                   << " msg=" << *_DHTDataStorageSizeResponse << " rtt=" << rtt
+                   << endl;
     }
 
     RPC_SWITCH_END()

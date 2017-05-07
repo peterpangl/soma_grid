@@ -93,6 +93,8 @@ private:
     bool handleRpcCall(BaseCallMessage* msg);
     void handleRpcResponse(BaseResponseMessage* msg, cPolymorphic *context,
                            int rpcId, simtime_t rtt);
+
+    void getStorageSize(DHTDataStorageSizeCall* msg);
     void handleRpcTimeout(BaseCallMessage* msg, const TransportAddress& dest,
                           cPolymorphic* context, int rpcId,
                           const OverlayKey& destKey);

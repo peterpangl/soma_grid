@@ -477,6 +477,20 @@ packet DHTdumpResponse extends BaseResponseMessage
 }
 
 //
+// Internal RPC to request from tier1 the size of its dhtDataStorage
+// @author Petros Panagopoulos
+//
+packet DHTDataStorageSizeCall extends BaseCallMessage
+{
+    
+}
+
+packet DHTDataStorageSizeResponse extends BaseResponseMessage
+{
+    uint32_t myDHTStorageSize;             // number of keys responsible for
+}
+
+//
 // Internal RPC to notify tier2 the time of the Rxed response to key signature request
 // @author Petros Panagopoulos
 //

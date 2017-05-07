@@ -126,9 +126,6 @@ void DHT::handleTimerEvent(cMessage* msg)
 
 bool DHT::handleRpcCall(BaseCallMessage* msg)
 {
-    if (debugOutput) {
-        EV << "petros [DHT::handleRpcCall]"  << endl;
-    }
     RPC_SWITCH_START(msg)
         // RPCs between nodes
         RPC_DELEGATE(DHTPut, handlePutRequest);
@@ -137,20 +134,23 @@ bool DHT::handleRpcCall(BaseCallMessage* msg)
         RPC_DELEGATE(DHTputCAPI, handlePutCAPIRequest);
         RPC_DELEGATE(DHTgetCAPI, handleGetCAPIRequest);
         RPC_DELEGATE(DHTdump, handleDumpDhtRequest);
+        RPC_DELEGATE(DHTDataStorageSize, getStorageSize);
     RPC_SWITCH_END( )
 
     return RPC_HANDLED;
 }
 
+void DHT::getStorageSize(DHTDataStorageSizeCall* msg)
+{
+    EV << "[DHT::getStorageSize()] " << endl;
+    DHTDataStorageSizeResponse* DHTStorageSize = new DHTDataStorageSizeResponse();
+    DHTStorageSize->setMyDHTStorageSize(dataStorage->getSize());
+    sendRpcResponse(msg, DHTStorageSize);
+}
+
 void DHT::handleRpcResponse(BaseResponseMessage* msg, cPolymorphic* context,
                             int rpcId, simtime_t rtt)
 {
-    if (debugOutput) {
-        EV << "petros handleRpcResponse DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
-        EV << "petrossss handleRpcResponse" << overlay->getThisNode().getIp()
-                <<" DHTstorage: " << dataStorage->getSize()
-                << "  timestamp: " << simTime() << endl;
-    }
 
     RPC_SWITCH_START(msg)
         RPC_ON_RESPONSE(DHTPut){
@@ -190,7 +190,6 @@ void DHT::handleRpcTimeout(BaseCallMessage* msg, const TransportAddress& dest,
     if (debugOutput) {
         EV << "petros handleRpcTimeout DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
 
-        EV << "petros [DHT::handleRpcTimeout]"  << endl;
     }
 
     RPC_SWITCH_START(msg)
@@ -591,8 +590,6 @@ void DHT::handlePutCAPIRequest(DHTputCAPICall* capiPutMsg)
                 << endl;
     }
 
-
-
     sendInternalRpcCall(OVERLAY_COMP, lookupCall, NULL, -1, 0,
                         capiPutMsg->getNonce());
 
@@ -601,6 +598,15 @@ void DHT::handlePutCAPIRequest(DHTputCAPICall* capiPutMsg)
     entry.putCallMsg = capiPutMsg;
     entry.state = LOOKUP_STARTED;
     pendingRpcs.insert(make_pair(capiPutMsg->getNonce(), entry));
+
+    if (debugOutput) {
+        EV << "petros this node: " << overlay->getThisNode().getIp()
+                << " sends its key sign req at " << simTime()
+                << " till now is responsible for :" <<    dataStorage->getResponsible()
+                << " number of keys"
+                << " getSize returns: " << dataStorage->getSize()
+                << endl;
+    }
 }
 
 void DHT::handleGetCAPIRequest(DHTgetCAPICall* capiGetMsg)
@@ -841,11 +847,7 @@ void DHT::handleGetResponse(DHTGetResponse* dhtMsg, int rpcId)
 
 void DHT::update(const NodeHandle& node, bool joined)
 {
-    if (debugOutput) {
-        EV << "petros [DHT::update]"  << endl;
-        EV << "petrossss DHT::update" << overlay->getThisNode().getIp() <<" DHTstorage: " << dataStorage->getSize() << "  timestamp: " << simTime()
-  << endl;    // fetch parameters
-    }
+
     OverlayKey key;
     bool err = false;
     DhtDataEntry entry;
@@ -853,10 +855,12 @@ void DHT::update(const NodeHandle& node, bool joined)
 
      EV << "[DHT::update() @ " << overlay->getThisNode().getIp()
        << " (" << overlay->getThisNode().getKey().toString(16) << ")]\n"
-       << "    Update called()"
+       << " DHTstorage: " << dataStorage->getSize()
+       << " timestamp: " << simTime()
        << endl;
 
     if (secureMaintenance) {
+        EV << "[DHT::update() @ secureMaintenance" << endl;
         for (it = dataStorage->begin(); it != dataStorage->end(); it++) {
             if (it->second.responsible) {
                 NodeVector* siblings = overlay->local_lookup(it->first,
@@ -877,7 +881,7 @@ void DHT::update(const NodeHandle& node, bool joined)
                         overlay->distance(siblings->back().getKey(), it->first)) {
 
                         // petros commented at 3/28/2017
-                        //sendMaintenancePutCall(node, it->first, it->second);
+                        sendMaintenancePutCall(node, it->first, it->second);
                     }
 
                     if (overlay->distance(overlay->getThisNode().getKey(), it->first) >
@@ -889,8 +893,8 @@ void DHT::update(const NodeHandle& node, bool joined)
                     if (overlay->distance(node.getKey(), it->first) <
                         overlay->distance(siblings->back().getKey(), it->first)) {
                         // petros commented at 3/28/2017
-                         //sendMaintenancePutCall(siblings->back(), it->first,
-                         //                      it->second);
+                         sendMaintenancePutCall(siblings->back(), it->first,
+                                               it->second);
                     }
                 }
 
@@ -905,7 +909,9 @@ void DHT::update(const NodeHandle& node, bool joined)
     for (it = dataStorage->begin(); it != dataStorage->end(); it++) {
         key = it->first;
         entry = it->second;
+
         if (joined) {
+            EV << "[DHT::update() @ joined" << endl;
             if (entry.responsible && (overlay->isSiblingFor(node, key,
                                                             numReplica, &err)
                     || err)) { // hack for Chord, if we've got a new predecessor
@@ -926,7 +932,8 @@ void DHT::update(const NodeHandle& node, bool joined)
                 }
 
                 // petros commented at 3/28/2017
-                //sendMaintenancePutCall(node, key, entry);
+                EV << "[DHT::update() @ joined call sendMaintenancePutCall" << endl;
+                sendMaintenancePutCall(node, key, entry);
             }
         }
         //TODO: move this to the inner block above?
@@ -940,10 +947,9 @@ void DHT::sendMaintenancePutCall(const TransportAddress& node,
                                  const DhtDataEntry& entry) {
 
     if (debugOutput) {
-        EV << "petros [DHT::sendMaintenancePutCall]"  << endl;
-
-        EV << "petros sendMaintenancePutCall DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
+        EV << "petros DHT::sendMaintenancePutCall DHTstorage: " << dataStorage->getSize() << endl;    // fetch parameters
     }
+
     DHTPutCall* dhtMsg = new DHTPutCall();
 
     dhtMsg->setKey(key);
