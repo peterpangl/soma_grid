@@ -31,7 +31,7 @@
 #include <GlobalDhtTestMap.h>
 
 #include "DHTTestApp.h"
-
+#include <sstream>
 Define_Module(DHTTestApp);
 
 using namespace std;
@@ -47,6 +47,7 @@ DHTTestApp::~DHTTestApp()
 
 }
 
+
 DHTTestApp::DHTTestApp()
 {
     somakeyput_timer = NULL;
@@ -58,6 +59,7 @@ DHTTestApp::DHTTestApp()
 
 
 }
+
 
 void DHTTestApp::initializeApp(int stage)
 {
@@ -77,6 +79,17 @@ void DHTTestApp::initializeApp(int stage)
     mean = par("testInterval");
     p2pnsTraffic = par("p2pnsTraffic");
     deviation = mean / 10;
+
+    // certification signature delay time
+    DHTAddedKeyTimeThresh = 50; // is the same as the number of nodes  - par("targetOverlayTerminalNum");
+    certSignProcessingDelay = 0.7;    // par("certSignProcessingDelay");
+    totalNodeTimeDelay = 0.0;   // delay to Ready state + cert sign delay
+    readyDelay = 0;             // delayMsg->getTimeToReady();
+
+    // delay of myKey signed by another node
+    rttSignMyKeyDelay = 0.0;
+
+    keySignCounter = 0;
 
     if (p2pnsTraffic) {
         ttl = 3600*24*365;
@@ -121,8 +134,6 @@ void DHTTestApp::initializeApp(int stage)
     FPqri0cb2JZfXJ/DgYSF6vUpwmJG8wVQZKjeGcjDOL5UlsuusFncCzWBQ7RKNUSesmQRMSGkVb1/\
     3j+skZ6UtW+5u09lHNsj6tQ51s1SPrCBkedbNf0Tp0GbMJDyR4e9T04ZZwIDAQAB";
 
-
-
     /*dhttestput_timer = new cMessage("dhttest_put_timer");
     dhttestget_timer = new cMessage("dhttest_get_timer");
     dhttestmod_timer = new cMessage("dhttest_mod_timer");
@@ -146,6 +157,7 @@ void DHTTestApp::initializeApp(int stage)
     << endl;    // fetch parameters
 }
 
+
 bool DHTTestApp::handleRpcCall(BaseCallMessage* msg)
 {
     if (debugOutput) {
@@ -155,16 +167,55 @@ bool DHTTestApp::handleRpcCall(BaseCallMessage* msg)
         // Internal RPCs
         RPC_DELEGATE(ChordDHTNotifyDelay, delayFromChord);
         RPC_DELEGATE(DHTAddKeyNotify, certSignDelay);
+        RPC_DELEGATE(SignMyKeyDelay, signMyKeyDelay);
     RPC_SWITCH_END( )
 
     return RPC_HANDLED;
 }
 
+
+/*
+ * In this function is measured the time delay that it takes for the node's certification
+ * to be signed by another node. This node will send the sign request and will be waiting
+ * for the sign response if it is successful or not.
+ *
+ * */
+void DHTTestApp::signMyKeyDelay(SignMyKeyDelayCall *rttSignDelayMsg)
+{
+    // EV << "rttSignDelayMsg " << rttSignDelayMsg->getDelay() << endl;
+    // EV << "rttSignMyKeyDelay: " << rttSignMyKeyDelay << endl;
+
+    // rttSignDelayMsg->getDelay(): Time that the DHT Rxed the response from another node that successfully signed the key
+    // certSignProcessingDelay : Processing time that the node needs to sign the certificate
+    // rttSignMyKeyDelay: timestamp that keeps the time that the node sent the request for signature to another node (initialized at delayFromChord)
+    // readyDelay: is the delay of the node to get in the ready state
+    rttSignMyKeyDelay = (rttSignDelayMsg->getDelay().dbl() + certSignProcessingDelay + readyDelay.dbl()) - rttSignMyKeyDelay;
+
+    EV << "Node: " << overlay->getThisNode().getIp()
+       << " sign delay: "
+       << rttSignMyKeyDelay
+       << endl;
+}
+
+
+/*
+ * measure the total delay of the node who signs the keys of the other nodes
+ *
+ */
 void DHTTestApp::certSignDelay(DHTAddKeyNotifyCall *addedKeyMsg)
 {
     EV << "DHTTestApp::certSignDelay Rxed" << endl;
 
+    // if the timestamp of the new added key is less than the readyDelay + DHTAddedKeyTimeThresh delay, then take into account
+    if (addedKeyMsg->getTimeAdded() < (readyDelay + DHTAddedKeyTimeThresh))
+    {
+        keySignCounter = keySignCounter + 1;                                                   // number of keys that the node signs(for statistics
+        totalNodeTimeDelay = totalNodeTimeDelay + certSignProcessingDelay;  // every time that the node signs a key, adds the delay to the total Node
+        EV << "DHTTestApp::totalNodeTimeDelay: " << overlay->getThisNode().getIp() << " - "
+            << totalNodeTimeDelay << endl;
+    }
 }
+
 
 void DHTTestApp::delayFromChord(ChordDHTNotifyDelayCall *delayMsg)
 {
@@ -177,6 +228,14 @@ void DHTTestApp::delayFromChord(ChordDHTNotifyDelayCall *delayMsg)
    EV << "SOMA [DHTTestApp::delayFromChord()] " << somaKey.toString()
            << " the key is sent @" << simTime()   << endl;
 
+   readyDelay = delayMsg->getTimeToReady();
+   totalNodeTimeDelay = readyDelay.dbl();
+
+   rttSignMyKeyDelay = simTime().dbl();
+
+   EV << "DHTTestApp::totalNodeTimeDelay: " <<  overlay->getThisNode().getIp() << " - " <<totalNodeTimeDelay
+           << endl;
+
    myKey = somaKey.toString();
    // initiate SOMA key-value put
    //somakeyput_timer = new cMessage("somakey_put_timer");
@@ -186,17 +245,27 @@ void DHTTestApp::delayFromChord(ChordDHTNotifyDelayCall *delayMsg)
    //OverlayKey destKey = OverlayKey::random();
    DHTputCAPICall* dhtPutMsg = new DHTputCAPICall();
    dhtPutMsg->setKey(somaKey);
-   dhtPutMsg->setValue(generateRandomValue());
+   dhtPutMsg->setValue(getCertValue());
+   //dhtPutMsg->setValue(generateRandomValue());
    dhtPutMsg->setTtl(ttl);
    dhtPutMsg->setIsModifiable(true);
 
 
    RECORD_STATS(numSent++; numPutSent++);
 
-   EV << "petros Send key to the net DHTT Node: " << overlay->getThisNode().getIp()
-         << " send key: " << somaKey.toString()
-         << " timestamp: " << simTime()
+   EV << "Node: " << overlay->getThisNode().getIp()
+         << " sends key: " << somaKey.toString()
+         << " @timestamp: " << simTime()
          << endl;
+
+
+
+   EV << "Node: " << overlay->getThisNode().getIp()
+         << " sends key: " << somaKey.toString()
+         << " @timestamp rttSingMyKeyDelay: " << rttSignMyKeyDelay
+         << endl;
+
+
 
    sendInternalRpcCall(TIER1_COMP, dhtPutMsg,
            new DHTStatsContext(globalStatistics->isMeasuring(),
@@ -204,7 +273,6 @@ void DHTTestApp::delayFromChord(ChordDHTNotifyDelayCall *delayMsg)
 
     EV << "[DHTTestApp::delayFromChord() - ChordDHTNotifyTime Rxed -in handleTimeFromChord] time:\n"
        << delayMsg->getTimeToReady()
-
        << endl;
 
 }
@@ -244,6 +312,7 @@ void DHTTestApp::handleRpcResponse(BaseResponseMessage* msg,
     RPC_SWITCH_END()
 }
 
+
 void DHTTestApp::handlePutResponse(DHTputCAPIResponse* msg,
                                    DHTStatsContext* context)
 {
@@ -282,6 +351,7 @@ void DHTTestApp::handlePutResponse(DHTputCAPIResponse* msg,
 
     delete context;
 }
+
 
 void DHTTestApp::handleGetResponse(DHTgetCAPIResponse* msg,
                                    DHTStatsContext* context)
@@ -359,6 +429,7 @@ void DHTTestApp::handleGetResponse(DHTgetCAPIResponse* msg,
 
 }
 
+
 void DHTTestApp::handleTraceMessage(cMessage* msg)
 {
     EV << "[SOMA-DHTTestApp::handleTraceMessage()\n";
@@ -426,6 +497,7 @@ void DHTTestApp::handleTraceMessage(cMessage* msg)
     delete[] cmd;
     delete msg;
 }
+
 
 void DHTTestApp::handleTimerEvent(cMessage* msg)
 {
@@ -617,6 +689,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
     }
 }
 
+
 BinaryValue DHTTestApp::generateRandomValue()
 {
     char value[DHTTESTAPP_VALUE_LEN + 1];
@@ -629,10 +702,51 @@ BinaryValue DHTTestApp::generateRandomValue()
     return BinaryValue(value);
 }
 
+BinaryValue DHTTestApp::getCertValue()
+{
+
+    certValue = (const char *)"MIIEOTCCAyGgAwIBAgIJALf3PI6l8+QqMA0GCSqGSIb3DQEBCwUAMIGqMQswCQYD\
+                                    VQQGEwJHUjEPMA0GA1UECAwGQXR0aWtpMQ8wDQYDVQQHDAZBdGhlbnMxHjAcBgNV\
+                                    BAoMFVNtYXJ0R3JpZCBDQSwgTGltaXRlZDEmMCQGA1UECwwdU21hcnRHcmlkIFJl\
+                                    c2VhcmNoIERlcGFydG1lbnQxEDAOBgNVBAMMB1Rlc3QgQ0ExHzAdBgkqhkiG9w0B\
+                                    CQEWEHRlc3RAZXhhbXBsZS5jb20wHhcNMTYxMDI2MjExMjAxWhcNMTYxMTI1MjEx\
+                                    MjAxWjCBqjELMAkGA1UEBhMCR1IxDzANBgNVBAgMBkF0dGlraTEPMA0GA1UEBwwG\
+                                    QXRoZW5zMR4wHAYDVQQKDBVTbWFydEdyaWQgQ0EsIExpbWl0ZWQxJjAkBgNVBAsM\
+                                    HVNtYXJ0R3JpZCBSZXNlYXJjaCBEZXBhcnRtZW50MRAwDgYDVQQDDAdUZXN0IENB\
+                                    MR8wHQYJKoZIhvcNAQkBFhB0ZXN0QGV4YW1wbGUuY29tMIIBIjANBgkqhkiG9w0B\
+                                    AQEFAAOCAQ8AMIIBCgKCAQEAtBes0vNZnyZF8ZD/uWoPD4ho273dGm0S3mUfFjaH\
+                                    Zvbv2mE6pI7oY0S+UhP+jc0eRdqsiFEP+CcHeZT7tTybTmNrU3uN4qA2Q+Py15Oz\
+                                    JChn8kf9JU/4D7kmvVwQW3amN9bw4J3zqNFvXrD+rU8K8aj9KSp7elW5usAKQe1U\
+                                    vOwpmNNZplCd2ga9d4WM66zKMb9MpDCDW0/EZrPOfKLRV0FOqIWBPhpoIkd4m57C\
+                                    tUmfmEeTrQ2PXghqPFvUsd7/JgV1mJLVVvv+JR3X3BavT5L2dOBHwZhVay0wv+CV\
+                                    dYISMLVirVvM+9i2VO/eFlyL3v27q48FNIDi0A44A79BbwIDAQABo2AwXjAdBgNV\
+                                    HQ4EFgQUPvdIlP4JBFEDFAkI0mfwvou3MlswHwYDVR0jBBgwFoAUPvdIlP4JBFED\
+                                    FAkI0mfwvou3MlswDwYDVR0TAQH/BAUwAwEB/zALBgNVHQ8EBAMCAQYwDQYJKoZI\
+                                    hvcNAQELBQADggEBAJ+/L1pzGLnUfff983WoI8qNTQTdqp/V83sl9f9Q2QAXZ4ww\
+                                    Z0ZAb0aUhWRUQCRMydzTfhwNtuda/ZhZFTszxrEsUBBWpomQstJugUhiVeITWgbU\
+                                    6IWHXgOgV6E0lhZiAHikz2egM/elDZQSiiFebsDIUiJTz5cG7aNzfyYWoBrqztXp\
+                                    uLvQqIUTybDk1RXMoJvk4dVp2TorXOW9v36AKAidPcl9XkUsbvJIlNmCrWYg/83j\
+                                    ms8ePGAnn2OYNUZWk+ZM3JP3ZCJKSTUpcNmQrM0M8egkr+dWLQPabL2jboGDAet0\
+                                    9dq/fUPTcjmoMkI9lnBP3PsP5lQYGnxoZgrsf0E=";
+
+
+    return BinaryValue(certValue);
+}
+
 void DHTTestApp::handleNodeLeaveNotification()
 {
     nodeIsLeavingSoon = true;
 }
+
+
+template <typename T>
+string ToString(T val)
+{
+    stringstream stream;
+    stream << val;
+    return stream.str();
+}
+
 
 void DHTTestApp::finishApp()
 {
@@ -662,5 +776,25 @@ void DHTTestApp::finishApp()
                                         / (double) (numGetSuccess + numGetError));
         }
     }
+    if (debugOutput) {
+              EV << " thisNode.getIp().str(): " << thisNode.getIp().str()
+                 << " rttSignMyKeyDelay: "  << rttSignMyKeyDelay
+                 << " totalNodeTimeDelay: " << totalNodeTimeDelay
+                 << " keySignCounter: " << keySignCounter
+                 << endl;
+          }
+    if (rttSignMyKeyDelay >= totalNodeTimeDelay)
+    {
+        std::string msg = "Node-TotalTime Delay to Join-Ready-Sign " + thisNode.getIp().str() + " delay rtt: " + ToString(rttSignMyKeyDelay) + " keys signed: " + ToString(keySignCounter);
+        RECORD_STATS(globalStatistics->recordOutVector(msg, totalNodeTimeDelay));
+    }
+    else
+    {
+        std::string msg = "Node-TotalTime Delay to Join-Ready-Sign " + thisNode.getIp().str() + " delay: " + ToString(totalNodeTimeDelay) + " keys signed: " + ToString(keySignCounter);
+        RECORD_STATS(globalStatistics->recordOutVector(msg, totalNodeTimeDelay));
+    }
+
+
+
 }
 

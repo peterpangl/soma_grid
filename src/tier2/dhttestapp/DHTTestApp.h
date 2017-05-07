@@ -74,7 +74,7 @@ private:
     };
     std::string  myKey;
     void initializeApp(int stage);
-
+    simtime_t readyDelay;
     /**
      * Get a random key of the hashmap
      */
@@ -84,9 +84,16 @@ private:
      * generate a random human readable binary value
      */
     BinaryValue generateRandomValue();
+
+    /**
+     * get a certificate value
+     */
+    BinaryValue getCertValue();
+
     bool handleRpcCall(BaseCallMessage* msg);
     void delayFromChord(ChordDHTNotifyDelayCall *delayMsg);
     void certSignDelay(DHTAddKeyNotifyCall *addedKeyMsg);
+    void signMyKeyDelay(SignMyKeyDelayCall *rttSignDelayMsg);
     void finishApp();
 
     /**
@@ -142,6 +149,7 @@ private:
     GlobalStatistics* globalStatistics; /**< pointer to GlobalStatistics module in this node*/
     GlobalDhtTestMap* globalDhtTestMap; /**< pointer to the GlobalDhtTestMap module */
     char* publickey;
+    char* certValue;
     OverlayKey somaKey;
     // parameters
     bool debugOutput; /**< debug output yes/no?*/
@@ -151,6 +159,11 @@ private:
     bool p2pnsTraffic; //!< model p2pns application traffic */
     bool activeNetwInitPhase; //!< is app active in network init phase?
 
+    simtime_t DHTAddedKeyTimeThresh;
+    double certSignProcessingDelay;   // is the delay that it takes for a node to sigh a key
+    double totalNodeTimeDelay;
+    int keySignCounter;         // variable that keeps the number of the keys that the node has signed
+    double  rttSignMyKeyDelay;  // is the delay that it takes for a node's certification to be signed by another node
     // statistics
     int numSent; /**< number of sent packets*/
     int numGetSent; /**< number of get sent*/

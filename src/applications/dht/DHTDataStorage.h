@@ -195,6 +195,8 @@ class DHTDataStorage : public cSimpleModule
     DhtDumpVector* dumpDht(const OverlayKey& key = OverlayKey::UNSPECIFIED_KEY,
                            uint32_t kind = 0, uint32_t id = 0);
 
+    // returns the number of keys the node is responsible for
+    int getResponsible();
   protected:
     DhtDataMap dataMap; /**< internal representation of the data storage */
 

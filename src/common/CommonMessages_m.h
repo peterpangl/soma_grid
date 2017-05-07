@@ -1651,6 +1651,44 @@ inline void doUnpacking(cCommBuffer *b, DHTdumpResponse& obj) {obj.parsimUnpack(
 /**
  * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
  * <pre>
+ * packet SignMyKeyDelayCall extends BaseCallMessage
+ * {
+ *     simtime_t delay;             
+ * }
+ * </pre>
+ */
+class SignMyKeyDelayCall : public ::BaseCallMessage
+{
+  protected:
+    simtime_t delay_var;
+
+  private:
+    void copy(const SignMyKeyDelayCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const SignMyKeyDelayCall&);
+
+  public:
+    SignMyKeyDelayCall(const char *name=NULL, int kind=0);
+    SignMyKeyDelayCall(const SignMyKeyDelayCall& other);
+    virtual ~SignMyKeyDelayCall();
+    SignMyKeyDelayCall& operator=(const SignMyKeyDelayCall& other);
+    virtual SignMyKeyDelayCall *dup() const {return new SignMyKeyDelayCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual simtime_t getDelay() const;
+    virtual void setDelay(simtime_t delay);
+};
+
+inline void doPacking(cCommBuffer *b, SignMyKeyDelayCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, SignMyKeyDelayCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
+ * <pre>
  * packet ChordDHTNotifyDelayCall extends BaseCallMessage
  * {
  *     simtime_t timeToReady;             

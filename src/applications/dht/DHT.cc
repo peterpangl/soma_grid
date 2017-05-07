@@ -82,6 +82,7 @@ void DHT::initializeApp(int stage)
         EV << "petros initializeApp DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
     }
 
+    int certSignProcessDelay = 700000; // 700000 is 0.7 sec the processing delay time for the node to sign a key
     maintenanceMessages = 0;
     normalMessages = 0;
     numBytesMaintenance = 0;
@@ -329,15 +330,24 @@ void DHT::handleRpcTimeout(BaseCallMessage* msg, const TransportAddress& dest,
     RPC_SWITCH_END( )
 }
 
+/* giorgo: DHT::handlePutRequest is executed when a key of another node is going to be stored to this node.
+ * The variable addedData keeps the status that the key is stored to the this node or not, and at the
+ * end of the function a msg is sent to the DHTTestApp informing it that a new key is stored in this node(if happened).
+ * DHTTestApp will then execute the DHTTestApp::certSignDelay.
+ *
+ * */
+
 void DHT::handlePutRequest(DHTPutCall* dhtMsg)
 {
 
     if (debugOutput) {
         EV << "petros [DHT::handlePutRequest]"  << endl;
     }
+
     bool addedData = false;
     std::string tempString = "PUT_REQUEST received: "
             + std::string(dhtMsg->getKey().toString(16));
+
     getParentModule()->getParentModule()->bubble(tempString.c_str());
 
     bool err;
@@ -469,12 +479,17 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
     responseMsg->setSuccess(true);
     responseMsg->setBitLength(PUTRESPONSE_L(responseMsg));
     RECORD_STATS(normalMessages++; numBytesNormal += responseMsg->getByteLength());
+
     if (addedData) {
         DHTAddKeyNotifyCall *addedKeyMsg = new DHTAddKeyNotifyCall();
         addedKeyMsg->setKey(dhtMsg->getKey());
         addedKeyMsg->setTimeAdded(simTime());
+        // this delay simulates the processing delay that a node needs in order to sign a key, not used right now the value is added in DHTTEstApp with certSignProcessingDelay
+        // usleep(certSignProcessDelay);
         sendInternalRpcCall(TIER2_COMP, addedKeyMsg);
+
     }
+
     sendRpcResponse(dhtMsg, responseMsg);
 }
 
@@ -552,6 +567,11 @@ void DHT::handleGetRequest(DHTGetCall* dhtMsg) {
     sendRpcResponse(dhtMsg, responseMsg);
 }
 
+/* DHT::handlePutCAPIRequest is called when the Node wants to put his key in the network
+ * DHTTestApp will send the request DHTputCAPICall* dhtPutMsg = new DHTputCAPICall()
+ * from delayFromChord()
+ *
+ * */
 void DHT::handlePutCAPIRequest(DHTputCAPICall* capiPutMsg)
 {
     if (debugOutput) {
@@ -562,14 +582,20 @@ void DHT::handlePutCAPIRequest(DHTputCAPICall* capiPutMsg)
     lookupCall->setKey(capiPutMsg->getKey());
     lookupCall->setNumSiblings(numReplica);
 
+
+
     if (debugOutput) {
         EV << "petros handlePutCAPIRequest make lookupCall for key: " << capiPutMsg->getKey()
                 << "   for node: " << overlay->getThisNode().getIp()
                 << " timestamp: " << simTime()
                 << endl;
     }
+
+
+
     sendInternalRpcCall(OVERLAY_COMP, lookupCall, NULL, -1, 0,
                         capiPutMsg->getNonce());
+
 
     PendingRpcsEntry entry;
     entry.putCallMsg = capiPutMsg;
@@ -618,24 +644,41 @@ void DHT::handleDumpDhtRequest(DHTdumpCall* call)
     sendRpcResponse(call, response);
 }
 
+
+/*
+ * giorgo: DHT::handlePutResponse is executed when the node has a response in a previous handlePutRequest where the
+ * DHTPutResponse* responseMsg = new DHTPutResponse(); is built (line 475)
+ * if the key has been stored successfully in the node responseMsg->setSuccess(true) is set. So, in this function the
+ * dhtMsg->getSuccess() is checked and if true then currently i print a debug but i am going to send a message to DHTTestApp and
+ * measure the delays that we were talking about.
+ *
+ */
 void DHT::handlePutResponse(DHTPutResponse* dhtMsg, int rpcId)
 {
-    if (debugOutput) {
-        EV << "petros [DHT::handlePutResponse]"  << endl;
-    }
+
     PendingRpcs::iterator it = pendingRpcs.find(rpcId);
 
     if (it == pendingRpcs.end()) // unknown request
         return;
-
+    int size = dataStorage->getSize();
+    if (debugOutput) {
+          EV      << "   for node: " << overlay->getThisNode().getIp()
+                  << " timestamp: " << simTime()
+                  << " MY DATA STORAGE SIZE: " << size
+                  << endl;
+    }
     if (dhtMsg->getSuccess()) {
         it->second.numResponses++;
         if (debugOutput) {
-            EV << "petros [DHT::handlePutResponse] it->second.numResponses: "  << it->second.numResponses << " for node: "
+            EV << "petros [DHT::handlePutResponse] it->second.numResponses: "  << it->second.numResponses << " at node: "
                     << overlay->getThisNode().getIp()
                     << " timestamp: " << simTime()
-                    << " DHTstorage: " << dataStorage->getSize() << endl;
+                    << " DHTstorage: " << dataStorage->getSize()
+                    << endl;
         }
+        SignMyKeyDelayCall *rttSignDelayMsg = new SignMyKeyDelayCall();
+        rttSignDelayMsg->setDelay(simTime());
+        sendInternalRpcCall(TIER2_COMP, rttSignDelayMsg);
     }
     else
     {

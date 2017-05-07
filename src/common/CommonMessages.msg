@@ -477,6 +477,15 @@ packet DHTdumpResponse extends BaseResponseMessage
 }
 
 //
+// Internal RPC to notify tier2 the time of the Rxed response to key signature request
+// @author Petros Panagopoulos
+//
+packet SignMyKeyDelayCall extends BaseCallMessage
+{
+    simtime_t delay;             // time delay of node
+}
+
+//
 // Internal RPC to notify tier2 with the total delay time of node to go to READY State
 // @author Petros Panagopoulos
 //

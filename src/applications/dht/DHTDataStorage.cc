@@ -81,6 +81,24 @@ uint32_t DHTDataStorage::getSize()
     return dataMap.size();
 }
 
+// returns the number of keys the node is responsible for
+int DHTDataStorage::getResponsible()
+{
+    int respTotal = 0;
+
+    DhtDataMap::iterator iter, end;
+
+    iter = dataMap.begin();
+    end = dataMap.end();
+
+    for (; iter != end; iter++)
+    {
+            if (iter->second.responsible)
+                respTotal++;
+    }
+    return respTotal;
+}
+
 DhtDataEntry* DHTDataStorage::getDataEntry(const OverlayKey& key,
                                            uint32_t kind, uint32_t id)
 {
@@ -158,6 +176,7 @@ DhtDataEntry* DHTDataStorage::addData(const OverlayKey& key, uint32_t kind,
                                       bool is_modifiable, NodeHandle sourceNode,
                                       bool responsible)
 {
+
     DhtDataEntry entry;
     entry.kind = kind;
     entry.id = id;
@@ -166,6 +185,14 @@ DhtDataEntry* DHTDataStorage::addData(const OverlayKey& key, uint32_t kind,
     entry.sourceNode = sourceNode;
     entry.is_modifiable = is_modifiable;
     entry.responsible = responsible;
+
+
+    EV << "petros [DHTDataStorage::addData] source Node: "
+       << entry.sourceNode
+       << " key: "
+       << key
+       << endl;
+
 
     if ((kind == 0) || (id == 0)) {
         throw cRuntimeError("DHTDataStorage::addData(): "
