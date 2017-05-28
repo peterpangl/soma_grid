@@ -83,6 +83,7 @@ private:
         int numResponses;
     };
 
+
     friend std::ostream& operator<<(std::ostream& Stream,
                                             const PendingRpcsEntry& entry);
 

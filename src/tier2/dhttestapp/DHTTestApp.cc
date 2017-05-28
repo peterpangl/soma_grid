@@ -202,8 +202,8 @@ void DHTTestApp::signMyKeyDelay(SignMyKeyDelayCall *rttSignDelayMsg)
     // rttSignMyKeyDelay: timestamp that keeps the time that the node sent the request for signature to another node (initialized at delayFromChord)
     // certSignProcessingDelay : Processing time that the node needs to sign the certificate
     // readyDelay: is the delay of the node to get in the ready state
-    rttSignMyKeyDelay = (rttSignDelayMsg->getDelay().dbl() - rttSignMyKeyDelay) + certSignProcessingDelay + readyDelay.dbl() ;
-
+    rttSignMyKeyDelay = (rttSignDelayMsg->getDelay().dbl() - rttSignMyKeyDelay) + certSignProcessingDelay + readyDelay.dbl() ; // measure without usleep
+    //rttSignMyKeyDelay = (rttSignDelayMsg->getDelay().dbl() - rttSignMyKeyDelay) + readyDelay.dbl() ; // measure with usleep
     EV << "Node: " << overlay->getThisNode().getIp()
        << " Enter the network delay with key signature: "
        << rttSignMyKeyDelay

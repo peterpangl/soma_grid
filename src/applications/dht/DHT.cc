@@ -82,7 +82,7 @@ void DHT::initializeApp(int stage)
         EV << "petros initializeApp DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
     }
 
-    int certSignProcessDelay = 700000; // 700000 is 0.7 sec the processing delay time for the node to sign a key
+    double certSignProcessDelay = 700000; // 700000 is 0.7 sec the processing delay time for the node to sign a key
     maintenanceMessages = 0;
     normalMessages = 0;
     numBytesMaintenance = 0;
@@ -104,24 +104,25 @@ void DHT::initializeApp(int stage)
 
 void DHT::handleTimerEvent(cMessage* msg)
 {
-    DHTTtlTimer* msg_timer = dynamic_cast<DHTTtlTimer*> (msg);
+    try {
+        DHTTtlTimer* msg_timer = dynamic_cast<DHTTtlTimer*> (msg);
 
-    if (debugOutput) {
-        EV << "petros [DHT::handleTimerEvent]"  << endl;
-    }
-    if (msg_timer) {
-        EV << "[DHT::handleTimerEvent()]\n"
-           << "    received timer ttl, key: "
-           << msg_timer->getKey().toString(16)
-           << "\n (overlay->getThisNode().getKey() = "
-           << overlay->getThisNode().getKey().toString(16) << ")"
-           << endl;
-        if (debugOutput) {
-            EV << "petros handleTimerEvent DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
+        if (msg_timer) {
+            EV << "[DHT::handleTimerEvent()]\n"
+               << "    received timer ttl, key: "
+               << msg_timer->getKey().toString(16)
+               << "\n (overlay->getThisNode().getKey() = "
+               << overlay->getThisNode().getKey().toString(16) << ")"
+               << endl;
+            dataStorage->removeData(msg_timer->getKey(), msg_timer->getKind(),
+                                    msg_timer->getId());
         }
-        dataStorage->removeData(msg_timer->getKey(), msg_timer->getKind(),
-                                msg_timer->getId());
     }
+    catch(const std::bad_cast& e) {
+        std::cout << e.what() << '\n';
+    }
+
+
 }
 
 bool DHT::handleRpcCall(BaseCallMessage* msg)
@@ -479,16 +480,12 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
     responseMsg->setBitLength(PUTRESPONSE_L(responseMsg));
     RECORD_STATS(normalMessages++; numBytesNormal += responseMsg->getByteLength());
 
-    /*
-     * if (addedData) {
-        DHTAddKeyNotifyCall *addedKeyMsg = new DHTAddKeyNotifyCall();
-        addedKeyMsg->setKey(dhtMsg->getKey());
-        addedKeyMsg->setTimeAdded(simTime());
-        // this delay simulates the processing delay that a node needs in order to sign a key, not used right now the value is added in DHTTEstApp with certSignProcessingDelay
-        // usleep(certSignProcessDelay);
-        sendInternalRpcCall(TIER2_COMP, addedKeyMsg);
-
-    }*/
+//    if (addedData) {
+//        DHTRespMsg* respMsg = new DHTRespMsg();
+//        respMsg->setMsgCall(&dhtMsg);
+//        respMsg->setMsgResponse(&responseMsg);
+//        scheduleAt(simTime() + 0.7, respMsg);
+//    }
 
     sendRpcResponse(dhtMsg, responseMsg);
 }

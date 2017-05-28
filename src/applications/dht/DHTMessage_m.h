@@ -297,5 +297,49 @@ class DHTTtlTimer : public ::cMessage
 inline void doPacking(cCommBuffer *b, DHTTtlTimer& obj) {obj.parsimPack(b);}
 inline void doUnpacking(cCommBuffer *b, DHTTtlTimer& obj) {obj.parsimUnpack(b);}
 
+/**
+ * Class generated from <tt>applications/dht/DHTMessage.msg</tt> by opp_msgc.
+ * <pre>
+ * message DHTRespMsg extends BaseResponseMessage
+ * {
+ * 	DHTPutResponse msgResponse;
+ * 	DHTPutCall 	msgCall;
+ * }
+ * </pre>
+ */
+class DHTRespMsg : public ::BaseResponseMessage
+{
+  protected:
+    DHTPutResponse msgResponse_var;
+    DHTPutCall msgCall_var;
+
+  private:
+    void copy(const DHTRespMsg& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const DHTRespMsg&);
+
+  public:
+    DHTRespMsg(const char *name=NULL, int kind=0);
+    DHTRespMsg(const DHTRespMsg& other);
+    virtual ~DHTRespMsg();
+    DHTRespMsg& operator=(const DHTRespMsg& other);
+    virtual DHTRespMsg *dup() const {return new DHTRespMsg(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual DHTPutResponse& getMsgResponse();
+    virtual const DHTPutResponse& getMsgResponse() const {return const_cast<DHTRespMsg*>(this)->getMsgResponse();}
+    virtual void setMsgResponse(const DHTPutResponse& msgResponse);
+    virtual DHTPutCall& getMsgCall();
+    virtual const DHTPutCall& getMsgCall() const {return const_cast<DHTRespMsg*>(this)->getMsgCall();}
+    virtual void setMsgCall(const DHTPutCall& msgCall);
+};
+
+inline void doPacking(cCommBuffer *b, DHTRespMsg& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, DHTRespMsg& obj) {obj.parsimUnpack(b);}
+
 
 #endif // _DHTMESSAGE_M_H_
