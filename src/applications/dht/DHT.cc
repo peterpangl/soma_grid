@@ -479,7 +479,8 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
     responseMsg->setBitLength(PUTRESPONSE_L(responseMsg));
     RECORD_STATS(normalMessages++; numBytesNormal += responseMsg->getByteLength());
 
-    if (addedData) {
+    /*
+     * if (addedData) {
         DHTAddKeyNotifyCall *addedKeyMsg = new DHTAddKeyNotifyCall();
         addedKeyMsg->setKey(dhtMsg->getKey());
         addedKeyMsg->setTimeAdded(simTime());
@@ -487,7 +488,7 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
         // usleep(certSignProcessDelay);
         sendInternalRpcCall(TIER2_COMP, addedKeyMsg);
 
-    }
+    }*/
 
     sendRpcResponse(dhtMsg, responseMsg);
 }
@@ -495,10 +496,9 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
 void DHT::handleGetRequest(DHTGetCall* dhtMsg) {
 
     if (debugOutput) {
-        EV << "petros [DHT::handleGetRequest]"  << endl;
-
         EV << "petros handleGetRequest DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
     }
+
     std::string tempString = "GET_REQUEST received: "
             + std::string(dhtMsg->getKey().toString(16));
 

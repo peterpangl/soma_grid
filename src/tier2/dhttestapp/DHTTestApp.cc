@@ -83,7 +83,7 @@ void DHTTestApp::initializeApp(int stage)
     // certification signature delay time
     DHTAddedKeyTimeThresh = 50; // is the same as the number of nodes  - par("targetOverlayTerminalNum");
     certSignProcessingDelay = 0.7;    // par("certSignProcessingDelay");
-    totalNodeTimeDelay = 0.0;   // delay to Ready state + cert sign delay
+    signOthersKeyDelay = 0.0;   // delay to Ready state + cert sign delay
     readyDelay = 0;             // delayMsg->getTimeToReady();
 
     // delay of myKey signed by another node
@@ -164,23 +164,33 @@ bool DHTTestApp::handleRpcCall(BaseCallMessage* msg)
     RPC_SWITCH_START(msg)
         // Internal RPCs
         RPC_DELEGATE(ChordDHTNotifyDelay, delayFromChord);
-        RPC_DELEGATE(DHTAddKeyNotify, certSignDelay);
+        //RPC_DELEGATE(DHTAddKeyNotify, certSignDelay);
         RPC_DELEGATE(SignMyKeyDelay, signMyKeyDelay);
     RPC_SWITCH_END( )
 
     return RPC_HANDLED;
 }
 
+/*
+ * Function executed in response of dhtDataStorageSize request.
+ * Request is sent when the node is in Ready state in Chord
+ */
+void DHTTestApp::signOfKeysResponsibleDelay(DHTDataStorageSizeResponse* msg)
+{
+    keySignCounter = msg->getMyDHTStorageSize();
+    EV << "DHTTestApp::signOfKeysRespDelay: " << keySignCounter << endl;
 
-void DHTTestApp::signOfKeysRespDelay(DHTDataStorageSizeResponse* msg){
-    EV << "DHTTestApp::handleRPCResponse2 " << endl;
-    //EV << "DHTTestApp::signOfKeysRespDelay " << msg->getMyDHTStorageSize()  << endl;
+    signOthersKeyDelay = readyDelay.dbl() + (certSignProcessingDelay * keySignCounter);
+
+    EV << "DHTTestApp Node - signOthersKeyDelay: " << overlay->getThisNode().getIp() << " - "
+        << signOthersKeyDelay << endl;
 }
+
 
 /*
  * In this function is measured the time delay that it takes for the node's certification
- * to be signed by another node. This node will send the sign request and will be waiting
- * for the sign response if it is successful or not.
+ * to be signed by another node since the time of transmission of the request.
+ * This node will send the sign request and will be waiting for the sign response if it is successful or not.
  *
  * */
 void DHTTestApp::signMyKeyDelay(SignMyKeyDelayCall *rttSignDelayMsg)
@@ -189,37 +199,45 @@ void DHTTestApp::signMyKeyDelay(SignMyKeyDelayCall *rttSignDelayMsg)
     // EV << "rttSignMyKeyDelay: " << rttSignMyKeyDelay << endl;
 
     // rttSignDelayMsg->getDelay(): Time that the DHT Rxed the response from another node that successfully signed the key
-    // certSignProcessingDelay : Processing time that the node needs to sign the certificate
     // rttSignMyKeyDelay: timestamp that keeps the time that the node sent the request for signature to another node (initialized at delayFromChord)
+    // certSignProcessingDelay : Processing time that the node needs to sign the certificate
     // readyDelay: is the delay of the node to get in the ready state
-    rttSignMyKeyDelay = (rttSignDelayMsg->getDelay().dbl() + certSignProcessingDelay + readyDelay.dbl()) - rttSignMyKeyDelay;
+    rttSignMyKeyDelay = (rttSignDelayMsg->getDelay().dbl() - rttSignMyKeyDelay) + certSignProcessingDelay + readyDelay.dbl() ;
 
     EV << "Node: " << overlay->getThisNode().getIp()
-       << " sign delay: "
+       << " Enter the network delay with key signature: "
        << rttSignMyKeyDelay
        << endl;
 }
 
+//
+///*
+// * measure the total delay of the node who signs the keys of the other nodes
+// *
+// */
+//void DHTTestApp::certSignDelay(DHTAddKeyNotifyCall *addedKeyMsg)
+//{
+//    /*EV << "DHTTestApp::certSignDelay Rxed" << endl;
+//
+//    // if the timestamp of the new added key is less than the readyDelay + DHTAddedKeyTimeThresh delay, then take into account
+//    if (addedKeyMsg->getTimeAdded() < (readyDelay + DHTAddedKeyTimeThresh))
+//    {
+//        keySignCounter = keySignCounter + 1;                                                   // number of keys that the node signs(for statistics
+//        signOthersKeyDelay = signOthersKeyDelay + certSignProcessingDelay;  // every time that the node signs a key, adds the delay to the total Node
+//        EV << "DHTTestApp::signOthersKeyDelay: " << overlay->getThisNode().getIp() << " - "
+//            << signOthersKeyDelay << endl;
+//    }*/
+//}
+
 
 /*
- * measure the total delay of the node who signs the keys of the other nodes
- *
+ * delayFromChord function is executed when the node enters the Ready state in Chord.
+ * Upon that, a message is sent to the DHTTestApp informing about the delay that took for the node
+ * to enter the ready state since its creation.
+ * After that informative message, the node (since is in ready state) sends its somaKey to the a random destination
+ * in order to be signed by that node.
+ * The key is a hash of the concatenation of the nodeIp and the and the publicKey
  */
-void DHTTestApp::certSignDelay(DHTAddKeyNotifyCall *addedKeyMsg)
-{
-    EV << "DHTTestApp::certSignDelay Rxed" << endl;
-
-    // if the timestamp of the new added key is less than the readyDelay + DHTAddedKeyTimeThresh delay, then take into account
-    if (addedKeyMsg->getTimeAdded() < (readyDelay + DHTAddedKeyTimeThresh))
-    {
-        keySignCounter = keySignCounter + 1;                                                   // number of keys that the node signs(for statistics
-        totalNodeTimeDelay = totalNodeTimeDelay + certSignProcessingDelay;  // every time that the node signs a key, adds the delay to the total Node
-        EV << "DHTTestApp::totalNodeTimeDelay: " << overlay->getThisNode().getIp() << " - "
-            << totalNodeTimeDelay << endl;
-    }
-}
-
-
 void DHTTestApp::delayFromChord(ChordDHTNotifyDelayCall *delayMsg)
 {
 
@@ -232,12 +250,9 @@ void DHTTestApp::delayFromChord(ChordDHTNotifyDelayCall *delayMsg)
            << " the key is sent @" << simTime()   << endl;
 
    readyDelay = delayMsg->getTimeToReady();  // time delay for node to go to Ready state
-   totalNodeTimeDelay = readyDelay.dbl();
+   //signOthersKeyDelay = readyDelay.dbl();
 
    rttSignMyKeyDelay = simTime().dbl();     // measure the time from now till getting the signature response from another node
-
-   EV << "DHTTestApp::totalNodeTimeDelay: " <<  overlay->getThisNode().getIp() << " - " <<totalNodeTimeDelay
-           << endl;
 
    myKey = somaKey.toString();
    // initiate SOMA key-value put
@@ -287,10 +302,10 @@ void DHTTestApp::delayFromChord(ChordDHTNotifyDelayCall *delayMsg)
 void DHTTestApp::handleRpcResponse(BaseResponseMessage* msg,
                                    const RpcState& state, simtime_t rtt)
 {
-    EV << "[DHTTestApp::handleRpcResponse() @ " << thisNode.getIp()
-    << " (" << thisNode.getKey().toString(16) << ")]\n"
-    << " timestamp: " << simTime()
-    << endl;    // fetch parameters
+//    EV << "[DHTTestApp::handleRpcResponse() @ " << thisNode.getIp()
+//    << " (" << thisNode.getKey().toString(16) << ")]\n"
+//    << " timestamp: " << simTime()
+//    << endl;    // fetch parameters
 
     RPC_SWITCH_START(msg)
 
@@ -316,12 +331,14 @@ void DHTTestApp::handleRpcResponse(BaseResponseMessage* msg,
         break;
     }
 
-    RPC_ON_RESPONSE(DHTDataStorageSize){
-        signOfKeysRespDelay(_DHTDataStorageSizeResponse);
+    RPC_ON_RESPONSE(DHTDataStorageSize)
+    {
+        signOfKeysResponsibleDelay(_DHTDataStorageSizeResponse);
         EV << "[DHTTestApp::handleGetResponse()]\n"
-                   << "    DHT Get RPC Response received: id=" << state.getId()
-                   << " msg=" << *_DHTDataStorageSizeResponse << " rtt=" << rtt
-                   << endl;
+           << "    DHT Get RPC Response received: id=" << state.getId()
+           << " msg=" << *_DHTDataStorageSizeResponse << " rtt=" << rtt
+           << endl;
+        break;
     }
 
     RPC_SWITCH_END()
@@ -794,19 +811,19 @@ void DHTTestApp::finishApp()
     if (debugOutput) {
               EV << " thisNode.getIp().str(): " << thisNode.getIp().str()
                  << " rttSignMyKeyDelay: "  << rttSignMyKeyDelay
-                 << " totalNodeTimeDelay: " << totalNodeTimeDelay
+                 << " signOthersKeyDelay: " << signOthersKeyDelay
                  << " keySignCounter: " << keySignCounter
                  << endl;
           }
-    if (rttSignMyKeyDelay >= totalNodeTimeDelay)
+    if (rttSignMyKeyDelay >= signOthersKeyDelay)
     {
         std::string msg = "Node-TotalTime Delay to Join-Ready-Sign " + thisNode.getIp().str() + " delay rtt: " + ToString(rttSignMyKeyDelay) + " keys signed: " + ToString(keySignCounter);
-        RECORD_STATS(globalStatistics->recordOutVector(msg, totalNodeTimeDelay));
+        RECORD_STATS(globalStatistics->recordOutVector(msg, rttSignMyKeyDelay));
     }
     else
     {
-        std::string msg = "Node-TotalTime Delay to Join-Ready-Sign " + thisNode.getIp().str() + " delay: " + ToString(totalNodeTimeDelay) + " keys signed: " + ToString(keySignCounter);
-        RECORD_STATS(globalStatistics->recordOutVector(msg, totalNodeTimeDelay));
+        std::string msg = "Node-TotalTime Delay to Join-Ready-Sign " + thisNode.getIp().str() + " delay: " + ToString(signOthersKeyDelay) + " keys signed: " + ToString(keySignCounter);
+        RECORD_STATS(globalStatistics->recordOutVector(msg, signOthersKeyDelay));
     }
 
 

@@ -75,6 +75,7 @@ private:
     std::string  myKey;
     void initializeApp(int stage);
     simtime_t readyDelay;
+    std::map<BinaryValue, NodeHandle> certificates;
     /**
      * Get a random key of the hashmap
      */
@@ -95,7 +96,7 @@ private:
             cPolymorphic* context,
             int rpcId, simtime_t rtt);
     void delayFromChord(ChordDHTNotifyDelayCall *delayMsg);
-    void signOfKeysRespDelay(DHTDataStorageSizeResponse* msg);
+    void signOfKeysResponsibleDelay(DHTDataStorageSizeResponse* msg);
     void certSignDelay(DHTAddKeyNotifyCall *addedKeyMsg);
     void signMyKeyDelay(SignMyKeyDelayCall *rttSignDelayMsg);
     void finishApp();
@@ -165,7 +166,7 @@ private:
 
     simtime_t DHTAddedKeyTimeThresh;
     double certSignProcessingDelay;   // is the delay that it takes for a node to sigh a key
-    double totalNodeTimeDelay;
+    double signOthersKeyDelay;
     int keySignCounter;         // variable that keeps the number of the keys that the node has signed
     double  rttSignMyKeyDelay;  // is the delay that it takes for a node's certification to be signed by another node
     // statistics
