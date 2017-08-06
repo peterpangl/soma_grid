@@ -96,11 +96,13 @@ protected:
     bool mergeOptimizationL2;
     bool mergeOptimizationL3;
     bool mergeOptimizationL4;
+
     simtime_t SG_measure_timer;
     simtime_t SG_node_init_time;
     simtime_t SG_node_join_time;
     simtime_t SG_node_total_time;
-    simtime_t SG_node_toxal_time;
+    cOutVector ChordTimeVector;
+
 
     // timer messages
     cMessage* join_timer; /**< */
@@ -199,6 +201,7 @@ protected:
     // see BaseOverlay.h
     virtual void joinOverlay();
 
+
     // see BaseOverlay.h
     virtual void joinForeignPartition(const NodeHandle &node);
 
@@ -270,6 +273,8 @@ protected:
                                              double rtt = -1);
 
     virtual bool handleFailedNode(const TransportAddress& failed);
+
+    BinaryValue generateRandomValue();
 
     friend class ChordSuccessorList;
     friend class ChordFingerTable;

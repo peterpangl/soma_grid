@@ -50,7 +50,6 @@ class GlobalDhtTestMap;
 class DHTTestApp : public BaseApp
 {
 private:
-
     /**
      * A container used by the DHTTestApp to
      * store context information for statistics
@@ -72,10 +71,9 @@ private:
             measurementPhase(measurementPhase), requestTime(requestTime),
             key(key), value(value) {};
     };
-    std::string  myKey;
+
     void initializeApp(int stage);
-    simtime_t readyDelay;
-    std::map<BinaryValue, NodeHandle> certificates;
+
     /**
      * Get a random key of the hashmap
      */
@@ -86,20 +84,14 @@ private:
      */
     BinaryValue generateRandomValue();
 
-    /**
-     * get a certificate value
-     */
-    BinaryValue getCertValue();
-
     bool handleRpcCall(BaseCallMessage* msg);
-    void handleRPCResponse(BaseResponseMessage* msg,
-            cPolymorphic* context,
-            int rpcId, simtime_t rtt);
-    void delayFromChord(ChordDHTNotifyDelayCall *delayMsg);
-    void signOfKeysResponsibleDelay(DHTDataStorageSizeResponse* msg);
-    void certSignDelay(DHTAddKeyNotifyCall *addedKeyMsg);
-    void signMyKeyDelay(SignMyKeyDelayCall *rttSignDelayMsg);
+
     void finishApp();
+
+    void handleGetResponsibleResponse(DHTgetResponsibleResponse* msg);//,
+//                                       DHTStatsContext* context);
+    void handlePutCall(BaseCallMessage* msg);
+    void handleDHTKeyPutCall(DHTKeyPutCall* msg);
 
     /**
      * processes get responses
@@ -153,9 +145,10 @@ private:
 
     GlobalStatistics* globalStatistics; /**< pointer to GlobalStatistics module in this node*/
     GlobalDhtTestMap* globalDhtTestMap; /**< pointer to the GlobalDhtTestMap module */
-    char* publickey;
-    char* certValue;
+
+    char *publickey, *cert, *signTemplate;
     OverlayKey somaKey;
+
     // parameters
     bool debugOutput; /**< debug output yes/no?*/
     double mean; //!< mean time interval between sending test messages
@@ -164,11 +157,6 @@ private:
     bool p2pnsTraffic; //!< model p2pns application traffic */
     bool activeNetwInitPhase; //!< is app active in network init phase?
 
-    simtime_t DHTAddedKeyTimeThresh;
-    double certSignProcessingDelay;   // is the delay that it takes for a node to sigh a key
-    double signOthersKeyDelay;
-    int keySignCounter;         // variable that keeps the number of the keys that the node has signed
-    double  rttSignMyKeyDelay;  // is the delay that it takes for a node's certification to be signed by another node
     // statistics
     int numSent; /**< number of sent packets*/
     int numGetSent; /**< number of get sent*/
@@ -177,9 +165,13 @@ private:
     int numPutSent; /**< number of put sent*/
     int numPutError; /**< number of error in put responses*/
     int numPutSuccess; /**< number of success in put responses*/
-    int global_i;
-    int targetOverlayTerminalNum_;
-    cMessage *dhttestput_timer, *dhttestget_timer, *dhttestmod_timer, *somakeyput_timer;
+
+    int numSomaKeys; /**< number of SOMA keys signed*/
+    simtime_t soma_init_timer, soma_total_time;
+    simtime_t soma_keyputtime, soma_fkeysigntime;
+    cOutVector timeVector;
+
+    cMessage *dhttestput_timer, *dhttestget_timer, *dhttestmod_timer, *somakeyput_msg, *somafkeysign_msg;
     bool nodeIsLeavingSoon; //!< true if the node is going to be killed shortly
 
     static const int DHTTESTAPP_VALUE_LEN = 20;

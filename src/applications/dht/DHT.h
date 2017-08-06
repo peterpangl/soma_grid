@@ -83,7 +83,6 @@ private:
         int numResponses;
     };
 
-
     friend std::ostream& operator<<(std::ostream& Stream,
                                             const PendingRpcsEntry& entry);
 
@@ -94,8 +93,6 @@ private:
     bool handleRpcCall(BaseCallMessage* msg);
     void handleRpcResponse(BaseResponseMessage* msg, cPolymorphic *context,
                            int rpcId, simtime_t rtt);
-
-    void getStorageSize(DHTDataStorageSizeCall* msg);
     void handleRpcTimeout(BaseCallMessage* msg, const TransportAddress& dest,
                           cPolymorphic* context, int rpcId,
                           const OverlayKey& destKey);
@@ -105,6 +102,7 @@ private:
     void handleGetResponse(DHTGetResponse* dhtMsg, int rpcId);
     void handlePutCAPIRequest(DHTputCAPICall* capiPutMsg);
     void handleGetCAPIRequest(DHTgetCAPICall* capiPutMsg);
+    void handleGetResponsibleRequest(DHTgetResponsibleCall* call);
     void handleDumpDhtRequest(DHTdumpCall* call);
     void update(const NodeHandle& node, bool joined);
     void handleLookupResponse(LookupResponse* lookupMsg, int rpcId);
@@ -112,6 +110,13 @@ private:
                                 const OverlayKey& key,
                                 const DhtDataEntry& entry);
     int resultValuesBitLength(DHTGetResponse* msg);
+    //virtual void refreshDisplay() const override;
+
+    void handleKeySign(DHTputCAPICall* capiPutMsg);
+    bool alreadySigned(std::string msgValue, std::string myIP);
+
+    overMessage *somakeyput_msg;
+
 
     uint numReplica;
     int numGetRequests;
@@ -130,6 +135,10 @@ private:
 
     // module references
     DHTDataStorage* dataStorage; /**< pointer to the dht data storage */
+
+    // SOMA
+    char *signTemplate;
+
 };
 
 #endif

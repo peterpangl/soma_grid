@@ -58,10 +58,6 @@ void DHT::initializeApp(int stage)
 {
     if (stage != MIN_STAGE_APP)
         return;
-    EV << "[DHT::initializeApp() @ " << thisNode.getIp()
-    << " (" << thisNode.getKey().toString(16) << ")]\n"
-    << " petrosDHT timestamp: " << simTime()
-    << endl;    // fetch parameters
 
     dataStorage = check_and_cast<DHTDataStorage*>
                       (getParentModule()->getSubmodule("dhtDataStorage"));
@@ -78,11 +74,6 @@ void DHT::initializeApp(int stage)
                   "overlay can handle (%d)", overlay->getMaxNumSiblings());
     }
 
-    if (debugOutput) {
-        EV << "petros initializeApp DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
-    }
-
-    double certSignProcessDelay = 700000; // 700000 is 0.7 sec the processing delay time for the node to sign a key
     maintenanceMessages = 0;
     normalMessages = 0;
     numBytesMaintenance = 0;
@@ -93,35 +84,50 @@ void DHT::initializeApp(int stage)
     WATCH(numBytesMaintenance);
     WATCH_MAP(pendingRpcs);
 
-    EV << "[DHT::initializeApp() numReplica: " << numReplica
-    << "\n numGetRequests:" << numGetRequests
-    << "\n ratioIdentical:" << ratioIdentical
-    << "\n secureMaintenance:" << secureMaintenance
-    << "\n invalidDataAttack:" << invalidDataAttack
-    << "\n maintenanceAttack:" << maintenanceAttack
-    << endl;    // fetch parameters
+
+    // SOMA-related stuff
+    signTemplate = (char *)"|YcmV5HrJNBQ/zVQZNaOtHvG3BxePT4b6wi+ab23hMfdn0SapmCOqWGtIxpm9BvM\
+3Ua9rQ2RZEablzga0GosgkclhTB8VJGA3jt7+U+u8nKKwqTeKLLq9SncGU0b9PEM\
+i9YNqDyhNlETrkNOYLvTFlraQCaoPa27x5bz26gA7BX7IgXe0Qlbel0fXkZD/cbh\
+d30PZ1s5fOWAi6OB/7oseewUqtwpiZnouJ+Tf+W+/sjv1Rw/fsB1xIbtcxqOstRs\
+e9GBLPQ76DYU8pNYRM6Romt+GaIJLASFneYlUpBHZYpVTG450Qe6cmApYFP5HNDd\
+nlTe05wO4ZmcALSX|";
+
 }
 
 void DHT::handleTimerEvent(cMessage* msg)
 {
-    try {
-        DHTTtlTimer* msg_timer = dynamic_cast<DHTTtlTimer*> (msg);
+    DHTTtlTimer* msg_timer = dynamic_cast<DHTTtlTimer*> (msg);
 
-        if (msg_timer) {
-            EV << "[DHT::handleTimerEvent()]\n"
-               << "    received timer ttl, key: "
-               << msg_timer->getKey().toString(16)
-               << "\n (overlay->getThisNode().getKey() = "
-               << overlay->getThisNode().getKey().toString(16) << ")"
-               << endl;
-            dataStorage->removeData(msg_timer->getKey(), msg_timer->getKind(),
-                                    msg_timer->getId());
-        }
-    }
-    catch(const std::bad_cast& e) {
-        std::cout << e.what() << '\n';
+    if (msg_timer) {
+        EV << "[DHT::handleTimerEvent()]\n"
+           << "    received timer ttl, key: "
+           << msg_timer->getKey().toString(16)
+           << "\n (overlay->getThisNode().getKey() = "
+           << overlay->getThisNode().getKey().toString(16) << ")"
+           << endl;
+
+        dataStorage->removeData(msg_timer->getKey(), msg_timer->getKind(),
+                                msg_timer->getId());
     }
 
+    overMessage* ov_msg = dynamic_cast<overMessage*> (msg);
+
+    if (ov_msg->isName("somakey_put_timer")) {
+        //DHTputCAPICall* call = (DHTputCAPICall*) msg -> getObject("somakey_put_timer");
+        //cMessage *newObExtracted = (cMessage *) msg -> getObject("somakey_put_timer");
+        //EV << "[SOMA-SIGN-DHT::send putResponse] " << newObExtracted->getName() << "\n" ;
+        //EV << "[SOMA-SIGN-DHT::send putResponse] ";
+        //cProperty *keyObj = (cProperty *) msg -> getObject("key_object");
+
+        DHTKeyPutCall* keyPut = new DHTKeyPutCall();
+        keyPut->setKey(ov_msg->getKey());
+        //response->setKey(keyObj->getValue("",0));
+
+        //sendRpcResponse(call, response);
+        sendInternalRpcCall(TIER2_COMP, keyPut);
+
+    }
 
 }
 
@@ -132,27 +138,18 @@ bool DHT::handleRpcCall(BaseCallMessage* msg)
         RPC_DELEGATE(DHTPut, handlePutRequest);
         RPC_DELEGATE(DHTGet, handleGetRequest);
         // internal RPCs
+        RPC_DELEGATE(DHTgetResponsible, handleGetResponsibleRequest);
         RPC_DELEGATE(DHTputCAPI, handlePutCAPIRequest);
         RPC_DELEGATE(DHTgetCAPI, handleGetCAPIRequest);
         RPC_DELEGATE(DHTdump, handleDumpDhtRequest);
-        RPC_DELEGATE(DHTDataStorageSize, getStorageSize);
     RPC_SWITCH_END( )
 
     return RPC_HANDLED;
 }
 
-void DHT::getStorageSize(DHTDataStorageSizeCall* msg)
-{
-    EV << "[DHT::getStorageSize()] " << endl;
-    DHTDataStorageSizeResponse* DHTStorageSize = new DHTDataStorageSizeResponse();
-    DHTStorageSize->setMyDHTStorageSize(dataStorage->getSize());
-    sendRpcResponse(msg, DHTStorageSize);
-}
-
 void DHT::handleRpcResponse(BaseResponseMessage* msg, cPolymorphic* context,
                             int rpcId, simtime_t rtt)
 {
-
     RPC_SWITCH_START(msg)
         RPC_ON_RESPONSE(DHTPut){
         handlePutResponse(_DHTPutResponse, rpcId);
@@ -162,7 +159,6 @@ void DHT::handleRpcResponse(BaseResponseMessage* msg, cPolymorphic* context,
            << endl;
         break;
     }
-
     RPC_ON_RESPONSE(DHTGet) {
         handleGetResponse(_DHTGetResponse, rpcId);
         EV << "[DHT::handleRpcResponse()]\n"
@@ -171,7 +167,6 @@ void DHT::handleRpcResponse(BaseResponseMessage* msg, cPolymorphic* context,
            << endl;
         break;
     }
-
     RPC_ON_RESPONSE(Lookup) {
         handleLookupResponse(_LookupResponse, rpcId);
         EV << "[DHT::handleRpcResponse()]\n"
@@ -180,7 +175,6 @@ void DHT::handleRpcResponse(BaseResponseMessage* msg, cPolymorphic* context,
            << endl;
         break;
     }
-
     RPC_SWITCH_END()
 }
 
@@ -188,11 +182,6 @@ void DHT::handleRpcTimeout(BaseCallMessage* msg, const TransportAddress& dest,
                            cPolymorphic* context, int rpcId,
                            const OverlayKey& destKey)
 {
-    if (debugOutput) {
-        EV << "petros handleRpcTimeout DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
-
-    }
-
     RPC_SWITCH_START(msg)
     RPC_ON_CALL(DHTPut){
         EV << "[DHT::handleRpcResponse()]\n"
@@ -330,25 +319,53 @@ void DHT::handleRpcTimeout(BaseCallMessage* msg, const TransportAddress& dest,
     RPC_SWITCH_END( )
 }
 
-/* giorgo: DHT::handlePutRequest is executed when a key of another node is going to be stored to this node.
- * The variable addedData keeps the status that the key is stored to the this node or not, and at the
- * end of the function a msg is sent to the DHTTestApp informing it that a new key is stored in this node(if happened).
- * DHTTestApp will then execute the DHTTestApp::certSignDelay.
- *
- * */
+// justify if I have already signed the certificate of the node that sends me the request
+bool DHT::alreadySigned(std::string msgValue, std::string myIP)
+{
+    bool found = false;
+    std::string searchVal = "| " + myIP + "|";
+    EV << "alreadySigned msg: " << msgValue << " search for: " << searchVal << endl;
 
+    if(msgValue.find(searchVal) != std::string::npos){
+        found = true;
+    }
+    return found;
+}
+
+
+// request that is sent from another node
 void DHT::handlePutRequest(DHTPutCall* dhtMsg)
 {
 
-    if (debugOutput) {
-        EV << "petros [DHT::handlePutRequest]"  << endl;
-    }
+    //SOMA - gkarop TODO: add digital signature here
 
-    bool addedData = false;
+
     std::string tempString = "PUT_REQUEST received: "
             + std::string(dhtMsg->getKey().toString(16));
-
     getParentModule()->getParentModule()->bubble(tempString.c_str());
+
+
+    // SOMA start
+    string nodeIp = thisNode.getIp().str();
+
+    std::string msgValue(dhtMsg->getValue().begin(),dhtMsg->getValue().end());
+
+    bool haveSigned = alreadySigned(msgValue, nodeIp);
+    string newCert = msgValue;
+
+    if(!haveSigned) {
+        newCert = msgValue + " " +
+                //string(signTemplate) +
+                string(nodeIp) + "|";
+
+    }
+
+    EV << "[SOMA-SIGN::handlePutRequest] " << nodeIp << "\n"
+                "newCert " << newCert << endl;
+
+    // SOMA end
+
+
 
     bool err;
     bool isSibling = overlay->isSiblingFor(overlay->getThisNode(),
@@ -362,22 +379,18 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
                                                         dhtMsg->getKind(),
                                                         dhtMsg->getId());
         if (entry == NULL) {
+
             // add ttl timer
             DHTTtlTimer *timerMsg = new DHTTtlTimer("ttl_timer");
             timerMsg->setKey(dhtMsg->getKey());
             timerMsg->setKind(dhtMsg->getKind());
             timerMsg->setId(dhtMsg->getId());
             scheduleAt(simTime() + dhtMsg->getTtl(), timerMsg);
-
-            addedData = true;
             entry = dataStorage->addData(dhtMsg->getKey(), dhtMsg->getKind(),
-                                 dhtMsg->getId(), dhtMsg->getValue(), timerMsg,
-                                 dhtMsg->getIsModifiable(), dhtMsg->getSrcNode(),
-                                 isSibling);
+                    dhtMsg->getId(), newCert, timerMsg,//dhtMsg->getValue(), timerMsg,
+                    dhtMsg->getIsModifiable(), dhtMsg->getSrcNode(),
+                    isSibling);
         } else if ((entry->siblingVote.size() == 0) && isSibling) {
-            if (debugOutput) {
-                EV << "petros [DHT::handlePutRequest] entry!=NULL"  << endl;
-            }
             // we already have a verified entry with this key and are
             // still responsible => ignore maintenance calls
             delete dhtMsg;
@@ -451,6 +464,8 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
                             dhtMsg->getId());
 
     if (dhtMsg->getValue().size() > 0) {
+        //EV << "[SOMA-SIGN::getValue().size] " << nodeIp << "\n"
+         //           "newCert " << newCert << "\n";
         // add ttl timer
         DHTTtlTimer *timerMsg = new DHTTtlTimer("ttl_timer");
         timerMsg->setKey(dhtMsg->getKey());
@@ -458,18 +473,8 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
         timerMsg->setId(dhtMsg->getId());
         scheduleAt(simTime() + dhtMsg->getTtl(), timerMsg);
         // storage data item in local data storage
-
-        if (debugOutput) {
-            EV << "petros [DHT::handlePutRequest]  "
-               << " key:" << dhtMsg->getKey()
-               << " is stored in *DHTT Node:" << overlay->getThisNode().getIp()
-               << " node, timestamp: " << simTime()
-               << endl;
-        }
-
-        addedData = true;
         dataStorage->addData(dhtMsg->getKey(), dhtMsg->getKind(),
-                             dhtMsg->getId(), dhtMsg->getValue(), timerMsg,
+        		             dhtMsg->getId(), newCert, timerMsg,//, dhtMsg->getValue(), timerMsg,
                              dhtMsg->getIsModifiable(), dhtMsg->getSrcNode(),
                              isSibling);
     }
@@ -480,22 +485,11 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
     responseMsg->setBitLength(PUTRESPONSE_L(responseMsg));
     RECORD_STATS(normalMessages++; numBytesNormal += responseMsg->getByteLength());
 
-//    if (addedData) {
-//        DHTRespMsg* respMsg = new DHTRespMsg();
-//        respMsg->setMsgCall(&dhtMsg);
-//        respMsg->setMsgResponse(&responseMsg);
-//        scheduleAt(simTime() + 0.7, respMsg);
-//    }
-
     sendRpcResponse(dhtMsg, responseMsg);
 }
 
-void DHT::handleGetRequest(DHTGetCall* dhtMsg) {
-
-    if (debugOutput) {
-        EV << "petros handleGetRequest DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
-    }
-
+void DHT::handleGetRequest(DHTGetCall* dhtMsg)
+{
     std::string tempString = "GET_REQUEST received: "
             + std::string(dhtMsg->getKey().toString(16));
 
@@ -563,56 +557,42 @@ void DHT::handleGetRequest(DHTGetCall* dhtMsg) {
     sendRpcResponse(dhtMsg, responseMsg);
 }
 
-/* DHT::handlePutCAPIRequest is called when the Node wants to put his key in the network
- * DHTTestApp will send the request DHTputCAPICall* dhtPutMsg = new DHTputCAPICall()
- * from delayFromChord()
- *
- * */
+
+//petros: this function is called upon the DHTTestAPP sends the somakey
 void DHT::handlePutCAPIRequest(DHTputCAPICall* capiPutMsg)
 {
-    if (debugOutput) {
-        EV << "petros [DHT::handlePutCAPIRequest]"  << endl;
-    }
     // asks the replica list
     LookupCall* lookupCall = new LookupCall();
     lookupCall->setKey(capiPutMsg->getKey());
     lookupCall->setNumSiblings(numReplica);
 
-
-
-    if (debugOutput) {
-        EV << "petros handlePutCAPIRequest make lookupCall for key: " << capiPutMsg->getKey()
-                << "   for node: " << overlay->getThisNode().getIp()
-                << " timestamp: " << simTime()
-                << endl;
-    }
-
     sendInternalRpcCall(OVERLAY_COMP, lookupCall, NULL, -1, 0,
                         capiPutMsg->getNonce());
-
 
     PendingRpcsEntry entry;
     entry.putCallMsg = capiPutMsg;
     entry.state = LOOKUP_STARTED;
     pendingRpcs.insert(make_pair(capiPutMsg->getNonce(), entry));
 
-    if (debugOutput) {
-        EV << "petros this node: " << overlay->getThisNode().getIp()
-                << " sends its key sign req at " << simTime()
-                << " till now is responsible for :" <<    dataStorage->getResponsible()
-                << " number of keys"
-                << " getSize returns: " << dataStorage->getSize()
-                << endl;
-    }
+    handleKeySign(capiPutMsg);
 }
+
+//petros;simulate the sign delay from another node.
+void DHT::handleKeySign(DHTputCAPICall* capiPutMsg)
+{
+    simtime_t signingDelay = 0.03973 + 0.03847; // Verify CA signature + sign delay
+
+    //todo
+    somakeyput_msg = new overMessage("somakey_put_timer");
+    somakeyput_msg->setKey(capiPutMsg->getKey());
+
+    scheduleAt(simTime() + signingDelay, somakeyput_msg);
+
+}
+
 
 void DHT::handleGetCAPIRequest(DHTgetCAPICall* capiGetMsg)
 {
-    if (debugOutput) {
-        EV << "petros [DHT::handleGetCAPIRequest]"  << endl;
-
-        EV << "petros handleGetCAPIRequest DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
-    }
     LookupCall* lookupCall = new LookupCall();
     lookupCall->setKey(capiGetMsg->getKey());
     lookupCall->setNumSiblings(numReplica);
@@ -625,14 +605,9 @@ void DHT::handleGetCAPIRequest(DHTgetCAPICall* capiGetMsg)
     pendingRpcs.insert(make_pair(capiGetMsg->getNonce(), entry));
 }
 
+// @author gkarop
 void DHT::handleDumpDhtRequest(DHTdumpCall* call)
 {
-    if (debugOutput) {
-        EV << "petros [DHT::handleDumpDhtRequest]"  << endl;
-
-        EV << "petros handleDumpDhtRequest DHTstorage: " << dataStorage->getSize()    << endl;    // fetch parameters
-    }
-
     DHTdumpResponse* response = new DHTdumpResponse();
     DhtDumpVector* dumpVector = dataStorage->dumpDht();
 
@@ -648,57 +623,34 @@ void DHT::handleDumpDhtRequest(DHTdumpCall* call)
 }
 
 
-/*
- * giorgo: DHT::handlePutResponse is executed when the node has a response in a previous handlePutRequest where the
- * DHTPutResponse* responseMsg = new DHTPutResponse(); is built (line 475)
- * if the key has been stored successfully in the node responseMsg->setSuccess(true) is set. So, in this function the
- * dhtMsg->getSuccess() is checked and if true then currently i print a debug but i am going to send a message to DHTTestApp and
- * measure the delays that we were talking about.
- *
- */
+void DHT::handleGetResponsibleRequest(DHTgetResponsibleCall* call)
+{
+    DHTgetResponsibleResponse* response = new DHTgetResponsibleResponse();
+
+    response->setResp(dataStorage->getResponsible());
+
+    sendRpcResponse(call, response);
+}
+
 void DHT::handlePutResponse(DHTPutResponse* dhtMsg, int rpcId)
 {
-
     PendingRpcs::iterator it = pendingRpcs.find(rpcId);
 
     if (it == pendingRpcs.end()) // unknown request
         return;
-    int size = dataStorage->getSize();
-    if (debugOutput) {
-          EV      << "   for node: " << overlay->getThisNode().getIp()
-                  << " timestamp: " << simTime()
-                  << " MY DATA STORAGE SIZE: " << size
-                  << endl;
-    }
+
     if (dhtMsg->getSuccess()) {
         it->second.numResponses++;
-        if (debugOutput) {
-            EV << "petros [DHT::handlePutResponse] it->second.numResponses: "  << it->second.numResponses << " at node: "
-                    << overlay->getThisNode().getIp()
-                    << " timestamp: " << simTime()
-                    << " DHTstorage: " << dataStorage->getSize()
-                    << endl;
-        }
-        SignMyKeyDelayCall *rttSignDelayMsg = new SignMyKeyDelayCall();
-        rttSignDelayMsg->setDelay(simTime());
-        sendInternalRpcCall(TIER2_COMP, rttSignDelayMsg);
-    }
-    else
-    {
+    } else {
         it->second.numFailed++;
     }
+
 
 //    if ((it->second.numFailed + it->second.numResponses) == it->second.numSent) {
     if (it->second.numResponses / (double)it->second.numSent > 0.5) {
 
         DHTputCAPIResponse* capiPutRespMsg = new DHTputCAPIResponse();
         capiPutRespMsg->setIsSuccess(true);
-
-        if (debugOutput) {
-            EV << "petros [DHT::handlePutResponse] key: " << it->second.putCallMsg->getKey()
-           << " value: " << it->second.putCallMsg->getValue() << endl;
-        }
-
         sendRpcResponse(it->second.putCallMsg, capiPutRespMsg);
         pendingRpcs.erase(rpcId);
     }
@@ -706,9 +658,6 @@ void DHT::handlePutResponse(DHTPutResponse* dhtMsg, int rpcId)
 
 void DHT::handleGetResponse(DHTGetResponse* dhtMsg, int rpcId)
 {
-    if (debugOutput) {
-        EV << "petros [DHT::handleGetResponse]"  << endl;
-    }
     NodeVector* hashVector = NULL;
     PendingRpcs::iterator it = pendingRpcs.find(rpcId);
 
@@ -844,20 +793,19 @@ void DHT::handleGetResponse(DHTGetResponse* dhtMsg, int rpcId)
 
 void DHT::update(const NodeHandle& node, bool joined)
 {
-
+    //EV << "[DHTg:: "<<__FUNCTION__<<"] "
+      //              << dataStorage->getSize() << " \n";
     OverlayKey key;
     bool err = false;
     DhtDataEntry entry;
     std::map<OverlayKey, DhtDataEntry>::iterator it;
 
-     EV << "[DHT::update() @ " << overlay->getThisNode().getIp()
+    EV << "[DHT::update() @ " << overlay->getThisNode().getIp()
        << " (" << overlay->getThisNode().getKey().toString(16) << ")]\n"
-       << " DHTstorage: " << dataStorage->getSize()
-       << " timestamp: " << simTime()
+       << "    Update called()"
        << endl;
 
     if (secureMaintenance) {
-        EV << "[DHT::update() @ secureMaintenance" << endl;
         for (it = dataStorage->begin(); it != dataStorage->end(); it++) {
             if (it->second.responsible) {
                 NodeVector* siblings = overlay->local_lookup(it->first,
@@ -877,7 +825,6 @@ void DHT::update(const NodeHandle& node, bool joined)
                     if (overlay->distance(node.getKey(), it->first) <=
                         overlay->distance(siblings->back().getKey(), it->first)) {
 
-                        // petros commented at 3/28/2017
                         sendMaintenancePutCall(node, it->first, it->second);
                     }
 
@@ -889,8 +836,8 @@ void DHT::update(const NodeHandle& node, bool joined)
                 } else {
                     if (overlay->distance(node.getKey(), it->first) <
                         overlay->distance(siblings->back().getKey(), it->first)) {
-                        // petros commented at 3/28/2017
-                         sendMaintenancePutCall(siblings->back(), it->first,
+
+                       sendMaintenancePutCall(siblings->back(), it->first,
                                                it->second);
                     }
                 }
@@ -898,17 +845,15 @@ void DHT::update(const NodeHandle& node, bool joined)
                 delete siblings;
             }
         }
-
+        //EV << "[DHTg:: "<<__FUNCTION__<<"] "
+        //        << dataStorage->getSize() << " \n";
         return;
     }
-
 
     for (it = dataStorage->begin(); it != dataStorage->end(); it++) {
         key = it->first;
         entry = it->second;
-
         if (joined) {
-            EV << "[DHT::update() @ joined" << endl;
             if (entry.responsible && (overlay->isSiblingFor(node, key,
                                                             numReplica, &err)
                     || err)) { // hack for Chord, if we've got a new predecessor
@@ -928,25 +873,31 @@ void DHT::update(const NodeHandle& node, bool joined)
                     //}
                 }
 
-                // petros commented at 3/28/2017
-                EV << "[DHT::update() @ joined call sendMaintenancePutCall" << endl;
-                sendMaintenancePutCall(node, key, entry);
+                sendMaintenancePutCall(node, key, entry);//;
             }
         }
         //TODO: move this to the inner block above?
         entry.responsible = overlay->isSiblingFor(overlay->getThisNode(),
                                                   key, 1, &err);
     }
+    //EV << "[DHTg:: "<<__FUNCTION__<<"] "
+     //       << dataStorage->getSize() << " \n";
+    //std::string tempString = "Storage: "
+    //        + dataStorage->getSize();
+    //getParentModule()->getParentModule()->bubble(tempString.c_str());
+
+    char buf[20];
+    sprintf(buf, "Storage, Resp: %d, %d", dataStorage->getSize(), dataStorage->getResponsible());
+    getParentModule()->getParentModule()->getDisplayString().setTagArg("t", 0, buf);
+
+
 }
 
 void DHT::sendMaintenancePutCall(const TransportAddress& node,
                                  const OverlayKey& key,
                                  const DhtDataEntry& entry) {
-
-    if (debugOutput) {
-        EV << "petros DHT::sendMaintenancePutCall DHTstorage: " << dataStorage->getSize() << endl;    // fetch parameters
-    }
-
+    //EV << "[DHTg:: "<<__FUNCTION__<<"] "
+    //                << dataStorage->getSize() << " \n";
     DHTPutCall* dhtMsg = new DHTPutCall();
 
     dhtMsg->setKey(key);
@@ -968,14 +919,10 @@ void DHT::sendMaintenancePutCall(const TransportAddress& node,
                  numBytesMaintenance += dhtMsg->getByteLength());
 
     sendRouteRpcCall(TIER1_COMP, node, dhtMsg);
-
 }
 
 void DHT::handleLookupResponse(LookupResponse* lookupMsg, int rpcId)
 {
-    if (debugOutput) {
-        EV << "petros [DHT::handleLookupResponse]"  << endl;
-    }
     PendingRpcs::iterator it = pendingRpcs.find(rpcId);
 
     if (it == pendingRpcs.end()) {
@@ -1014,15 +961,8 @@ void DHT::handleLookupResponse(LookupResponse* lookupMsg, int rpcId)
             // id 0 is kept for delete requests (i.e. a put with empty value)
             it->second.putCallMsg->setId(intuniform(1, 2147483647));
         }
-        EV << "\n lookupMsg->getSiblingsArraySize(): "
-                 << lookupMsg->getSiblingsArraySize()
-                 << endl;
 
         for (unsigned int i = 0; i < lookupMsg->getSiblingsArraySize(); i++) {
-
-            EV << "\n[DHT::handleLookupResponse()] for loop i: " << i
-                    << endl;
-
             DHTPutCall* dhtMsg = new DHTPutCall();
             dhtMsg->setKey(it->second.putCallMsg->getKey());
             dhtMsg->setKind(it->second.putCallMsg->getKind());
@@ -1034,11 +974,6 @@ void DHT::handleLookupResponse(LookupResponse* lookupMsg, int rpcId)
             dhtMsg->setBitLength(PUTCALL_L(dhtMsg));
             RECORD_STATS(normalMessages++;
                          numBytesNormal += dhtMsg->getByteLength());
-
-            EV << "[DHT::handleLookupResponse()]       "
-                           << "new DHTPutCall key: " << dhtMsg->getKey()
-                           << endl;
-
             sendRouteRpcCall(TIER1_COMP, lookupMsg->getSiblings(i),
                              dhtMsg, NULL, DEFAULT_ROUTING, -1,
                              0, rpcId);
@@ -1110,7 +1045,7 @@ void DHT::handleLookupResponse(LookupResponse* lookupMsg, int rpcId)
 
 void DHT::finishApp()
 {
-    simtime_t time = globalStatistics->calcMeasuredLifetime(creationTime);
+     simtime_t time = globalStatistics->calcMeasuredLifetime(creationTime);
 
     if (time >= GlobalStatistics::MIN_MEASURED) {
         globalStatistics->addStdDev("DHT: Sent Maintenance Messages/s",
@@ -1125,6 +1060,8 @@ void DHT::finishApp()
 }
 
 int DHT::resultValuesBitLength(DHTGetResponse* msg) {
+    //EV << "[DHTg:: "<<__FUNCTION__<<"] "
+    //                << dataStorage->getSize() << " \n";
     int bitSize = 0;
     for (uint i = 0; i < msg->getResultArraySize(); i++) {
         bitSize += msg->getResult(i).getValue().size();

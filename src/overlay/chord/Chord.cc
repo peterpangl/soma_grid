@@ -30,6 +30,10 @@
 #include <ChordFingerTable.h>
 #include <ChordSuccessorList.h>
 
+#include "DHTTestApp.h"
+#include <BaseRpc.h>
+#include <stddef.h>
+
 #include "Chord.h"
 
 namespace oversim {
@@ -42,10 +46,6 @@ Chord::Chord()
 {
     stabilize_timer = fixfingers_timer = join_timer = NULL;
     fingerTable = NULL;
-    SG_measure_timer  = 0;
-    SG_node_init_time = 0;
-    SG_node_join_time = 0;
-    SG_node_total_time = 0;
 }
 
 
@@ -60,12 +60,7 @@ void Chord::initializeOverlay(int stage)
         throw cRuntimeError("Chord::initializeOverlay(): "
               "Chord doesn't work with iterativeLookupConfig.merge = true!");
     }
-    if (debugOutput) {
-        EV << "[Chord::initializeOverlay() @ " << thisNode.getIp()
-            << " (" << thisNode.getKey().toString(16) << ")]\n"
-            << " petrosChord::initializeOverlay timestamp: " << simTime()
-            << endl;    // fetch parameters
-    }
+
     // Chord provides KBR services
     kbr = true;
 
@@ -105,6 +100,12 @@ void Chord::initializeOverlay(int stage)
     fixfingersBytesSent = 0;
     newsuccessorhintBytesSent = 0;
 
+    SG_measure_timer  = 0;
+    SG_node_init_time = 0;
+    SG_node_join_time = 0;
+    SG_node_total_time = 0;
+    ChordTimeVector.setName("Chord Join Time");
+
     failedSuccessor = TransportAddress::UNSPECIFIED_NODE;
 
     // find friend modules
@@ -116,7 +117,7 @@ void Chord::initializeOverlay(int stage)
     WATCH(bootstrapNode);
     WATCH(joinRetry);
     WATCH(missingPredecessorStabRequests);
-    WATCH(SG_measure_timer);
+    //WATCH(SG_measure_timer);
 
     // self-messages
     join_timer = new cMessage("join_timer");
@@ -124,6 +125,7 @@ void Chord::initializeOverlay(int stage)
     fixfingers_timer = new cMessage("fixfingers_timer");
     checkPredecessor_timer = new cMessage("checkPredecessor_timer");
 
+    //globalStatistics = GlobalStatisticsAccess().get();
 
 }
 
@@ -141,13 +143,7 @@ Chord::~Chord()
 
 void Chord::joinOverlay()
 {
-    SG_measure_timer = simTime(); // start the to measure the time for the node
-
-/*    if (debugOutput) {
-        EV << "petros [Chord::joinOverlay()], SG_measure_timer: "
-           << SG_measure_timer
-           << endl;
-    }*/
+    SG_measure_timer = simTime(); // start  to measure the time for the node
 
     changeState(INIT);
     changeState(JOIN);
@@ -156,13 +152,6 @@ void Chord::joinOverlay()
 
 void Chord::joinForeignPartition(const NodeHandle &node)
 {
-/*
-    if (debugOutput) {
-        EV << "petros [Chord::joinForeignPartition()] "
-                << endl;
-    }
-*/
-
     Enter_Method_Silent();
 
     // create a join call and sent to the bootstrap node.
@@ -183,11 +172,7 @@ void Chord::changeState(int toState)
     //
     // Defines tasks to be executed when a state change occurs.
     //
-    simtime_t time_now;
-/*    if (debugOutput) {
-        EV << "petros [Chord::changeState()] "
-                << endl;
-    }*/
+
     switch (toState) {
     case INIT:
         state = INIT;
@@ -203,27 +188,19 @@ void Chord::changeState(int toState)
         updateTooltip();
 
         // debug message
- /*       if (debugOutput) {
+        if (debugOutput) {
             EV << "[Chord::changeState() @ " << thisNode.getIp()
             << " (" << thisNode.getKey().toString(16) << ")]\n"
             << "    Entered INIT stage"
             << endl;
         }
-*/
         SG_node_init_time = simTime() - SG_measure_timer;
-/*        if (debugOutput) {
-            EV << "petros [Chord::changeState() INIT], time_to_init: "
-               << SG_node_init_time
-               << endl;
-        }*/
-
 
         getParentModule()->getParentModule()->bubble("Enter INIT state.");
         break;
 
     case JOIN:
         state = JOIN;
-
 
         // initiate join process
         cancelEvent(join_timer);
@@ -245,12 +222,6 @@ void Chord::changeState(int toState)
         bootstrapNode = bootstrapList->getBootstrapNode(overlayId);
 
         SG_node_join_time = simTime() - SG_measure_timer;
-/*        if (debugOutput) {
-            EV << "petros [Chord::changeState() JOIN], time_to_join: "
-               << SG_node_join_time
-               << endl;
-        }*/
-
 
         // is this the first node?
         if (bootstrapNode.isUnspecified()) {
@@ -260,7 +231,6 @@ void Chord::changeState(int toState)
             changeState(READY);
             updateTooltip();
         }
-
         break;
 
     case READY:
@@ -285,40 +255,42 @@ void Chord::changeState(int toState)
         }
 
         // debug message
-        /*if (debugOutput) {
+        if (debugOutput) {
             EV << "[Chord::changeState() @ " << thisNode.getIp()
             << " (" << thisNode.getKey().toString(16) << ")]\n"
             << "    Entered READY stage"
-            << " timestamp: " << simTime()
             << endl;
-        }*/
-
+        }
         getParentModule()->getParentModule()->bubble("Enter READY state.");
 
         SG_node_total_time = simTime() - SG_measure_timer;
-        //if (debugOutput) {
-        //    EV << "petros [Chord::changeState() READY], total_time: "
-        //       << SG_node_total_time
-        //       << endl;
-        //}
-        // build putMsg
-        ChordDHTNotifyDelayCall* notifyDelayMsg = new ChordDHTNotifyDelayCall();
-        notifyDelayMsg->setTimeToReady(SG_node_total_time);
-        sendInternalRpcCall(TIER2_COMP, notifyDelayMsg);
 
-        RECORD_STATS(globalStatistics->recordOutVector("Chord: Node-TotalTime to Join&Ready", SIMTIME_DBL(SG_node_total_time)));
+        // call DHT tier to insert a key-value pair
+        ChordStateReadyCall* chordReadyMsg = new ChordStateReadyCall();
+
+        //RECORD_STATS(numSent++; numPutSent++);
+        sendInternalRpcCall(TIER2_COMP, chordReadyMsg);
+
+        ChordTimeVector.record(SG_node_total_time);
+
         break;
     }
 }
 
+BinaryValue Chord::generateRandomValue()
+{
+    char value[20 + 1];
+
+    for (int i = 0; i < 20; i++) {
+        value[i] = intuniform(0, 25) + 'a';
+    }
+
+    value[20] = '\0';
+    return BinaryValue(value);
+}
 
 void Chord::handleTimerEvent(cMessage* msg)
 {
-/*    if (debugOutput) {
-        EV << "petros [Chord::handleTimerEvent()] "
-           << endl;
-    }*/
-
     // catch JOIN timer
     if (msg == join_timer) {
         handleJoinTimerExpired(msg);
@@ -336,12 +308,7 @@ void Chord::handleTimerEvent(cMessage* msg)
         cancelEvent(checkPredecessor_timer);
         scheduleAt(simTime() + checkPredecessorDelay,
                    checkPredecessor_timer);
-        if (!predecessorNode.isUnspecified()) {
-            EV << "petros [Chord::handleTimerEvent() - pingNode"
-               << endl;
-
-            pingNode(predecessorNode);
-        }
+        if (!predecessorNode.isUnspecified()) pingNode(predecessorNode);
     }
     // unknown self message
     else {
@@ -353,11 +320,6 @@ void Chord::handleTimerEvent(cMessage* msg)
 
 void Chord::handleUDPMessage(BaseOverlayMessage* msg)
 {
-/*    if (debugOutput) {
-        EV << "petros [Chord::handleUDPMessage()] "
-                << endl;
-    }*/
-
     ChordMessage* chordMsg = check_and_cast<ChordMessage*>(msg);
     switch(chordMsg->getCommand()) {
     case NEWSUCCESSORHINT:
@@ -381,10 +343,6 @@ bool Chord::handleRpcCall(BaseCallMessage* msg)
            << endl;
         return false;
     }
-    if (debugOutput) {
-        EV << "petros [Chord::handleRpcCall()] "
-                << endl;
-    }
 
     // delegate messages
     RPC_SWITCH_START( msg )
@@ -402,15 +360,10 @@ void Chord::handleRpcResponse(BaseResponseMessage* msg,
                               cPolymorphic* context, int rpcId,
                               simtime_t rtt)
 {
-/*    if (debugOutput) {
-        EV << "petros [Chord::handleRpcResponse()] "
-                << endl;
-    }*/
-
     RPC_SWITCH_START(msg)
     RPC_ON_RESPONSE( Join ) {
         handleRpcJoinResponse(_JoinResponse);
-        EV << "[Chord::handleRpcResponse() @ Join" << thisNode.getIp()
+        EV << "[Chord::handleRpcResponse() @ " << thisNode.getIp()
         << " (" << thisNode.getKey().toString(16) << ")]\n"
         << "    Received a Join RPC Response: id=" << rpcId << "\n"
         << "    msg=" << *_JoinResponse << " rtt=" << rtt
@@ -419,7 +372,7 @@ void Chord::handleRpcResponse(BaseResponseMessage* msg,
     }
     RPC_ON_RESPONSE( Notify ) {
         handleRpcNotifyResponse(_NotifyResponse);
-        EV << "[Chord::handleRpcResponse() @ Notify" << thisNode.getIp()
+        EV << "[Chord::handleRpcResponse() @ " << thisNode.getIp()
         << " (" << thisNode.getKey().toString(16) << ")]\n"
         << "    Received a Notify RPC Response: id=" << rpcId << "\n"
         << "    msg=" << *_NotifyResponse << " rtt=" << rtt
@@ -428,7 +381,7 @@ void Chord::handleRpcResponse(BaseResponseMessage* msg,
     }
     RPC_ON_RESPONSE( Stabilize ) {
         handleRpcStabilizeResponse(_StabilizeResponse);
-        EV << "[Chord::handleRpcResponse() @ Stabilize" << thisNode.getIp()
+        EV << "[Chord::handleRpcResponse() @ " << thisNode.getIp()
         << " (" << thisNode.getKey().toString(16) << ")]\n"
         << "    Received a Stabilize RPC Response: id=" << rpcId << "\n"
         << "    msg=" << *_StabilizeResponse << " rtt=" << rtt
@@ -437,7 +390,7 @@ void Chord::handleRpcResponse(BaseResponseMessage* msg,
     }
     RPC_ON_RESPONSE( Fixfingers ) {
         handleRpcFixfingersResponse(_FixfingersResponse, SIMTIME_DBL(rtt));
-        EV << "[Chord::handleRpcResponse() @ Fixfingers" << thisNode.getIp()
+        EV << "[Chord::handleRpcResponse() @ " << thisNode.getIp()
         << " (" << thisNode.getKey().toString(16) << ")]\n"
         << "    Received a Fixfingers RPC Response: id=" << rpcId << "\n"
         << "    msg=" << *_FixfingersResponse << " rtt=" << rtt
@@ -452,10 +405,6 @@ void Chord::handleRpcTimeout(BaseCallMessage* msg,
                              cPolymorphic* context, int rpcId,
                              const OverlayKey&)
 {
-/*    if (debugOutput) {
-        EV << "petros [Chord::handleRpcTimeout()] "
-                << endl;
-    }*/
     RPC_SWITCH_START(msg)
     RPC_ON_CALL( FindNode ) {
         EV << "[Chord::handleRpcTimeout() @ " << thisNode.getIp()
@@ -504,19 +453,11 @@ void Chord::handleRpcTimeout(BaseCallMessage* msg,
 
 int Chord::getMaxNumSiblings()
 {
-/*    if (debugOutput) {
-        EV << "petros [Chord::getMaxNumSiblings()] "
-                << endl;
-    }*/
     return successorListSize;
 }
 
 int Chord::getMaxNumRedundantNodes()
 {
-/*    if (debugOutput) {
-            EV << "petros [Chord::getMaxNumRedundantNodes()] "
-                    << endl;
-    }*/
     return extendedFingerTable ? numFingerCandidates : 1;
 }
 
@@ -533,11 +474,7 @@ bool Chord::isSiblingFor(const NodeHandle& node,
         *err = true;
         return false;
     }
-/*
-    if (debugOutput) {
-            EV << "petros [Chord::isSiblingFor()] "
-                    << endl;
-    }*/
+
     if (numSiblings > getMaxNumSiblings()) {
         opp_error("Chord::isSiblingFor(): numSiblings too big!");
     }
@@ -609,10 +546,6 @@ bool Chord::handleFailedNode(const TransportAddress& failed)
 {
     Enter_Method_Silent();
 
-    if (debugOutput) {
-            EV << "petros [Chord::handleFailedNode()] "
-                    << endl;
-    }
     if (!predecessorNode.isUnspecified() && failed == predecessorNode)
         predecessorNode = NodeHandle::UNSPECIFIED_NODE;
 
@@ -665,10 +598,7 @@ NodeVector* Chord::findNode(const OverlayKey& key,
 
     if (state != READY)
         return new NodeVector();
-/*    if (debugOutput) {
-            EV << "petros [Chord::findNode()] "
-                    << endl;
-    }*/
+
     if (successorList->isEmpty() && !predecessorNode.isUnspecified()) {
         throw new cRuntimeError("Chord: Node is READY, has a "
                                 "predecessor but no successor!");
@@ -715,10 +645,7 @@ NodeVector* Chord::findNode(const OverlayKey& key,
 NodeVector* Chord::closestPreceedingNode(const OverlayKey& key)
 {
     NodeHandle tempHandle = NodeHandle::UNSPECIFIED_NODE;
-/*    if (debugOutput) {
-            EV << "petros [Chord::closestPreceedingNode()] "
-                    << endl;
-    }*/
+
     // find the closest preceding node in the successor list
     for (int j = successorList->getSize() - 1; j >= 0; j--) {
         // return a predecessor of the key, unless we know a node with an Id = destKey
@@ -760,11 +687,10 @@ NodeVector* Chord::closestPreceedingNode(const OverlayKey& key)
     }
 
     nextHop = new NodeVector();
-/*    EV << "[Chord::closestPreceedingNode() @ " << thisNode.getIp()
+    EV << "[Chord::closestPreceedingNode() @ " << thisNode.getIp()
        << " (" << thisNode.getKey().toString(16) << ")]\n"
        << "    No finger found"
        << endl;
-       */
 
     // if no finger is found lookup the rest of the successor list
     for (int i = successorList->getSize() - 1; i >= 0
@@ -798,10 +724,7 @@ void Chord::recordOverlaySentStats(BaseOverlayMessage* msg)
         innerMsg =
             static_cast<BaseOverlayMessage*>(innerMsg->getEncapsulatedPacket());
     }
-    if (debugOutput) {
-            EV << "petros [Chord::recordOverlaySentStats()] "
-                    << endl;
-    }
+
     switch (innerMsg->getType()) {
         case OVERLAYSIGNALING: {
             ChordMessage* chordMsg = dynamic_cast<ChordMessage*>(innerMsg);
@@ -871,9 +794,6 @@ void Chord::finishOverlay()
                                 notifyBytesSent / time);
     globalStatistics->addStdDev("Chord: Sent FIX_FINGERS Bytes/s",
                                 fixfingersBytesSent / time);
-//    RECORD_STATS(globalStatistics->recordOutVector("Chord: Node-Time to Init", SIMTIME_DBL(SG_node_init_time)));
-//    RECORD_STATS(globalStatistics->recordOutVector("Chord: Node-Time to Join", SIMTIME_DBL(SG_node_join_time)));
-    RECORD_STATS(globalStatistics->recordOutVector("Chord: Node-TotalTime to Join&Ready", SIMTIME_DBL(SG_node_total_time)));
 }
 
 
@@ -897,7 +817,7 @@ void Chord::handleJoinTimerExpired(cMessage* msg)
     }
 
     // call JOIN RPC
-    JoinCall* call= new JoinCall("JoinCall");
+    JoinCall* call = new JoinCall("JoinCall");
     call->setBitLength(JOINCALL_L(call));
 
     RoutingType routingType = (defaultRoutingType == FULL_RECURSIVE_ROUTING ||
@@ -917,10 +837,6 @@ void Chord::handleStabilizeTimerExpired(cMessage* msg)
 {
     if (state != READY)
         return;
-    if (debugOutput) {
-        EV << "petros [Chord::handleStabilizeTimerExpired()] "
-                     << endl;
-    }
 
     // alternative predecessor check
     if ((checkPredecessorDelay == 0) &&
@@ -956,11 +872,6 @@ void Chord::handleStabilizeTimerExpired(cMessage* msg)
                 if ((fingerTable->getFinger(nextFinger)).isUnspecified()) {
                     continue;
                 } else {
-                    if (debugOutput) {
-
-                    EV << "petros [Chord::handleStabilizeTimerExpired() - pingNode] "
-                                     << endl;
-                    }
                     pingNode(fingerTable->getFinger(nextFinger), -1, 0, NULL,
                              NULL, NULL, nextFinger);
                 }
@@ -1009,15 +920,6 @@ void Chord::handleFixFingersTimerExpired(cMessage* msg)
 
 void Chord::handleNewSuccessorHint(ChordMessage* chordMsg)
 {
-    if (debugOutput) {
-         EV << "[Chord::handleNewSuccessorHint()] "
-                 << endl;
-    }
-    if (debugOutput) {
-    EV << "petros [Chord::handleNewSuccessorHint()] "
-                         << endl;
-    }
-
     NewSuccessorHintMessage* newSuccessorHintMsg =
         check_and_cast<NewSuccessorHintMessage*>(chordMsg);
 
@@ -1057,11 +959,6 @@ void Chord::handleNewSuccessorHint(ChordMessage* chordMsg)
 
 void Chord::rpcJoin(JoinCall* joinCall)
 {
-    if (debugOutput) {
-             EV << "petros [Chord::rpcJoin()] "
-                << endl;
-    }
-
     NodeHandle requestor = joinCall->getSrcNode();
 
     // compile successor list
@@ -1133,11 +1030,6 @@ void Chord::rpcJoin(JoinCall* joinCall)
 
 void Chord::handleRpcJoinResponse(JoinResponse* joinResponse)
 {
-    if (debugOutput) {
-             EV << "petros [Chord::handleRpcJoinResponse()] "
-                << endl;
-    }
-
     // determine the numer of successor nodes to add
     int sucNum = successorListSize - 1;
 
@@ -1205,11 +1097,6 @@ void Chord::handleRpcJoinResponse(JoinResponse* joinResponse)
 
 void Chord::rpcStabilize(StabilizeCall* call)
 {
-    if (debugOutput) {
-             EV << "petros [Chord::rpcStabilize()] "
-                << endl;
-    }
-
     // our predecessor seems to be alive
     if (!predecessorNode.isUnspecified() &&
         call->getSrcNode() == predecessorNode) {
@@ -1230,10 +1117,7 @@ void Chord::handleRpcStabilizeResponse(StabilizeResponse* stabilizeResponse)
     if (state != READY) {
         return;
     }
-    if (debugOutput) {
-             EV << "petros [Chord::handleRpcStabilizeResponse()] "
-                << endl;
-    }
+
     // fetch the successor's predecessor
     const NodeHandle& predecessor = stabilizeResponse->getPreNode();
 
@@ -1270,10 +1154,6 @@ void Chord::rpcNotify(NotifyCall* call)
         missingPredecessorStabRequests = 0;
     }
 
-    if (debugOutput) {
-             EV << "petros [Chord::rpcNotify()] "
-                << endl;
-    }
     bool newPredecessorSet = false;
 
     NodeHandle newPredecessor = call->getSrcNode();
@@ -1357,10 +1237,7 @@ void Chord::handleRpcNotifyResponse(NotifyResponse* notifyResponse)
     if (state != READY) {
         return;
     }
-    if (debugOutput) {
-             EV << "petros [Chord::handleRpcNotifyResponse()] "
-                << endl;
-    }
+
     if (successorList->getSuccessor() != notifyResponse->getSrcNode()) {
         EV << "[Chord::handleRpcNotifyResponse() @ " << thisNode.getIp()
            << " (" << thisNode.getKey().toString(16) << ")]\n"
@@ -1395,10 +1272,7 @@ void Chord::rpcFixfingers(FixfingersCall* call)
 {
     FixfingersResponse* fixfingersResponse =
         new FixfingersResponse("FixfingersResponse");
-    if (debugOutput) {
-             EV << "petros [Chord::rpcFixfingers()] "
-                << endl;
-    }
+
     fixfingersResponse->setSucNodeArraySize(1);
     fixfingersResponse->setSucNode(0, thisNode);
 
@@ -1432,10 +1306,7 @@ void Chord::handleRpcFixfingersResponse(FixfingersResponse* fixfingersResponse,
 
     RECORD_STATS(globalStatistics->recordOutVector("Chord: FIX_FINGERS response Hop Count", ctrlInfo->getHopCount()));
      */
-    if (debugOutput) {
-             EV << "petros [Chord::handleRpcFixfingersResponse()] "
-                << endl;
-    }
+
     // set new finger pointer#
     if (!extendedFingerTable) {
         fingerTable->setFinger(fixfingersResponse->getFinger(),
@@ -1507,14 +1378,12 @@ void Chord::proxCallback(const TransportAddress &node, int rpcId,
 void Chord::pingResponse(PingResponse* pingResponse, cPolymorphic* context,
                          int rpcId, simtime_t rtt)
 {
-
-    if (debugOutput) {
     EV << "[Chord::pingResponse() @ " << thisNode.getIp()
        << " (" << thisNode.getKey().toString(16) << ")]\n"
        << "    Received a Ping RPC Response: id=" << rpcId << "\n"
        << "    msg=" << *pingResponse << " rtt=" << rtt
        << endl;
-    }
+
     if (rpcId != -1)
         fingerTable->updateFinger(rpcId, pingResponse->getSrcNode(), rtt);
 }
@@ -1523,24 +1392,16 @@ void Chord::pingTimeout(PingCall* pingCall,
                         const TransportAddress& dest,
                         cPolymorphic* context, int rpcId)
 {
-
-    if (debugOutput) {
-        EV << "[Chord::pingTimeout() @ " << thisNode.getIp()
+    EV << "[Chord::pingTimeout() @ " << thisNode.getIp()
        << " (" << thisNode.getKey().toString(16) << ")]\n"
        << "    Ping RPC timeout: id=" << rpcId << endl;
-    }
+
     // call join dependant on return value?
     handleFailedNode(dest);
 }
 
 void Chord::findFriendModules()
 {
-
-    if (debugOutput) {
-    EV << "petros Chord::pingTimeout"<< thisNode.getIp()
-               << " (" << thisNode.getKey().toString(16) << ")]\n"
-               << endl;
-    }
     fingerTable = check_and_cast<ChordFingerTable*>
                   (getParentModule()->getSubmodule("fingerTable"));
 
@@ -1551,13 +1412,6 @@ void Chord::findFriendModules()
 
 void Chord::initializeFriendModules()
 {
-    if (debugOutput) {
-
-    EV << "petros Chord::initializeFriendModules"<< thisNode.getIp()
-               << " (" << thisNode.getKey().toString(16) << ")]\n"
-        << endl;
-    }
-
     // initialize finger table
     fingerTable->initializeTable(thisNode.getKey().getLength(), thisNode, this);
 

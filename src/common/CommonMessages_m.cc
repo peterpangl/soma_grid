@@ -7806,6 +7806,1145 @@ void *DHTputCAPIResponseDescriptor::getFieldStructPointer(void *object, int fiel
     }
 }
 
+Register_Class(DHTgetResponsibleCall);
+
+DHTgetResponsibleCall::DHTgetResponsibleCall(const char *name, int kind) : BaseCallMessage(name,kind)
+{
+}
+
+DHTgetResponsibleCall::DHTgetResponsibleCall(const DHTgetResponsibleCall& other) : BaseCallMessage(other)
+{
+    copy(other);
+}
+
+DHTgetResponsibleCall::~DHTgetResponsibleCall()
+{
+}
+
+DHTgetResponsibleCall& DHTgetResponsibleCall::operator=(const DHTgetResponsibleCall& other)
+{
+    if (this==&other) return *this;
+    BaseCallMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void DHTgetResponsibleCall::copy(const DHTgetResponsibleCall& other)
+{
+}
+
+void DHTgetResponsibleCall::parsimPack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimPack(b);
+}
+
+void DHTgetResponsibleCall::parsimUnpack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimUnpack(b);
+}
+
+class DHTgetResponsibleCallDescriptor : public cClassDescriptor
+{
+  public:
+    DHTgetResponsibleCallDescriptor();
+    virtual ~DHTgetResponsibleCallDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(DHTgetResponsibleCallDescriptor);
+
+DHTgetResponsibleCallDescriptor::DHTgetResponsibleCallDescriptor() : cClassDescriptor("DHTgetResponsibleCall", "BaseCallMessage")
+{
+}
+
+DHTgetResponsibleCallDescriptor::~DHTgetResponsibleCallDescriptor()
+{
+}
+
+bool DHTgetResponsibleCallDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<DHTgetResponsibleCall *>(obj)!=NULL;
+}
+
+const char *DHTgetResponsibleCallDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int DHTgetResponsibleCallDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 0+basedesc->getFieldCount(object) : 0;
+}
+
+unsigned int DHTgetResponsibleCallDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return 0;
+}
+
+const char *DHTgetResponsibleCallDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+int DHTgetResponsibleCallDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *DHTgetResponsibleCallDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+const char *DHTgetResponsibleCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int DHTgetResponsibleCallDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTgetResponsibleCall *pp = (DHTgetResponsibleCall *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string DHTgetResponsibleCallDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTgetResponsibleCall *pp = (DHTgetResponsibleCall *)object; (void)pp;
+    switch (field) {
+        default: return "";
+    }
+}
+
+bool DHTgetResponsibleCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTgetResponsibleCall *pp = (DHTgetResponsibleCall *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *DHTgetResponsibleCallDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+void *DHTgetResponsibleCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTgetResponsibleCall *pp = (DHTgetResponsibleCall *)object; (void)pp;
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+Register_Class(DHTgetResponsibleResponse);
+
+DHTgetResponsibleResponse::DHTgetResponsibleResponse(const char *name, int kind) : BaseResponseMessage(name,kind)
+{
+    this->resp_var = 0;
+    this->isSuccess_var = 0;
+}
+
+DHTgetResponsibleResponse::DHTgetResponsibleResponse(const DHTgetResponsibleResponse& other) : BaseResponseMessage(other)
+{
+    copy(other);
+}
+
+DHTgetResponsibleResponse::~DHTgetResponsibleResponse()
+{
+}
+
+DHTgetResponsibleResponse& DHTgetResponsibleResponse::operator=(const DHTgetResponsibleResponse& other)
+{
+    if (this==&other) return *this;
+    BaseResponseMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void DHTgetResponsibleResponse::copy(const DHTgetResponsibleResponse& other)
+{
+    this->resp_var = other.resp_var;
+    this->isSuccess_var = other.isSuccess_var;
+}
+
+void DHTgetResponsibleResponse::parsimPack(cCommBuffer *b)
+{
+    BaseResponseMessage::parsimPack(b);
+    doPacking(b,this->resp_var);
+    doPacking(b,this->isSuccess_var);
+}
+
+void DHTgetResponsibleResponse::parsimUnpack(cCommBuffer *b)
+{
+    BaseResponseMessage::parsimUnpack(b);
+    doUnpacking(b,this->resp_var);
+    doUnpacking(b,this->isSuccess_var);
+}
+
+int DHTgetResponsibleResponse::getResp() const
+{
+    return resp_var;
+}
+
+void DHTgetResponsibleResponse::setResp(int resp)
+{
+    this->resp_var = resp;
+}
+
+bool DHTgetResponsibleResponse::getIsSuccess() const
+{
+    return isSuccess_var;
+}
+
+void DHTgetResponsibleResponse::setIsSuccess(bool isSuccess)
+{
+    this->isSuccess_var = isSuccess;
+}
+
+class DHTgetResponsibleResponseDescriptor : public cClassDescriptor
+{
+  public:
+    DHTgetResponsibleResponseDescriptor();
+    virtual ~DHTgetResponsibleResponseDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(DHTgetResponsibleResponseDescriptor);
+
+DHTgetResponsibleResponseDescriptor::DHTgetResponsibleResponseDescriptor() : cClassDescriptor("DHTgetResponsibleResponse", "BaseResponseMessage")
+{
+}
+
+DHTgetResponsibleResponseDescriptor::~DHTgetResponsibleResponseDescriptor()
+{
+}
+
+bool DHTgetResponsibleResponseDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<DHTgetResponsibleResponse *>(obj)!=NULL;
+}
+
+const char *DHTgetResponsibleResponseDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int DHTgetResponsibleResponseDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 2+basedesc->getFieldCount(object) : 2;
+}
+
+unsigned int DHTgetResponsibleResponseDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static unsigned int fieldTypeFlags[] = {
+        FD_ISEDITABLE,
+        FD_ISEDITABLE,
+    };
+    return (field>=0 && field<2) ? fieldTypeFlags[field] : 0;
+}
+
+const char *DHTgetResponsibleResponseDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldNames[] = {
+        "resp",
+        "isSuccess",
+    };
+    return (field>=0 && field<2) ? fieldNames[field] : NULL;
+}
+
+int DHTgetResponsibleResponseDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    int base = basedesc ? basedesc->getFieldCount(object) : 0;
+    if (fieldName[0]=='r' && strcmp(fieldName, "resp")==0) return base+0;
+    if (fieldName[0]=='i' && strcmp(fieldName, "isSuccess")==0) return base+1;
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *DHTgetResponsibleResponseDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldTypeStrings[] = {
+        "int",
+        "bool",
+    };
+    return (field>=0 && field<2) ? fieldTypeStrings[field] : NULL;
+}
+
+const char *DHTgetResponsibleResponseDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int DHTgetResponsibleResponseDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTgetResponsibleResponse *pp = (DHTgetResponsibleResponse *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string DHTgetResponsibleResponseDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTgetResponsibleResponse *pp = (DHTgetResponsibleResponse *)object; (void)pp;
+    switch (field) {
+        case 0: return long2string(pp->getResp());
+        case 1: return bool2string(pp->getIsSuccess());
+        default: return "";
+    }
+}
+
+bool DHTgetResponsibleResponseDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTgetResponsibleResponse *pp = (DHTgetResponsibleResponse *)object; (void)pp;
+    switch (field) {
+        case 0: pp->setResp(string2long(value)); return true;
+        case 1: pp->setIsSuccess(string2bool(value)); return true;
+        default: return false;
+    }
+}
+
+const char *DHTgetResponsibleResponseDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldStructNames[] = {
+        NULL,
+        NULL,
+    };
+    return (field>=0 && field<2) ? fieldStructNames[field] : NULL;
+}
+
+void *DHTgetResponsibleResponseDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTgetResponsibleResponse *pp = (DHTgetResponsibleResponse *)object; (void)pp;
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+Register_Class(ChordStateReadyCall);
+
+ChordStateReadyCall::ChordStateReadyCall(const char *name, int kind) : BaseCallMessage(name,kind)
+{
+}
+
+ChordStateReadyCall::ChordStateReadyCall(const ChordStateReadyCall& other) : BaseCallMessage(other)
+{
+    copy(other);
+}
+
+ChordStateReadyCall::~ChordStateReadyCall()
+{
+}
+
+ChordStateReadyCall& ChordStateReadyCall::operator=(const ChordStateReadyCall& other)
+{
+    if (this==&other) return *this;
+    BaseCallMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void ChordStateReadyCall::copy(const ChordStateReadyCall& other)
+{
+}
+
+void ChordStateReadyCall::parsimPack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimPack(b);
+}
+
+void ChordStateReadyCall::parsimUnpack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimUnpack(b);
+}
+
+class ChordStateReadyCallDescriptor : public cClassDescriptor
+{
+  public:
+    ChordStateReadyCallDescriptor();
+    virtual ~ChordStateReadyCallDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(ChordStateReadyCallDescriptor);
+
+ChordStateReadyCallDescriptor::ChordStateReadyCallDescriptor() : cClassDescriptor("ChordStateReadyCall", "BaseCallMessage")
+{
+}
+
+ChordStateReadyCallDescriptor::~ChordStateReadyCallDescriptor()
+{
+}
+
+bool ChordStateReadyCallDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<ChordStateReadyCall *>(obj)!=NULL;
+}
+
+const char *ChordStateReadyCallDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int ChordStateReadyCallDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 0+basedesc->getFieldCount(object) : 0;
+}
+
+unsigned int ChordStateReadyCallDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return 0;
+}
+
+const char *ChordStateReadyCallDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+int ChordStateReadyCallDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *ChordStateReadyCallDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+const char *ChordStateReadyCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int ChordStateReadyCallDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    ChordStateReadyCall *pp = (ChordStateReadyCall *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string ChordStateReadyCallDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    ChordStateReadyCall *pp = (ChordStateReadyCall *)object; (void)pp;
+    switch (field) {
+        default: return "";
+    }
+}
+
+bool ChordStateReadyCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    ChordStateReadyCall *pp = (ChordStateReadyCall *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *ChordStateReadyCallDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    return NULL;
+}
+
+void *ChordStateReadyCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    ChordStateReadyCall *pp = (ChordStateReadyCall *)object; (void)pp;
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+Register_Class(DHTKeyPutCall);
+
+DHTKeyPutCall::DHTKeyPutCall(const char *name, int kind) : BaseCallMessage(name,kind)
+{
+}
+
+DHTKeyPutCall::DHTKeyPutCall(const DHTKeyPutCall& other) : BaseCallMessage(other)
+{
+    copy(other);
+}
+
+DHTKeyPutCall::~DHTKeyPutCall()
+{
+}
+
+DHTKeyPutCall& DHTKeyPutCall::operator=(const DHTKeyPutCall& other)
+{
+    if (this==&other) return *this;
+    BaseCallMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void DHTKeyPutCall::copy(const DHTKeyPutCall& other)
+{
+    this->key_var = other.key_var;
+}
+
+void DHTKeyPutCall::parsimPack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimPack(b);
+    doPacking(b,this->key_var);
+}
+
+void DHTKeyPutCall::parsimUnpack(cCommBuffer *b)
+{
+    BaseCallMessage::parsimUnpack(b);
+    doUnpacking(b,this->key_var);
+}
+
+OverlayKey& DHTKeyPutCall::getKey()
+{
+    return key_var;
+}
+
+void DHTKeyPutCall::setKey(const OverlayKey& key)
+{
+    this->key_var = key;
+}
+
+class DHTKeyPutCallDescriptor : public cClassDescriptor
+{
+  public:
+    DHTKeyPutCallDescriptor();
+    virtual ~DHTKeyPutCallDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(DHTKeyPutCallDescriptor);
+
+DHTKeyPutCallDescriptor::DHTKeyPutCallDescriptor() : cClassDescriptor("DHTKeyPutCall", "BaseCallMessage")
+{
+}
+
+DHTKeyPutCallDescriptor::~DHTKeyPutCallDescriptor()
+{
+}
+
+bool DHTKeyPutCallDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<DHTKeyPutCall *>(obj)!=NULL;
+}
+
+const char *DHTKeyPutCallDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int DHTKeyPutCallDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
+}
+
+unsigned int DHTKeyPutCallDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static unsigned int fieldTypeFlags[] = {
+        FD_ISCOMPOUND,
+    };
+    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
+}
+
+const char *DHTKeyPutCallDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldNames[] = {
+        "key",
+    };
+    return (field>=0 && field<1) ? fieldNames[field] : NULL;
+}
+
+int DHTKeyPutCallDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    int base = basedesc ? basedesc->getFieldCount(object) : 0;
+    if (fieldName[0]=='k' && strcmp(fieldName, "key")==0) return base+0;
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *DHTKeyPutCallDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldTypeStrings[] = {
+        "OverlayKey",
+    };
+    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
+}
+
+const char *DHTKeyPutCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int DHTKeyPutCallDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTKeyPutCall *pp = (DHTKeyPutCall *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string DHTKeyPutCallDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTKeyPutCall *pp = (DHTKeyPutCall *)object; (void)pp;
+    switch (field) {
+        case 0: {std::stringstream out; out << pp->getKey(); return out.str();}
+        default: return "";
+    }
+}
+
+bool DHTKeyPutCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTKeyPutCall *pp = (DHTKeyPutCall *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *DHTKeyPutCallDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldStructNames[] = {
+        "OverlayKey",
+    };
+    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
+}
+
+void *DHTKeyPutCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    DHTKeyPutCall *pp = (DHTKeyPutCall *)object; (void)pp;
+    switch (field) {
+        case 0: return (void *)(&pp->getKey()); break;
+        default: return NULL;
+    }
+}
+
+Register_Class(overMessage);
+
+overMessage::overMessage(const char *name, int kind) : cMessage(name,kind)
+{
+}
+
+overMessage::overMessage(const overMessage& other) : cMessage(other)
+{
+    copy(other);
+}
+
+overMessage::~overMessage()
+{
+}
+
+overMessage& overMessage::operator=(const overMessage& other)
+{
+    if (this==&other) return *this;
+    cMessage::operator=(other);
+    copy(other);
+    return *this;
+}
+
+void overMessage::copy(const overMessage& other)
+{
+    this->key_var = other.key_var;
+}
+
+void overMessage::parsimPack(cCommBuffer *b)
+{
+    cMessage::parsimPack(b);
+    doPacking(b,this->key_var);
+}
+
+void overMessage::parsimUnpack(cCommBuffer *b)
+{
+    cMessage::parsimUnpack(b);
+    doUnpacking(b,this->key_var);
+}
+
+OverlayKey& overMessage::getKey()
+{
+    return key_var;
+}
+
+void overMessage::setKey(const OverlayKey& key)
+{
+    this->key_var = key;
+}
+
+class overMessageDescriptor : public cClassDescriptor
+{
+  public:
+    overMessageDescriptor();
+    virtual ~overMessageDescriptor();
+
+    virtual bool doesSupport(cObject *obj) const;
+    virtual const char *getProperty(const char *propertyname) const;
+    virtual int getFieldCount(void *object) const;
+    virtual const char *getFieldName(void *object, int field) const;
+    virtual int findField(void *object, const char *fieldName) const;
+    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
+    virtual const char *getFieldTypeString(void *object, int field) const;
+    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
+    virtual int getArraySize(void *object, int field) const;
+
+    virtual std::string getFieldAsString(void *object, int field, int i) const;
+    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
+
+    virtual const char *getFieldStructName(void *object, int field) const;
+    virtual void *getFieldStructPointer(void *object, int field, int i) const;
+};
+
+Register_ClassDescriptor(overMessageDescriptor);
+
+overMessageDescriptor::overMessageDescriptor() : cClassDescriptor("overMessage", "cMessage")
+{
+}
+
+overMessageDescriptor::~overMessageDescriptor()
+{
+}
+
+bool overMessageDescriptor::doesSupport(cObject *obj) const
+{
+    return dynamic_cast<overMessage *>(obj)!=NULL;
+}
+
+const char *overMessageDescriptor::getProperty(const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : NULL;
+}
+
+int overMessageDescriptor::getFieldCount(void *object) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
+}
+
+unsigned int overMessageDescriptor::getFieldTypeFlags(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeFlags(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static unsigned int fieldTypeFlags[] = {
+        FD_ISCOMPOUND,
+    };
+    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
+}
+
+const char *overMessageDescriptor::getFieldName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldNames[] = {
+        "key",
+    };
+    return (field>=0 && field<1) ? fieldNames[field] : NULL;
+}
+
+int overMessageDescriptor::findField(void *object, const char *fieldName) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    int base = basedesc ? basedesc->getFieldCount(object) : 0;
+    if (fieldName[0]=='k' && strcmp(fieldName, "key")==0) return base+0;
+    return basedesc ? basedesc->findField(object, fieldName) : -1;
+}
+
+const char *overMessageDescriptor::getFieldTypeString(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldTypeString(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldTypeStrings[] = {
+        "OverlayKey",
+    };
+    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
+}
+
+const char *overMessageDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldProperty(object, field, propertyname);
+        field -= basedesc->getFieldCount(object);
+    }
+    switch (field) {
+        default: return NULL;
+    }
+}
+
+int overMessageDescriptor::getArraySize(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getArraySize(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    overMessage *pp = (overMessage *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+std::string overMessageDescriptor::getFieldAsString(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldAsString(object,field,i);
+        field -= basedesc->getFieldCount(object);
+    }
+    overMessage *pp = (overMessage *)object; (void)pp;
+    switch (field) {
+        case 0: {std::stringstream out; out << pp->getKey(); return out.str();}
+        default: return "";
+    }
+}
+
+bool overMessageDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->setFieldAsString(object,field,i,value);
+        field -= basedesc->getFieldCount(object);
+    }
+    overMessage *pp = (overMessage *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *overMessageDescriptor::getFieldStructName(void *object, int field) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructName(object, field);
+        field -= basedesc->getFieldCount(object);
+    }
+    static const char *fieldStructNames[] = {
+        "OverlayKey",
+    };
+    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
+}
+
+void *overMessageDescriptor::getFieldStructPointer(void *object, int field, int i) const
+{
+    cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount(object))
+            return basedesc->getFieldStructPointer(object, field, i);
+        field -= basedesc->getFieldCount(object);
+    }
+    overMessage *pp = (overMessage *)object; (void)pp;
+    switch (field) {
+        case 0: return (void *)(&pp->getKey()); break;
+        default: return NULL;
+    }
+}
+
 Register_Class(DHTgetCAPIResponse);
 
 DHTgetCAPIResponse::DHTgetCAPIResponse(const char *name, int kind) : BaseResponseMessage(name,kind)
@@ -8571,1382 +9710,6 @@ void *DHTdumpResponseDescriptor::getFieldStructPointer(void *object, int field, 
     DHTdumpResponse *pp = (DHTdumpResponse *)object; (void)pp;
     switch (field) {
         case 0: return (void *)static_cast<cObject *>(&pp->getRecord(i)); break;
-        default: return NULL;
-    }
-}
-
-Register_Class(DHTDataStorageSizeCall);
-
-DHTDataStorageSizeCall::DHTDataStorageSizeCall(const char *name, int kind) : BaseCallMessage(name,kind)
-{
-}
-
-DHTDataStorageSizeCall::DHTDataStorageSizeCall(const DHTDataStorageSizeCall& other) : BaseCallMessage(other)
-{
-    copy(other);
-}
-
-DHTDataStorageSizeCall::~DHTDataStorageSizeCall()
-{
-}
-
-DHTDataStorageSizeCall& DHTDataStorageSizeCall::operator=(const DHTDataStorageSizeCall& other)
-{
-    if (this==&other) return *this;
-    BaseCallMessage::operator=(other);
-    copy(other);
-    return *this;
-}
-
-void DHTDataStorageSizeCall::copy(const DHTDataStorageSizeCall& other)
-{
-}
-
-void DHTDataStorageSizeCall::parsimPack(cCommBuffer *b)
-{
-    BaseCallMessage::parsimPack(b);
-}
-
-void DHTDataStorageSizeCall::parsimUnpack(cCommBuffer *b)
-{
-    BaseCallMessage::parsimUnpack(b);
-}
-
-class DHTDataStorageSizeCallDescriptor : public cClassDescriptor
-{
-  public:
-    DHTDataStorageSizeCallDescriptor();
-    virtual ~DHTDataStorageSizeCallDescriptor();
-
-    virtual bool doesSupport(cObject *obj) const;
-    virtual const char *getProperty(const char *propertyname) const;
-    virtual int getFieldCount(void *object) const;
-    virtual const char *getFieldName(void *object, int field) const;
-    virtual int findField(void *object, const char *fieldName) const;
-    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
-    virtual const char *getFieldTypeString(void *object, int field) const;
-    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
-    virtual int getArraySize(void *object, int field) const;
-
-    virtual std::string getFieldAsString(void *object, int field, int i) const;
-    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
-
-    virtual const char *getFieldStructName(void *object, int field) const;
-    virtual void *getFieldStructPointer(void *object, int field, int i) const;
-};
-
-Register_ClassDescriptor(DHTDataStorageSizeCallDescriptor);
-
-DHTDataStorageSizeCallDescriptor::DHTDataStorageSizeCallDescriptor() : cClassDescriptor("DHTDataStorageSizeCall", "BaseCallMessage")
-{
-}
-
-DHTDataStorageSizeCallDescriptor::~DHTDataStorageSizeCallDescriptor()
-{
-}
-
-bool DHTDataStorageSizeCallDescriptor::doesSupport(cObject *obj) const
-{
-    return dynamic_cast<DHTDataStorageSizeCall *>(obj)!=NULL;
-}
-
-const char *DHTDataStorageSizeCallDescriptor::getProperty(const char *propertyname) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? basedesc->getProperty(propertyname) : NULL;
-}
-
-int DHTDataStorageSizeCallDescriptor::getFieldCount(void *object) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 0+basedesc->getFieldCount(object) : 0;
-}
-
-unsigned int DHTDataStorageSizeCallDescriptor::getFieldTypeFlags(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldTypeFlags(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    return 0;
-}
-
-const char *DHTDataStorageSizeCallDescriptor::getFieldName(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldName(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    return NULL;
-}
-
-int DHTDataStorageSizeCallDescriptor::findField(void *object, const char *fieldName) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? basedesc->findField(object, fieldName) : -1;
-}
-
-const char *DHTDataStorageSizeCallDescriptor::getFieldTypeString(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldTypeString(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    return NULL;
-}
-
-const char *DHTDataStorageSizeCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldProperty(object, field, propertyname);
-        field -= basedesc->getFieldCount(object);
-    }
-    switch (field) {
-        default: return NULL;
-    }
-}
-
-int DHTDataStorageSizeCallDescriptor::getArraySize(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getArraySize(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    DHTDataStorageSizeCall *pp = (DHTDataStorageSizeCall *)object; (void)pp;
-    switch (field) {
-        default: return 0;
-    }
-}
-
-std::string DHTDataStorageSizeCallDescriptor::getFieldAsString(void *object, int field, int i) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldAsString(object,field,i);
-        field -= basedesc->getFieldCount(object);
-    }
-    DHTDataStorageSizeCall *pp = (DHTDataStorageSizeCall *)object; (void)pp;
-    switch (field) {
-        default: return "";
-    }
-}
-
-bool DHTDataStorageSizeCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->setFieldAsString(object,field,i,value);
-        field -= basedesc->getFieldCount(object);
-    }
-    DHTDataStorageSizeCall *pp = (DHTDataStorageSizeCall *)object; (void)pp;
-    switch (field) {
-        default: return false;
-    }
-}
-
-const char *DHTDataStorageSizeCallDescriptor::getFieldStructName(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldStructName(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    return NULL;
-}
-
-void *DHTDataStorageSizeCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldStructPointer(object, field, i);
-        field -= basedesc->getFieldCount(object);
-    }
-    DHTDataStorageSizeCall *pp = (DHTDataStorageSizeCall *)object; (void)pp;
-    switch (field) {
-        default: return NULL;
-    }
-}
-
-Register_Class(DHTDataStorageSizeResponse);
-
-DHTDataStorageSizeResponse::DHTDataStorageSizeResponse(const char *name, int kind) : BaseResponseMessage(name,kind)
-{
-    this->myDHTStorageSize_var = 0;
-}
-
-DHTDataStorageSizeResponse::DHTDataStorageSizeResponse(const DHTDataStorageSizeResponse& other) : BaseResponseMessage(other)
-{
-    copy(other);
-}
-
-DHTDataStorageSizeResponse::~DHTDataStorageSizeResponse()
-{
-}
-
-DHTDataStorageSizeResponse& DHTDataStorageSizeResponse::operator=(const DHTDataStorageSizeResponse& other)
-{
-    if (this==&other) return *this;
-    BaseResponseMessage::operator=(other);
-    copy(other);
-    return *this;
-}
-
-void DHTDataStorageSizeResponse::copy(const DHTDataStorageSizeResponse& other)
-{
-    this->myDHTStorageSize_var = other.myDHTStorageSize_var;
-}
-
-void DHTDataStorageSizeResponse::parsimPack(cCommBuffer *b)
-{
-    BaseResponseMessage::parsimPack(b);
-    doPacking(b,this->myDHTStorageSize_var);
-}
-
-void DHTDataStorageSizeResponse::parsimUnpack(cCommBuffer *b)
-{
-    BaseResponseMessage::parsimUnpack(b);
-    doUnpacking(b,this->myDHTStorageSize_var);
-}
-
-uint32_t DHTDataStorageSizeResponse::getMyDHTStorageSize() const
-{
-    return myDHTStorageSize_var;
-}
-
-void DHTDataStorageSizeResponse::setMyDHTStorageSize(uint32_t myDHTStorageSize)
-{
-    this->myDHTStorageSize_var = myDHTStorageSize;
-}
-
-class DHTDataStorageSizeResponseDescriptor : public cClassDescriptor
-{
-  public:
-    DHTDataStorageSizeResponseDescriptor();
-    virtual ~DHTDataStorageSizeResponseDescriptor();
-
-    virtual bool doesSupport(cObject *obj) const;
-    virtual const char *getProperty(const char *propertyname) const;
-    virtual int getFieldCount(void *object) const;
-    virtual const char *getFieldName(void *object, int field) const;
-    virtual int findField(void *object, const char *fieldName) const;
-    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
-    virtual const char *getFieldTypeString(void *object, int field) const;
-    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
-    virtual int getArraySize(void *object, int field) const;
-
-    virtual std::string getFieldAsString(void *object, int field, int i) const;
-    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
-
-    virtual const char *getFieldStructName(void *object, int field) const;
-    virtual void *getFieldStructPointer(void *object, int field, int i) const;
-};
-
-Register_ClassDescriptor(DHTDataStorageSizeResponseDescriptor);
-
-DHTDataStorageSizeResponseDescriptor::DHTDataStorageSizeResponseDescriptor() : cClassDescriptor("DHTDataStorageSizeResponse", "BaseResponseMessage")
-{
-}
-
-DHTDataStorageSizeResponseDescriptor::~DHTDataStorageSizeResponseDescriptor()
-{
-}
-
-bool DHTDataStorageSizeResponseDescriptor::doesSupport(cObject *obj) const
-{
-    return dynamic_cast<DHTDataStorageSizeResponse *>(obj)!=NULL;
-}
-
-const char *DHTDataStorageSizeResponseDescriptor::getProperty(const char *propertyname) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? basedesc->getProperty(propertyname) : NULL;
-}
-
-int DHTDataStorageSizeResponseDescriptor::getFieldCount(void *object) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
-}
-
-unsigned int DHTDataStorageSizeResponseDescriptor::getFieldTypeFlags(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldTypeFlags(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,
-    };
-    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
-}
-
-const char *DHTDataStorageSizeResponseDescriptor::getFieldName(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldName(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    static const char *fieldNames[] = {
-        "myDHTStorageSize",
-    };
-    return (field>=0 && field<1) ? fieldNames[field] : NULL;
-}
-
-int DHTDataStorageSizeResponseDescriptor::findField(void *object, const char *fieldName) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    int base = basedesc ? basedesc->getFieldCount(object) : 0;
-    if (fieldName[0]=='m' && strcmp(fieldName, "myDHTStorageSize")==0) return base+0;
-    return basedesc ? basedesc->findField(object, fieldName) : -1;
-}
-
-const char *DHTDataStorageSizeResponseDescriptor::getFieldTypeString(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldTypeString(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    static const char *fieldTypeStrings[] = {
-        "uint32_t",
-    };
-    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
-}
-
-const char *DHTDataStorageSizeResponseDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldProperty(object, field, propertyname);
-        field -= basedesc->getFieldCount(object);
-    }
-    switch (field) {
-        default: return NULL;
-    }
-}
-
-int DHTDataStorageSizeResponseDescriptor::getArraySize(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getArraySize(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    DHTDataStorageSizeResponse *pp = (DHTDataStorageSizeResponse *)object; (void)pp;
-    switch (field) {
-        default: return 0;
-    }
-}
-
-std::string DHTDataStorageSizeResponseDescriptor::getFieldAsString(void *object, int field, int i) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldAsString(object,field,i);
-        field -= basedesc->getFieldCount(object);
-    }
-    DHTDataStorageSizeResponse *pp = (DHTDataStorageSizeResponse *)object; (void)pp;
-    switch (field) {
-        case 0: return ulong2string(pp->getMyDHTStorageSize());
-        default: return "";
-    }
-}
-
-bool DHTDataStorageSizeResponseDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->setFieldAsString(object,field,i,value);
-        field -= basedesc->getFieldCount(object);
-    }
-    DHTDataStorageSizeResponse *pp = (DHTDataStorageSizeResponse *)object; (void)pp;
-    switch (field) {
-        case 0: pp->setMyDHTStorageSize(string2ulong(value)); return true;
-        default: return false;
-    }
-}
-
-const char *DHTDataStorageSizeResponseDescriptor::getFieldStructName(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldStructName(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    static const char *fieldStructNames[] = {
-        NULL,
-    };
-    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
-}
-
-void *DHTDataStorageSizeResponseDescriptor::getFieldStructPointer(void *object, int field, int i) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldStructPointer(object, field, i);
-        field -= basedesc->getFieldCount(object);
-    }
-    DHTDataStorageSizeResponse *pp = (DHTDataStorageSizeResponse *)object; (void)pp;
-    switch (field) {
-        default: return NULL;
-    }
-}
-
-Register_Class(SignMyKeyDelayCall);
-
-SignMyKeyDelayCall::SignMyKeyDelayCall(const char *name, int kind) : BaseCallMessage(name,kind)
-{
-    this->delay_var = 0;
-}
-
-SignMyKeyDelayCall::SignMyKeyDelayCall(const SignMyKeyDelayCall& other) : BaseCallMessage(other)
-{
-    copy(other);
-}
-
-SignMyKeyDelayCall::~SignMyKeyDelayCall()
-{
-}
-
-SignMyKeyDelayCall& SignMyKeyDelayCall::operator=(const SignMyKeyDelayCall& other)
-{
-    if (this==&other) return *this;
-    BaseCallMessage::operator=(other);
-    copy(other);
-    return *this;
-}
-
-void SignMyKeyDelayCall::copy(const SignMyKeyDelayCall& other)
-{
-    this->delay_var = other.delay_var;
-}
-
-void SignMyKeyDelayCall::parsimPack(cCommBuffer *b)
-{
-    BaseCallMessage::parsimPack(b);
-    doPacking(b,this->delay_var);
-}
-
-void SignMyKeyDelayCall::parsimUnpack(cCommBuffer *b)
-{
-    BaseCallMessage::parsimUnpack(b);
-    doUnpacking(b,this->delay_var);
-}
-
-simtime_t SignMyKeyDelayCall::getDelay() const
-{
-    return delay_var;
-}
-
-void SignMyKeyDelayCall::setDelay(simtime_t delay)
-{
-    this->delay_var = delay;
-}
-
-class SignMyKeyDelayCallDescriptor : public cClassDescriptor
-{
-  public:
-    SignMyKeyDelayCallDescriptor();
-    virtual ~SignMyKeyDelayCallDescriptor();
-
-    virtual bool doesSupport(cObject *obj) const;
-    virtual const char *getProperty(const char *propertyname) const;
-    virtual int getFieldCount(void *object) const;
-    virtual const char *getFieldName(void *object, int field) const;
-    virtual int findField(void *object, const char *fieldName) const;
-    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
-    virtual const char *getFieldTypeString(void *object, int field) const;
-    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
-    virtual int getArraySize(void *object, int field) const;
-
-    virtual std::string getFieldAsString(void *object, int field, int i) const;
-    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
-
-    virtual const char *getFieldStructName(void *object, int field) const;
-    virtual void *getFieldStructPointer(void *object, int field, int i) const;
-};
-
-Register_ClassDescriptor(SignMyKeyDelayCallDescriptor);
-
-SignMyKeyDelayCallDescriptor::SignMyKeyDelayCallDescriptor() : cClassDescriptor("SignMyKeyDelayCall", "BaseCallMessage")
-{
-}
-
-SignMyKeyDelayCallDescriptor::~SignMyKeyDelayCallDescriptor()
-{
-}
-
-bool SignMyKeyDelayCallDescriptor::doesSupport(cObject *obj) const
-{
-    return dynamic_cast<SignMyKeyDelayCall *>(obj)!=NULL;
-}
-
-const char *SignMyKeyDelayCallDescriptor::getProperty(const char *propertyname) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? basedesc->getProperty(propertyname) : NULL;
-}
-
-int SignMyKeyDelayCallDescriptor::getFieldCount(void *object) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
-}
-
-unsigned int SignMyKeyDelayCallDescriptor::getFieldTypeFlags(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldTypeFlags(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,
-    };
-    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
-}
-
-const char *SignMyKeyDelayCallDescriptor::getFieldName(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldName(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    static const char *fieldNames[] = {
-        "delay",
-    };
-    return (field>=0 && field<1) ? fieldNames[field] : NULL;
-}
-
-int SignMyKeyDelayCallDescriptor::findField(void *object, const char *fieldName) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    int base = basedesc ? basedesc->getFieldCount(object) : 0;
-    if (fieldName[0]=='d' && strcmp(fieldName, "delay")==0) return base+0;
-    return basedesc ? basedesc->findField(object, fieldName) : -1;
-}
-
-const char *SignMyKeyDelayCallDescriptor::getFieldTypeString(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldTypeString(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    static const char *fieldTypeStrings[] = {
-        "simtime_t",
-    };
-    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
-}
-
-const char *SignMyKeyDelayCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldProperty(object, field, propertyname);
-        field -= basedesc->getFieldCount(object);
-    }
-    switch (field) {
-        default: return NULL;
-    }
-}
-
-int SignMyKeyDelayCallDescriptor::getArraySize(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getArraySize(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    SignMyKeyDelayCall *pp = (SignMyKeyDelayCall *)object; (void)pp;
-    switch (field) {
-        default: return 0;
-    }
-}
-
-std::string SignMyKeyDelayCallDescriptor::getFieldAsString(void *object, int field, int i) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldAsString(object,field,i);
-        field -= basedesc->getFieldCount(object);
-    }
-    SignMyKeyDelayCall *pp = (SignMyKeyDelayCall *)object; (void)pp;
-    switch (field) {
-        case 0: return double2string(pp->getDelay());
-        default: return "";
-    }
-}
-
-bool SignMyKeyDelayCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->setFieldAsString(object,field,i,value);
-        field -= basedesc->getFieldCount(object);
-    }
-    SignMyKeyDelayCall *pp = (SignMyKeyDelayCall *)object; (void)pp;
-    switch (field) {
-        case 0: pp->setDelay(string2double(value)); return true;
-        default: return false;
-    }
-}
-
-const char *SignMyKeyDelayCallDescriptor::getFieldStructName(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldStructName(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    static const char *fieldStructNames[] = {
-        NULL,
-    };
-    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
-}
-
-void *SignMyKeyDelayCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldStructPointer(object, field, i);
-        field -= basedesc->getFieldCount(object);
-    }
-    SignMyKeyDelayCall *pp = (SignMyKeyDelayCall *)object; (void)pp;
-    switch (field) {
-        default: return NULL;
-    }
-}
-
-Register_Class(ChordDHTNotifyDelayCall);
-
-ChordDHTNotifyDelayCall::ChordDHTNotifyDelayCall(const char *name, int kind) : BaseCallMessage(name,kind)
-{
-    this->timeToReady_var = 0;
-}
-
-ChordDHTNotifyDelayCall::ChordDHTNotifyDelayCall(const ChordDHTNotifyDelayCall& other) : BaseCallMessage(other)
-{
-    copy(other);
-}
-
-ChordDHTNotifyDelayCall::~ChordDHTNotifyDelayCall()
-{
-}
-
-ChordDHTNotifyDelayCall& ChordDHTNotifyDelayCall::operator=(const ChordDHTNotifyDelayCall& other)
-{
-    if (this==&other) return *this;
-    BaseCallMessage::operator=(other);
-    copy(other);
-    return *this;
-}
-
-void ChordDHTNotifyDelayCall::copy(const ChordDHTNotifyDelayCall& other)
-{
-    this->timeToReady_var = other.timeToReady_var;
-}
-
-void ChordDHTNotifyDelayCall::parsimPack(cCommBuffer *b)
-{
-    BaseCallMessage::parsimPack(b);
-    doPacking(b,this->timeToReady_var);
-}
-
-void ChordDHTNotifyDelayCall::parsimUnpack(cCommBuffer *b)
-{
-    BaseCallMessage::parsimUnpack(b);
-    doUnpacking(b,this->timeToReady_var);
-}
-
-simtime_t ChordDHTNotifyDelayCall::getTimeToReady() const
-{
-    return timeToReady_var;
-}
-
-void ChordDHTNotifyDelayCall::setTimeToReady(simtime_t timeToReady)
-{
-    this->timeToReady_var = timeToReady;
-}
-
-class ChordDHTNotifyDelayCallDescriptor : public cClassDescriptor
-{
-  public:
-    ChordDHTNotifyDelayCallDescriptor();
-    virtual ~ChordDHTNotifyDelayCallDescriptor();
-
-    virtual bool doesSupport(cObject *obj) const;
-    virtual const char *getProperty(const char *propertyname) const;
-    virtual int getFieldCount(void *object) const;
-    virtual const char *getFieldName(void *object, int field) const;
-    virtual int findField(void *object, const char *fieldName) const;
-    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
-    virtual const char *getFieldTypeString(void *object, int field) const;
-    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
-    virtual int getArraySize(void *object, int field) const;
-
-    virtual std::string getFieldAsString(void *object, int field, int i) const;
-    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
-
-    virtual const char *getFieldStructName(void *object, int field) const;
-    virtual void *getFieldStructPointer(void *object, int field, int i) const;
-};
-
-Register_ClassDescriptor(ChordDHTNotifyDelayCallDescriptor);
-
-ChordDHTNotifyDelayCallDescriptor::ChordDHTNotifyDelayCallDescriptor() : cClassDescriptor("ChordDHTNotifyDelayCall", "BaseCallMessage")
-{
-}
-
-ChordDHTNotifyDelayCallDescriptor::~ChordDHTNotifyDelayCallDescriptor()
-{
-}
-
-bool ChordDHTNotifyDelayCallDescriptor::doesSupport(cObject *obj) const
-{
-    return dynamic_cast<ChordDHTNotifyDelayCall *>(obj)!=NULL;
-}
-
-const char *ChordDHTNotifyDelayCallDescriptor::getProperty(const char *propertyname) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? basedesc->getProperty(propertyname) : NULL;
-}
-
-int ChordDHTNotifyDelayCallDescriptor::getFieldCount(void *object) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
-}
-
-unsigned int ChordDHTNotifyDelayCallDescriptor::getFieldTypeFlags(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldTypeFlags(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,
-    };
-    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
-}
-
-const char *ChordDHTNotifyDelayCallDescriptor::getFieldName(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldName(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    static const char *fieldNames[] = {
-        "timeToReady",
-    };
-    return (field>=0 && field<1) ? fieldNames[field] : NULL;
-}
-
-int ChordDHTNotifyDelayCallDescriptor::findField(void *object, const char *fieldName) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    int base = basedesc ? basedesc->getFieldCount(object) : 0;
-    if (fieldName[0]=='t' && strcmp(fieldName, "timeToReady")==0) return base+0;
-    return basedesc ? basedesc->findField(object, fieldName) : -1;
-}
-
-const char *ChordDHTNotifyDelayCallDescriptor::getFieldTypeString(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldTypeString(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    static const char *fieldTypeStrings[] = {
-        "simtime_t",
-    };
-    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
-}
-
-const char *ChordDHTNotifyDelayCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldProperty(object, field, propertyname);
-        field -= basedesc->getFieldCount(object);
-    }
-    switch (field) {
-        default: return NULL;
-    }
-}
-
-int ChordDHTNotifyDelayCallDescriptor::getArraySize(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getArraySize(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    ChordDHTNotifyDelayCall *pp = (ChordDHTNotifyDelayCall *)object; (void)pp;
-    switch (field) {
-        default: return 0;
-    }
-}
-
-std::string ChordDHTNotifyDelayCallDescriptor::getFieldAsString(void *object, int field, int i) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldAsString(object,field,i);
-        field -= basedesc->getFieldCount(object);
-    }
-    ChordDHTNotifyDelayCall *pp = (ChordDHTNotifyDelayCall *)object; (void)pp;
-    switch (field) {
-        case 0: return double2string(pp->getTimeToReady());
-        default: return "";
-    }
-}
-
-bool ChordDHTNotifyDelayCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->setFieldAsString(object,field,i,value);
-        field -= basedesc->getFieldCount(object);
-    }
-    ChordDHTNotifyDelayCall *pp = (ChordDHTNotifyDelayCall *)object; (void)pp;
-    switch (field) {
-        case 0: pp->setTimeToReady(string2double(value)); return true;
-        default: return false;
-    }
-}
-
-const char *ChordDHTNotifyDelayCallDescriptor::getFieldStructName(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldStructName(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    static const char *fieldStructNames[] = {
-        NULL,
-    };
-    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
-}
-
-void *ChordDHTNotifyDelayCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldStructPointer(object, field, i);
-        field -= basedesc->getFieldCount(object);
-    }
-    ChordDHTNotifyDelayCall *pp = (ChordDHTNotifyDelayCall *)object; (void)pp;
-    switch (field) {
-        default: return NULL;
-    }
-}
-
-Register_Class(ChordDHTNotifyDelayResponse);
-
-ChordDHTNotifyDelayResponse::ChordDHTNotifyDelayResponse(const char *name, int kind) : BaseResponseMessage(name,kind)
-{
-}
-
-ChordDHTNotifyDelayResponse::ChordDHTNotifyDelayResponse(const ChordDHTNotifyDelayResponse& other) : BaseResponseMessage(other)
-{
-    copy(other);
-}
-
-ChordDHTNotifyDelayResponse::~ChordDHTNotifyDelayResponse()
-{
-}
-
-ChordDHTNotifyDelayResponse& ChordDHTNotifyDelayResponse::operator=(const ChordDHTNotifyDelayResponse& other)
-{
-    if (this==&other) return *this;
-    BaseResponseMessage::operator=(other);
-    copy(other);
-    return *this;
-}
-
-void ChordDHTNotifyDelayResponse::copy(const ChordDHTNotifyDelayResponse& other)
-{
-}
-
-void ChordDHTNotifyDelayResponse::parsimPack(cCommBuffer *b)
-{
-    BaseResponseMessage::parsimPack(b);
-}
-
-void ChordDHTNotifyDelayResponse::parsimUnpack(cCommBuffer *b)
-{
-    BaseResponseMessage::parsimUnpack(b);
-}
-
-class ChordDHTNotifyDelayResponseDescriptor : public cClassDescriptor
-{
-  public:
-    ChordDHTNotifyDelayResponseDescriptor();
-    virtual ~ChordDHTNotifyDelayResponseDescriptor();
-
-    virtual bool doesSupport(cObject *obj) const;
-    virtual const char *getProperty(const char *propertyname) const;
-    virtual int getFieldCount(void *object) const;
-    virtual const char *getFieldName(void *object, int field) const;
-    virtual int findField(void *object, const char *fieldName) const;
-    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
-    virtual const char *getFieldTypeString(void *object, int field) const;
-    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
-    virtual int getArraySize(void *object, int field) const;
-
-    virtual std::string getFieldAsString(void *object, int field, int i) const;
-    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
-
-    virtual const char *getFieldStructName(void *object, int field) const;
-    virtual void *getFieldStructPointer(void *object, int field, int i) const;
-};
-
-Register_ClassDescriptor(ChordDHTNotifyDelayResponseDescriptor);
-
-ChordDHTNotifyDelayResponseDescriptor::ChordDHTNotifyDelayResponseDescriptor() : cClassDescriptor("ChordDHTNotifyDelayResponse", "BaseResponseMessage")
-{
-}
-
-ChordDHTNotifyDelayResponseDescriptor::~ChordDHTNotifyDelayResponseDescriptor()
-{
-}
-
-bool ChordDHTNotifyDelayResponseDescriptor::doesSupport(cObject *obj) const
-{
-    return dynamic_cast<ChordDHTNotifyDelayResponse *>(obj)!=NULL;
-}
-
-const char *ChordDHTNotifyDelayResponseDescriptor::getProperty(const char *propertyname) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? basedesc->getProperty(propertyname) : NULL;
-}
-
-int ChordDHTNotifyDelayResponseDescriptor::getFieldCount(void *object) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 0+basedesc->getFieldCount(object) : 0;
-}
-
-unsigned int ChordDHTNotifyDelayResponseDescriptor::getFieldTypeFlags(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldTypeFlags(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    return 0;
-}
-
-const char *ChordDHTNotifyDelayResponseDescriptor::getFieldName(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldName(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    return NULL;
-}
-
-int ChordDHTNotifyDelayResponseDescriptor::findField(void *object, const char *fieldName) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? basedesc->findField(object, fieldName) : -1;
-}
-
-const char *ChordDHTNotifyDelayResponseDescriptor::getFieldTypeString(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldTypeString(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    return NULL;
-}
-
-const char *ChordDHTNotifyDelayResponseDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldProperty(object, field, propertyname);
-        field -= basedesc->getFieldCount(object);
-    }
-    switch (field) {
-        default: return NULL;
-    }
-}
-
-int ChordDHTNotifyDelayResponseDescriptor::getArraySize(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getArraySize(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    ChordDHTNotifyDelayResponse *pp = (ChordDHTNotifyDelayResponse *)object; (void)pp;
-    switch (field) {
-        default: return 0;
-    }
-}
-
-std::string ChordDHTNotifyDelayResponseDescriptor::getFieldAsString(void *object, int field, int i) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldAsString(object,field,i);
-        field -= basedesc->getFieldCount(object);
-    }
-    ChordDHTNotifyDelayResponse *pp = (ChordDHTNotifyDelayResponse *)object; (void)pp;
-    switch (field) {
-        default: return "";
-    }
-}
-
-bool ChordDHTNotifyDelayResponseDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->setFieldAsString(object,field,i,value);
-        field -= basedesc->getFieldCount(object);
-    }
-    ChordDHTNotifyDelayResponse *pp = (ChordDHTNotifyDelayResponse *)object; (void)pp;
-    switch (field) {
-        default: return false;
-    }
-}
-
-const char *ChordDHTNotifyDelayResponseDescriptor::getFieldStructName(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldStructName(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    return NULL;
-}
-
-void *ChordDHTNotifyDelayResponseDescriptor::getFieldStructPointer(void *object, int field, int i) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldStructPointer(object, field, i);
-        field -= basedesc->getFieldCount(object);
-    }
-    ChordDHTNotifyDelayResponse *pp = (ChordDHTNotifyDelayResponse *)object; (void)pp;
-    switch (field) {
-        default: return NULL;
-    }
-}
-
-Register_Class(DHTAddKeyNotifyCall);
-
-DHTAddKeyNotifyCall::DHTAddKeyNotifyCall(const char *name, int kind) : BaseCallMessage(name,kind)
-{
-    this->timeAdded_var = 0;
-}
-
-DHTAddKeyNotifyCall::DHTAddKeyNotifyCall(const DHTAddKeyNotifyCall& other) : BaseCallMessage(other)
-{
-    copy(other);
-}
-
-DHTAddKeyNotifyCall::~DHTAddKeyNotifyCall()
-{
-}
-
-DHTAddKeyNotifyCall& DHTAddKeyNotifyCall::operator=(const DHTAddKeyNotifyCall& other)
-{
-    if (this==&other) return *this;
-    BaseCallMessage::operator=(other);
-    copy(other);
-    return *this;
-}
-
-void DHTAddKeyNotifyCall::copy(const DHTAddKeyNotifyCall& other)
-{
-    this->key_var = other.key_var;
-    this->timeAdded_var = other.timeAdded_var;
-}
-
-void DHTAddKeyNotifyCall::parsimPack(cCommBuffer *b)
-{
-    BaseCallMessage::parsimPack(b);
-    doPacking(b,this->key_var);
-    doPacking(b,this->timeAdded_var);
-}
-
-void DHTAddKeyNotifyCall::parsimUnpack(cCommBuffer *b)
-{
-    BaseCallMessage::parsimUnpack(b);
-    doUnpacking(b,this->key_var);
-    doUnpacking(b,this->timeAdded_var);
-}
-
-OverlayKey& DHTAddKeyNotifyCall::getKey()
-{
-    return key_var;
-}
-
-void DHTAddKeyNotifyCall::setKey(const OverlayKey& key)
-{
-    this->key_var = key;
-}
-
-simtime_t DHTAddKeyNotifyCall::getTimeAdded() const
-{
-    return timeAdded_var;
-}
-
-void DHTAddKeyNotifyCall::setTimeAdded(simtime_t timeAdded)
-{
-    this->timeAdded_var = timeAdded;
-}
-
-class DHTAddKeyNotifyCallDescriptor : public cClassDescriptor
-{
-  public:
-    DHTAddKeyNotifyCallDescriptor();
-    virtual ~DHTAddKeyNotifyCallDescriptor();
-
-    virtual bool doesSupport(cObject *obj) const;
-    virtual const char *getProperty(const char *propertyname) const;
-    virtual int getFieldCount(void *object) const;
-    virtual const char *getFieldName(void *object, int field) const;
-    virtual int findField(void *object, const char *fieldName) const;
-    virtual unsigned int getFieldTypeFlags(void *object, int field) const;
-    virtual const char *getFieldTypeString(void *object, int field) const;
-    virtual const char *getFieldProperty(void *object, int field, const char *propertyname) const;
-    virtual int getArraySize(void *object, int field) const;
-
-    virtual std::string getFieldAsString(void *object, int field, int i) const;
-    virtual bool setFieldAsString(void *object, int field, int i, const char *value) const;
-
-    virtual const char *getFieldStructName(void *object, int field) const;
-    virtual void *getFieldStructPointer(void *object, int field, int i) const;
-};
-
-Register_ClassDescriptor(DHTAddKeyNotifyCallDescriptor);
-
-DHTAddKeyNotifyCallDescriptor::DHTAddKeyNotifyCallDescriptor() : cClassDescriptor("DHTAddKeyNotifyCall", "BaseCallMessage")
-{
-}
-
-DHTAddKeyNotifyCallDescriptor::~DHTAddKeyNotifyCallDescriptor()
-{
-}
-
-bool DHTAddKeyNotifyCallDescriptor::doesSupport(cObject *obj) const
-{
-    return dynamic_cast<DHTAddKeyNotifyCall *>(obj)!=NULL;
-}
-
-const char *DHTAddKeyNotifyCallDescriptor::getProperty(const char *propertyname) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? basedesc->getProperty(propertyname) : NULL;
-}
-
-int DHTAddKeyNotifyCallDescriptor::getFieldCount(void *object) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 2+basedesc->getFieldCount(object) : 2;
-}
-
-unsigned int DHTAddKeyNotifyCallDescriptor::getFieldTypeFlags(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldTypeFlags(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    static unsigned int fieldTypeFlags[] = {
-        FD_ISCOMPOUND,
-        FD_ISEDITABLE,
-    };
-    return (field>=0 && field<2) ? fieldTypeFlags[field] : 0;
-}
-
-const char *DHTAddKeyNotifyCallDescriptor::getFieldName(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldName(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    static const char *fieldNames[] = {
-        "key",
-        "timeAdded",
-    };
-    return (field>=0 && field<2) ? fieldNames[field] : NULL;
-}
-
-int DHTAddKeyNotifyCallDescriptor::findField(void *object, const char *fieldName) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    int base = basedesc ? basedesc->getFieldCount(object) : 0;
-    if (fieldName[0]=='k' && strcmp(fieldName, "key")==0) return base+0;
-    if (fieldName[0]=='t' && strcmp(fieldName, "timeAdded")==0) return base+1;
-    return basedesc ? basedesc->findField(object, fieldName) : -1;
-}
-
-const char *DHTAddKeyNotifyCallDescriptor::getFieldTypeString(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldTypeString(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    static const char *fieldTypeStrings[] = {
-        "OverlayKey",
-        "simtime_t",
-    };
-    return (field>=0 && field<2) ? fieldTypeStrings[field] : NULL;
-}
-
-const char *DHTAddKeyNotifyCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldProperty(object, field, propertyname);
-        field -= basedesc->getFieldCount(object);
-    }
-    switch (field) {
-        default: return NULL;
-    }
-}
-
-int DHTAddKeyNotifyCallDescriptor::getArraySize(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getArraySize(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    DHTAddKeyNotifyCall *pp = (DHTAddKeyNotifyCall *)object; (void)pp;
-    switch (field) {
-        default: return 0;
-    }
-}
-
-std::string DHTAddKeyNotifyCallDescriptor::getFieldAsString(void *object, int field, int i) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldAsString(object,field,i);
-        field -= basedesc->getFieldCount(object);
-    }
-    DHTAddKeyNotifyCall *pp = (DHTAddKeyNotifyCall *)object; (void)pp;
-    switch (field) {
-        case 0: {std::stringstream out; out << pp->getKey(); return out.str();}
-        case 1: return double2string(pp->getTimeAdded());
-        default: return "";
-    }
-}
-
-bool DHTAddKeyNotifyCallDescriptor::setFieldAsString(void *object, int field, int i, const char *value) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->setFieldAsString(object,field,i,value);
-        field -= basedesc->getFieldCount(object);
-    }
-    DHTAddKeyNotifyCall *pp = (DHTAddKeyNotifyCall *)object; (void)pp;
-    switch (field) {
-        case 1: pp->setTimeAdded(string2double(value)); return true;
-        default: return false;
-    }
-}
-
-const char *DHTAddKeyNotifyCallDescriptor::getFieldStructName(void *object, int field) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldStructName(object, field);
-        field -= basedesc->getFieldCount(object);
-    }
-    static const char *fieldStructNames[] = {
-        "OverlayKey",
-        NULL,
-    };
-    return (field>=0 && field<2) ? fieldStructNames[field] : NULL;
-}
-
-void *DHTAddKeyNotifyCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
-{
-    cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount(object))
-            return basedesc->getFieldStructPointer(object, field, i);
-        field -= basedesc->getFieldCount(object);
-    }
-    DHTAddKeyNotifyCall *pp = (DHTAddKeyNotifyCall *)object; (void)pp;
-    switch (field) {
-        case 0: return (void *)(&pp->getKey()); break;
         default: return NULL;
     }
 }

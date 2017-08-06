@@ -447,6 +447,47 @@ packet DHTputCAPIResponse extends BaseResponseMessage
 }
 
 //
+//
+// @author gkarop
+//
+packet DHTgetResponsibleCall extends BaseCallMessage
+{
+    //OverlayKey key; // corresponding OverlayKey to the requested value
+    //uint32_t kind = 1; // the kind of the stored data item
+    //uint32_t id = 1; // the id to identify multiple date items with same key and kind 
+}
+
+//
+//
+// @author gkarop
+//
+packet DHTgetResponsibleResponse extends BaseResponseMessage
+{
+    int resp;
+    bool isSuccess;
+}
+
+// @author gkarop
+//
+packet ChordStateReadyCall extends BaseCallMessage
+{
+}
+
+// @author gkarop
+//
+packet DHTKeyPutCall extends BaseCallMessage
+{
+    OverlayKey key;
+}
+
+// @author gkarop
+//
+packet overMessage extends cMessage
+{
+    OverlayKey key;
+}
+
+//
 // Message type to respond to a DHTget request @see DHTget
 //
 // @author Ingmar Baumgart
@@ -476,51 +517,7 @@ packet DHTdumpResponse extends BaseResponseMessage
     DhtDumpEntry record[]; // array of local dht entries
 }
 
-//
-// Internal RPC to request from tier1 the size of its dhtDataStorage
-// @author Petros Panagopoulos
-//
-packet DHTDataStorageSizeCall extends BaseCallMessage
-{
-    
-}
 
-packet DHTDataStorageSizeResponse extends BaseResponseMessage
-{
-    uint32_t myDHTStorageSize;             // number of keys responsible for
-}
-
-//
-// Internal RPC to notify tier2 the time of the Rxed response to key signature request
-// @author Petros Panagopoulos
-//
-packet SignMyKeyDelayCall extends BaseCallMessage
-{
-    simtime_t delay;             // time delay of node
-}
-
-//
-// Internal RPC to notify tier2 with the total delay time of node to go to READY State
-// @author Petros Panagopoulos
-//
-packet ChordDHTNotifyDelayCall extends BaseCallMessage
-{
-    simtime_t timeToReady;             // time delay of node to reach the READY State
-}
-
-packet ChordDHTNotifyDelayResponse extends BaseResponseMessage
-{
-}
-
-//
-// Internal RPC to notify tier2 when the node adds data in its DHTDataStorage
-// @author Petros Panagopoulos
-//
-packet DHTAddKeyNotifyCall extends BaseCallMessage
-{
-    OverlayKey key;
-    simtime_t timeAdded;
-}
 
 //
 // Internal RPC to ask overlay to start a lookup

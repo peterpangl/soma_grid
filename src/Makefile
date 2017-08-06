@@ -4306,6 +4306,7 @@ $O/overlay/chord/Chord.o: overlay/chord/Chord.cc \
 	common/TransportAddress.h \
 	common/TreeManagement.h \
 	common/TreeManagementMessage_m.h \
+	common/UnderlayConfigurator.h \
 	common/Vector2D.h \
 	common/Vivaldi.h \
 	common/cbr/CoordBasedRouting.h \
@@ -4321,6 +4322,7 @@ $O/overlay/chord/Chord.o: overlay/chord/Chord.cc \
 	overlay/chord/ChordFingerTable.h \
 	overlay/chord/ChordMessage_m.h \
 	overlay/chord/ChordSuccessorList.h \
+	tier2/dhttestapp/DHTTestApp.h \
 	$(INET_PROJ)/src/base/INETDefs.h \
 	$(INET_PROJ)/src/base/INotifiable.h \
 	$(INET_PROJ)/src/networklayer/contract/IPAddress.h \

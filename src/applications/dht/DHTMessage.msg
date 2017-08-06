@@ -90,9 +90,3 @@ message DHTTtlTimer
     uint32_t kind;
     uint32_t id;
 }
-//
-//message DHTRespMsg extends BaseResponseMessage
-//{
-//	DHTPutResponse msgResponse;
-//	DHTPutCall 	msgCall;
-//}

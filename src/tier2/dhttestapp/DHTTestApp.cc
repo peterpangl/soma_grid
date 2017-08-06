@@ -31,65 +31,43 @@
 #include <GlobalDhtTestMap.h>
 
 #include "DHTTestApp.h"
-#include <sstream>
+
 Define_Module(DHTTestApp);
 
 using namespace std;
 
 DHTTestApp::~DHTTestApp()
 {
-    cancelAndDelete(somakeyput_timer);
+    cancelAndDelete(somakeyput_msg);
+    cancelAndDelete(somafkeysign_msg);
 
     cancelAndDelete(dhttestput_timer);
     cancelAndDelete(dhttestget_timer);
     cancelAndDelete(dhttestmod_timer);
-
-
 }
-
 
 DHTTestApp::DHTTestApp()
 {
-    somakeyput_timer = NULL;
+    somakeyput_msg = NULL;
+    somafkeysign_msg = NULL;
 
     dhttestput_timer = NULL;
     dhttestget_timer = NULL;
     dhttestmod_timer = NULL;
-    global_i =0;
-
-
 }
-
 
 void DHTTestApp::initializeApp(int stage)
 {
     if (stage != MIN_STAGE_APP)
         return;
 
-    if (debugOutput) {
-        EV << "[DHTTestApp::initializeApp() @ " << thisNode.getIp()
-
-        << " (" << thisNode.getKey().toString(16) << ")]\n"
-        << " petrosDHTTA timestamp: " << simTime()
-        << endl;    // fetch parameters
-    }
+    // fetch parameters
     debugOutput = par("debugOutput");
     activeNetwInitPhase = par("activeNetwInitPhase");
 
     mean = par("testInterval");
     p2pnsTraffic = par("p2pnsTraffic");
     deviation = mean / 10;
-
-    // certification signature delay time
-    DHTAddedKeyTimeThresh = 50; // is the same as the number of nodes  - par("targetOverlayTerminalNum");
-    certSignProcessingDelay = 0.7;    // par("certSignProcessingDelay");
-    signOthersKeyDelay = 0.0;   // delay to Ready state + cert sign delay
-    readyDelay = 0;             // delayMsg->getTimeToReady();
-
-    // delay of myKey signed by another node
-    rttSignMyKeyDelay = 0.0;
-
-    keySignCounter = 0;
 
     if (p2pnsTraffic) {
         ttl = 3600*24*365;
@@ -101,7 +79,7 @@ void DHTTestApp::initializeApp(int stage)
     underlayConfigurator = UnderlayConfiguratorAccess().get();
     globalStatistics = GlobalStatisticsAccess().get();
 
-        globalDhtTestMap = dynamic_cast<GlobalDhtTestMap*>(simulation.getModuleByPath(
+    globalDhtTestMap = dynamic_cast<GlobalDhtTestMap*>(simulation.getModuleByPath(
             "globalObserver.globalFunctions[0].function"));
 
     if (globalDhtTestMap == NULL) {
@@ -118,6 +96,14 @@ void DHTTestApp::initializeApp(int stage)
     numPutError = 0;
     numPutSuccess = 0;
 
+    numSomaKeys = 0;
+    soma_init_timer  = simTime();
+    soma_total_time  = 0;
+    soma_keyputtime = -1;
+    soma_fkeysigntime = -1;
+
+    timeVector.setName("SomaJoinTime");
+
     //initRpcs();
     WATCH(numSent);
     WATCH(numGetSent);
@@ -127,12 +113,47 @@ void DHTTestApp::initializeApp(int stage)
     WATCH(numPutError);
     WATCH(numPutSuccess);
 
-    nodeIsLeavingSoon = false;
-    EV << "SOMA public set" << endl;
+    //WATCH(numSomaKeys);
+    //globalStatistics = GlobalStatisticsAccess().get();
 
-    publickey = (const char *)"MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCqGKukO1De7zhZj6+H0qtjTkVxwTCpvKe4eCZ0\
-    FPqri0cb2JZfXJ/DgYSF6vUpwmJG8wVQZKjeGcjDOL5UlsuusFncCzWBQ7RKNUSesmQRMSGkVb1/\
-    3j+skZ6UtW+5u09lHNsj6tQ51s1SPrCBkedbNf0Tp0GbMJDyR4e9T04ZZwIDAQAB";
+    nodeIsLeavingSoon = false;
+
+    // RSA 2048 bit public key and certificate
+    publickey = (char *)"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtYyJkl9HNu1ER0jE+Hhm\
+F9GftLsI/k474satrgxS1zYb2Osrsl+Fs1G1ZCg6qKyaWYn4FsimxXZ/k8tLgpUM\
+JkUJUq0AzcS4e/Oc/f7Bm8Zf1dfAoqwtm0Yqvu7p3R6zweubiLA9iBFVplCcJsOo\
+kLreQBM1aW9m+Y5ztZMcT4Y4gVVCcjT7J5gD2ds8XJdTsp3Sr3lEYVai0SF0XxPw\
+uhzOi2tQ/8cyN43DInAHQPIeDPFllfGqxyUZLp6l03h28lZYGKYfRAZAyqqnA8RN\
+5cpYV4DCMGD3CnqhM5d5tffRQ2LmnoYTgGyZzuUHaToxUT0ZmOMSGakHVkma0r9a\
+lQIDAQAB";
+
+    cert = (char *)"MIIDXTCCAkWgAwIBAgIJAKFLjcdVAiS/MA0GCSqGSIb3DQEBCwUAMEUxCzAJBgNV\
+BAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5ldCBX\
+aWRnaXRzIFB0eSBMdGQwHhcNMTcwMzIyMTAwMTE5WhcNMTgwMzIyMTAwMTE5WjBF\
+MQswCQYDVQQGEwJBVTETMBEGA1UECAwKU29tZS1TdGF0ZTEhMB8GA1UECgwYSW50\
+ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB\
+CgKCAQEAtYyJkl9HNu1ER0jE+HhmF9GftLsI/k474satrgxS1zYb2Osrsl+Fs1G1\
+ZCg6qKyaWYn4FsimxXZ/k8tLgpUMJkUJUq0AzcS4e/Oc/f7Bm8Zf1dfAoqwtm0Yq\
+vu7p3R6zweubiLA9iBFVplCcJsOokLreQBM1aW9m+Y5ztZMcT4Y4gVVCcjT7J5gD\
+2ds8XJdTsp3Sr3lEYVai0SF0XxPwuhzOi2tQ/8cyN43DInAHQPIeDPFllfGqxyUZ\
+Lp6l03h28lZYGKYfRAZAyqqnA8RN5cpYV4DCMGD3CnqhM5d5tffRQ2LmnoYTgGyZ\
+zuUHaToxUT0ZmOMSGakHVkma0r9alQIDAQABo1AwTjAdBgNVHQ4EFgQUTWbAGO6Q\
+hNWGRhn2+jnTiJ9PFNowHwYDVR0jBBgwFoAUTWbAGO6QhNWGRhn2+jnTiJ9PFNow\
+DAYDVR0TBAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAUMmh4HGBWKHTYrbs8eeY\
++oCLdv56IP/xqgtUvwYDbfseNHUr2MMcQhXYHHandpOTQBCd1uD9ZEGxJ2anwla1\
+ec0WFEkoDjBGy6eQo1pQOKEtj7KZnIAukznYBvhHup9U2PaDZ071NjcQ2atY8pGN\
+Kb3a6n5K0BlvkRIDY03blWki+Hg1r2GqxI/t7Zgvr3wl3QB1V29Ath4Sd4OO83Gk\
+mAkrECPAXrOa6Eoo5TkMdqCI2Gp9ayMuTffjF+rMZJM3aU/s7q7BuFXqCp91wDE/\
+KTgz5xj/eQMqLRnn1ll+q9MjfpzV9ZrC4+d3KQYcT5BraGDfqp7NBBd5fgnlMH/C\
+GA==";
+
+    signTemplate = (char *)"|YcmV5HrJNBQ/zVQZNaOtHvG3BxePT4b6wi+ab23hMfdn0SapmCOqWGtIxpm9BvM\
+3Ua9rQ2RZEablzga0GosgkclhTB8VJGA3jt7+U+u8nKKwqTeKLLq9SncGU0b9PEM\
+i9YNqDyhNlETrkNOYLvTFlraQCaoPa27x5bz26gA7BX7IgXe0Qlbel0fXkZD/cbh\
+d30PZ1s5fOWAi6OB/7oseewUqtwpiZnouJ+Tf+W+/sjv1Rw/fsB1xIbtcxqOstRs\
+e9GBLPQ76DYU8pNYRM6Romt+GaIJLASFneYlUpBHZYpVTG450Qe6cmApYFP5HNDd\
+nlTe05wO4ZmcALSX| ";
+
 
     /*dhttestput_timer = new cMessage("dhttest_put_timer");
     dhttestget_timer = new cMessage("dhttest_get_timer");
@@ -150,220 +171,114 @@ void DHTTestApp::initializeApp(int stage)
 
 
     }*/
-    EV << "[DHTTestApp::initializeApp() mean: " << mean
-    << "\np2pnsTraffic:" << p2pnsTraffic
-    << "\n deviation:" << deviation
-    << "\n ttl:" << ttl
-    << endl;    // fetch parameters
 }
-
 
 bool DHTTestApp::handleRpcCall(BaseCallMessage* msg)
 {
+    // start a switch
+    RPC_SWITCH_START(msg);
 
-    RPC_SWITCH_START(msg)
-        // Internal RPCs
-        RPC_DELEGATE(ChordDHTNotifyDelay, delayFromChord);
-        //RPC_DELEGATE(DHTAddKeyNotify, certSignDelay);
-        RPC_DELEGATE(SignMyKeyDelay, signMyKeyDelay);
-    RPC_SWITCH_END( )
+    // enters the following block if the message is of type ChordStateReadyCall (note the shortened parameter!)
+    RPC_ON_CALL(ChordStateReady) {
 
+        handlePutCall(msg);
+        break;
+    }
+    RPC_ON_CALL(DHTKeyPut)
+    {
+        handleDHTKeyPutCall(_DHTKeyPutCall);//,
+        break;
+    }
+
+    // end the switch
+    RPC_SWITCH_END();
+
+    // return whether we handled the message or not.
+    // don't delete unhandled messages!
     return RPC_HANDLED;
+
+
 }
 
-/*
- * Function executed in response of dhtDataStorageSize request.
- * Request is sent when the node is in Ready state in Chord
- */
-void DHTTestApp::signOfKeysResponsibleDelay(DHTDataStorageSizeResponse* msg)
+void DHTTestApp::handlePutCall(BaseCallMessage* msg)
 {
-    keySignCounter = msg->getMyDHTStorageSize();
-    EV << "DHTTestApp::signOfKeysRespDelay: " << keySignCounter << endl;
+    // Send our own key for sign
+    string nodeIp = thisNode.getIp().str();
+    string pkIp = string(publickey) + string(nodeIp);
+    string certIp = string(cert) +
+            string(signTemplate) +
+            string(nodeIp) + "|";
 
-    signOthersKeyDelay = readyDelay.dbl() + (certSignProcessingDelay * keySignCounter);
+    OverlayKey somaKey(OverlayKey::sha1(pkIp));
+    DHTputCAPICall* dhtPutMsg = new DHTputCAPICall();
+    dhtPutMsg->setKey(somaKey);
+    dhtPutMsg->setValue(certIp);
+    dhtPutMsg->setTtl(ttl);
+    dhtPutMsg->setIsModifiable(true);
 
-    EV << "DHTTestApp Node - signOthersKeyDelay: " << overlay->getThisNode().getIp() << " - "
-        << signOthersKeyDelay << endl;
+    RECORD_STATS(numSent++; numPutSent++);
+
+    sendInternalRpcCall(TIER1_COMP, dhtPutMsg,
+            new DHTStatsContext(globalStatistics->isMeasuring(),
+                                simTime(), somaKey, dhtPutMsg->getValue()));
+
+    // Sign the keys that are assigned to us
+    DHTgetResponsibleCall* dhtGetRespMsg = new DHTgetResponsibleCall();
+    RECORD_STATS(numSent++; numGetSent++);
+
+    sendInternalRpcCall(TIER1_COMP, dhtGetRespMsg);
 }
 
-
-/*
- * In this function is measured the time delay that it takes for the node's certification
- * to be signed by another node since the time of transmission of the request.
- * This node will send the sign request and will be waiting for the sign response if it is successful or not.
- *
- * */
-void DHTTestApp::signMyKeyDelay(SignMyKeyDelayCall *rttSignDelayMsg)
-{
-    // EV << "rttSignDelayMsg " << rttSignDelayMsg->getDelay() << endl;
-    // EV << "rttSignMyKeyDelay: " << rttSignMyKeyDelay << endl;
-
-    // rttSignDelayMsg->getDelay(): Time that the DHT Rxed the response from another node that successfully signed the key
-    // rttSignMyKeyDelay: timestamp that keeps the time that the node sent the request for signature to another node (initialized at delayFromChord)
-    // certSignProcessingDelay : Processing time that the node needs to sign the certificate
-    // readyDelay: is the delay of the node to get in the ready state
-    rttSignMyKeyDelay = (rttSignDelayMsg->getDelay().dbl() - rttSignMyKeyDelay) + certSignProcessingDelay + readyDelay.dbl() ; // measure without usleep
-    //rttSignMyKeyDelay = (rttSignDelayMsg->getDelay().dbl() - rttSignMyKeyDelay) + readyDelay.dbl() ; // measure with usleep
-    EV << "Node: " << overlay->getThisNode().getIp()
-       << " Enter the network delay with key signature: "
-       << rttSignMyKeyDelay
-       << endl;
-}
-
-//
-///*
-// * measure the total delay of the node who signs the keys of the other nodes
-// *
-// */
-//void DHTTestApp::certSignDelay(DHTAddKeyNotifyCall *addedKeyMsg)
-//{
-//    /*EV << "DHTTestApp::certSignDelay Rxed" << endl;
-//
-//    // if the timestamp of the new added key is less than the readyDelay + DHTAddedKeyTimeThresh delay, then take into account
-//    if (addedKeyMsg->getTimeAdded() < (readyDelay + DHTAddedKeyTimeThresh))
-//    {
-//        keySignCounter = keySignCounter + 1;                                                   // number of keys that the node signs(for statistics
-//        signOthersKeyDelay = signOthersKeyDelay + certSignProcessingDelay;  // every time that the node signs a key, adds the delay to the total Node
-//        EV << "DHTTestApp::signOthersKeyDelay: " << overlay->getThisNode().getIp() << " - "
-//            << signOthersKeyDelay << endl;
-//    }*/
-//}
-
-
-/*
- * delayFromChord function is executed when the node enters the Ready state in Chord.
- * Upon that, a message is sent to the DHTTestApp informing about the delay that took for the node
- * to enter the ready state since its creation.
- * After that informative message, the node (since is in ready state) sends its somaKey to the a random destination
- * in order to be signed by that node.
- * The key is a hash of the concatenation of the nodeIp and the and the publicKey
- */
-void DHTTestApp::delayFromChord(ChordDHTNotifyDelayCall *delayMsg)
-{
-
-   string nodeIp = thisNode.getIp().str();
-   string pkIp = string(publickey) + string(nodeIp);
-
-   OverlayKey somaKey(OverlayKey::sha1(pkIp));
-
-   EV << "SOMA [DHTTestApp::delayFromChord()] " << somaKey.toString()
-           << " the key is sent @" << simTime()   << endl;
-
-   readyDelay = delayMsg->getTimeToReady();  // time delay for node to go to Ready state
-   //signOthersKeyDelay = readyDelay.dbl();
-
-   rttSignMyKeyDelay = simTime().dbl();     // measure the time from now till getting the signature response from another node
-
-   myKey = somaKey.toString();
-   // initiate SOMA key-value put
-   //somakeyput_timer = new cMessage("somakey_put_timer");
-   //scheduleAt(simTime(), somakeyput_timer);
-
-   // create a put test message with random destination key
-   //OverlayKey destKey = OverlayKey::random();
-   DHTputCAPICall* dhtPutMsg = new DHTputCAPICall();
-   dhtPutMsg->setKey(somaKey);
-   dhtPutMsg->setValue(getCertValue());
-   //dhtPutMsg->setValue(generateRandomValue());
-   dhtPutMsg->setTtl(ttl);
-   dhtPutMsg->setIsModifiable(true);
-
-   RECORD_STATS(numSent++; numPutSent++);
-
-
-   DHTDataStorageSizeCall* getDHTStorSizeMsg = new DHTDataStorageSizeCall();
-   sendInternalRpcCall(TIER1_COMP, getDHTStorSizeMsg);
-
-   EV << "Node: " << overlay->getThisNode().getIp()
-         << " sends key: " << somaKey.toString()
-         << " @timestamp: " << simTime()
-         << endl;
-
-
-
-   EV << "Node: " << overlay->getThisNode().getIp()
-         << " sends key: " << somaKey.toString()
-         << " @timestamp rttSingMyKeyDelay: " << rttSignMyKeyDelay
-         << endl;
-
-
-   sendInternalRpcCall(TIER1_COMP, dhtPutMsg,
-           new DHTStatsContext(globalStatistics->isMeasuring(),
-                               simTime(), somaKey, dhtPutMsg->getValue()));
-
-
-
-    EV << "[DHTTestApp::delayFromChord() - ChordDHTNotifyTime Rxed -in handleTimeFromChord] time:\n"
-       << delayMsg->getTimeToReady()
-       << endl;
-
-}
 
 void DHTTestApp::handleRpcResponse(BaseResponseMessage* msg,
                                    const RpcState& state, simtime_t rtt)
 {
-//    EV << "[DHTTestApp::handleRpcResponse() @ " << thisNode.getIp()
-//    << " (" << thisNode.getKey().toString(16) << ")]\n"
-//    << " timestamp: " << simTime()
-//    << endl;    // fetch parameters
-
     RPC_SWITCH_START(msg)
-
-    RPC_ON_RESPONSE( DHTputCAPI )
-    {
+    RPC_ON_RESPONSE( DHTputCAPI ) {
         handlePutResponse(_DHTputCAPIResponse,
                           check_and_cast<DHTStatsContext*>(state.getContext()));
-        EV << "[DHTTestApp::handlePutResponse()]\n"
+        EV << "[DHTTestApp::handleRpcResponse()]\n"
            << "    DHT Put RPC Response received: id=" << state.getId()
            << " msg=" << *_DHTputCAPIResponse << " rtt=" << rtt
            << endl;
         break;
     }
-
     RPC_ON_RESPONSE(DHTgetCAPI)
     {
         handleGetResponse(_DHTgetCAPIResponse,
                           check_and_cast<DHTStatsContext*>(state.getContext()));
-        EV << "[DHTTestApp::handleGetResponse()]\n"
+        EV << "[DHTTestApp::handleRpcResponse()]\n"
            << "    DHT Get RPC Response received: id=" << state.getId()
            << " msg=" << *_DHTgetCAPIResponse << " rtt=" << rtt
            << endl;
         break;
     }
-
-    RPC_ON_RESPONSE(DHTDataStorageSize)
+    RPC_ON_RESPONSE(DHTgetResponsible)
     {
-        signOfKeysResponsibleDelay(_DHTDataStorageSizeResponse);
-        EV << "[DHTTestApp::handleGetResponse()]\n"
-           << "    DHT Get RPC Response received: id=" << state.getId()
-           << " msg=" << *_DHTDataStorageSizeResponse << " rtt=" << rtt
-           << endl;
-        break;
+            handleGetResponsibleResponse(_DHTgetResponsibleResponse);//,
+//                              check_and_cast<DHTStatsContext*>(state.getContext()));
+           // EV << "[SOMA-DHTTestApp::handleResponsibleResponse()]\n";
+            break;
     }
-
     RPC_SWITCH_END()
 }
 
+void DHTTestApp::handleDHTKeyPutCall(DHTKeyPutCall* msg)
+{
+    // the key has already been put to the other node, signing delay has been taken into account
+    somakeyput_msg = new cMessage("somakey_put_timer");
+    soma_keyputtime = simTime();
+    scheduleAt(simTime(), somakeyput_msg);
+}
 
 void DHTTestApp::handlePutResponse(DHTputCAPIResponse* msg,
                                    DHTStatsContext* context)
 {
-    if (debugOutput) {
-        EV << "petros [DHTTestApp::handlePutResponse]"  << endl;
-    }
-//    EV << "[DHTTestApp::handlePutResponse() @ " << thisNode.getIp()
-//    << " (" << thisNode.getKey().toString(16) << ")]\n"
-//    << " timestamp: " << simTime()
-//    << endl;    // fetch parameters
+    //EV << "[SOMA-SIGN-DHTTestApp::handle putResponse] " << "\n" ;
 
     DHTEntry entry = {context->value, simTime() + ttl, simTime()};
 
     globalDhtTestMap->insertEntry(context->key, entry);
-
-    EV << "petros handlePutResponse DHTT Node: " << overlay->getThisNode().getIp()
-          << " PUT success for key: " << myKey
-          << " timestamp: " << simTime()
-          << endl;
 
     if (context->measurementPhase == false) {
         // don't count response, if the request was not sent
@@ -384,25 +299,29 @@ void DHTTestApp::handlePutResponse(DHTputCAPIResponse* msg,
     delete context;
 }
 
+void DHTTestApp::handleGetResponsibleResponse(DHTgetResponsibleResponse* msg)
+{
+    int keysResp = msg->getResp();
+
+    simtime_t signingDelay = keysResp *  (0.03973 + 0.03847); // Verify CA signature + sign delay
+
+    numSomaKeys = numSomaKeys + keysResp;
+
+    somafkeysign_msg = new cMessage("somafkeysign_timer");
+    scheduleAt(simTime() + signingDelay, somafkeysign_msg);
+
+
+}
 
 void DHTTestApp::handleGetResponse(DHTgetCAPIResponse* msg,
                                    DHTStatsContext* context)
 {
-    if (debugOutput) {
-        EV << "petros [DHTTestApp::handleGetResponse]"  << endl;
-    }
-
     if (context->measurementPhase == false) {
         // don't count response, if the request was not sent
         // in the measurement phase
         delete context;
         return;
     }
-
-    EV << "[DHTTestApp::handleGetResponse() @ " << thisNode.getIp()
-    << " (" << thisNode.getKey().toString(16) << ")]\n"
-    << " timestamp: " << simTime()
-    << endl;    // fetch parameters
 
     RECORD_STATS(globalStatistics->addStdDev("DHTTestApp: GET Latency (s)",
                                SIMTIME_DBL(simTime() - context->requestTime)));
@@ -461,18 +380,9 @@ void DHTTestApp::handleGetResponse(DHTgetCAPIResponse* msg,
 
 }
 
-
 void DHTTestApp::handleTraceMessage(cMessage* msg)
 {
-    EV << "[SOMA-DHTTestApp::handleTraceMessage()\n";
-
-    if (debugOutput) {
-        EV << "petros [DHTTestApp::handleTraceMessage]"  << endl;
-    }
-    EV << "[DHTTestApp::handleTraceMessage() @ " << thisNode.getIp()
-    << " (" << thisNode.getKey().toString(16) << ")]\n"
-    << " timestamp: " << simTime()
-    << endl;    // fetch parameters
+    //EV << "[SOMA-DHTTestApp::handleTraceMessage()\n";
 
     char* cmd = new char[strlen(msg->getName()) + 1];
     strcpy(cmd, msg->getName());
@@ -530,49 +440,37 @@ void DHTTestApp::handleTraceMessage(cMessage* msg)
     delete msg;
 }
 
-
 void DHTTestApp::handleTimerEvent(cMessage* msg)
 {
+    if (msg->isName("somakey_put_timer")) {
 
-    if (debugOutput) {
-        EV << "petros [DHTTestApp::handleTimerEvent]"  << endl;
+        if (soma_fkeysigntime > -1 && soma_keyputtime >= soma_fkeysigntime)
+        {
+            soma_total_time = soma_keyputtime - soma_init_timer;
+            timeVector.record(soma_total_time);
+        }
+        else if (soma_fkeysigntime > -1 && soma_keyputtime < soma_fkeysigntime)
+        {
+            soma_total_time = soma_fkeysigntime - soma_init_timer;
+            timeVector.record(soma_total_time);
+        }
     }
+    else if (msg->isName("somafkeysign_timer")) {
+        soma_fkeysigntime = simTime();
 
-    EV << "[DHTTestApp::handleTimerEvent() @ " << thisNode.getIp()
-    << " (" << thisNode.getKey().toString(16) << ")]\n"
-    << " timestamp: " << simTime()
-    << endl;    // fetch parameters
-//    if (msg->isName("somakey_put_timer")) {
-//        EV << "[SOMA-DHTTestApp::handleTimerEvent() : Put key\n";
-//
-//        // do nothing if the network is still in the initialization phase
-//        if (((!activeNetwInitPhase) && (underlayConfigurator->isInInitPhase()))
-//                || underlayConfigurator->isSimulationEndingSoon()
-//                || nodeIsLeavingSoon)
-//        {
-//            EV << "[SOMA-DHTTestApp::handleTimerEvent() : ATTENTION!! Network still in init phase\n";
-//            scheduleAt(simTime() + 1, msg);
-//            return;
-//        }
-//
-//        EV << "[SOMA-DHTTestApp::handleTimerEvent() : Finally gone from "
-//                << thisNode.getIp() << "!\n";
-//
-//        // create a put test message with random destination key
-//        OverlayKey destKey = OverlayKey::random();
-//        DHTputCAPICall* dhtPutMsg = new DHTputCAPICall();
-//        dhtPutMsg->setKey(destKey);
-//        dhtPutMsg->setValue(generateRandomValue());
-//        dhtPutMsg->setTtl(ttl);
-//        dhtPutMsg->setIsModifiable(true);
-//
-//        RECORD_STATS(numSent++; numPutSent++);
-//        sendInternalRpcCall(TIER1_COMP, dhtPutMsg,
-//                new DHTStatsContext(globalStatistics->isMeasuring(),
-//                                    simTime(), destKey, dhtPutMsg->getValue()));
-//
-//    }
-    if (msg->isName("dhttest_put_timer")) {
+        if (soma_keyputtime > -1 && soma_keyputtime >= soma_fkeysigntime)
+        {
+            soma_total_time = soma_keyputtime - soma_init_timer;
+            timeVector.record(soma_total_time);
+        }
+        else if (soma_keyputtime > -1 && soma_keyputtime < soma_fkeysigntime)
+        {
+            soma_total_time = soma_fkeysigntime - soma_init_timer;
+            timeVector.record(soma_total_time);
+        }
+    }
+    else if (msg->isName("dhttest_put_timer")) {
+        //EV << "[SOMA-DHTTestApp::handleTimerEvent() : dhttest_put_timer\n";
         // schedule next timer event
         scheduleAt(simTime() + truncnormal(mean, deviation), msg);
 
@@ -586,9 +484,6 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
             if (globalDhtTestMap->p2pnsNameCount < 4*globalNodeList->getNumNodes()) {
                 for (int i = 0; i < 4; i++) {
                     // create a put test message with random destination key
-                    if (debugOutput) {
-                        EV << "petros [DHTTestApp::handleTimerEvent] create a put test message with random destination key"  << endl;
-                    }
                     OverlayKey destKey = OverlayKey::random();
                     DHTputCAPICall* dhtPutMsg = new DHTputCAPICall();
                     dhtPutMsg->setKey(destKey);
@@ -606,6 +501,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
             cancelEvent(msg);
             return;
         }
+
         // create a put test message with random destination key
         OverlayKey destKey = OverlayKey::random();
         DHTputCAPICall* dhtPutMsg = new DHTputCAPICall();
@@ -613,20 +509,12 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
         dhtPutMsg->setValue(generateRandomValue());
         dhtPutMsg->setTtl(ttl);
         dhtPutMsg->setIsModifiable(true);
-        if (debugOutput) {
-            EV << "**petros [DHTTestApp::handleTimerEvent] dhttest put_timer destKey: "  << destKey
-                    << "\n dhtPutMsg->getValue(): " << dhtPutMsg->getValue()
-                    << "\n ttl:" << ttl << " timestamp: " << simTime() << endl;
-        }
+
         RECORD_STATS(numSent++; numPutSent++);
         sendInternalRpcCall(TIER1_COMP, dhtPutMsg,
                 new DHTStatsContext(globalStatistics->isMeasuring(),
                                     simTime(), destKey, dhtPutMsg->getValue()));
     } else if (msg->isName("dhttest_get_timer")) {
-        if (debugOutput) {
-            EV << "petros [DHTTestApp::handleTimerEvent] dhttest_get_timer"  << endl;
-        }
-
         scheduleAt(simTime() + truncnormal(mean, deviation), msg);
 
         // do nothing if the network is still in the initialization phase
@@ -654,17 +542,10 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
         dhtGetMsg->setKey(key);
         RECORD_STATS(numSent++; numGetSent++);
 
-        if (debugOutput) {
-            EV << "petros [DHTTestApp::handleTimerEvent] dhttest get_timer key: "  << key << " timestamp: " << simTime()<<endl;
-        }
-
         sendInternalRpcCall(TIER1_COMP, dhtGetMsg,
                 new DHTStatsContext(globalStatistics->isMeasuring(),
                                     simTime(), key));
     } else if (msg->isName("dhttest_mod_timer")) {
-        if (debugOutput) {
-            EV << "petros [DHTTestApp::handleTimerEvent] dhttest_mod_timer"  << endl;
-        }
         scheduleAt(simTime() + truncnormal(mean, deviation), msg);
 
         // do nothing if the network is still in the initialization phase
@@ -707,6 +588,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
             return;
         }
 #endif
+        //EV << "[SOMA-DHTTestApp::handleTimerEvent() : dhttest_mod_timer\n";
 
         DHTputCAPICall* dhtPutMsg = new DHTputCAPICall();
         dhtPutMsg->setKey(key);
@@ -734,56 +616,15 @@ BinaryValue DHTTestApp::generateRandomValue()
     return BinaryValue(value);
 }
 
-BinaryValue DHTTestApp::getCertValue()
-{
-
-    certValue = (const char *)"MIIEOTCCAyGgAwIBAgIJALf3PI6l8+QqMA0GCSqGSIb3DQEBCwUAMIGqMQswCQYD\
-                                    VQQGEwJHUjEPMA0GA1UECAwGQXR0aWtpMQ8wDQYDVQQHDAZBdGhlbnMxHjAcBgNV\
-                                    BAoMFVNtYXJ0R3JpZCBDQSwgTGltaXRlZDEmMCQGA1UECwwdU21hcnRHcmlkIFJl\
-                                    c2VhcmNoIERlcGFydG1lbnQxEDAOBgNVBAMMB1Rlc3QgQ0ExHzAdBgkqhkiG9w0B\
-                                    CQEWEHRlc3RAZXhhbXBsZS5jb20wHhcNMTYxMDI2MjExMjAxWhcNMTYxMTI1MjEx\
-                                    MjAxWjCBqjELMAkGA1UEBhMCR1IxDzANBgNVBAgMBkF0dGlraTEPMA0GA1UEBwwG\
-                                    QXRoZW5zMR4wHAYDVQQKDBVTbWFydEdyaWQgQ0EsIExpbWl0ZWQxJjAkBgNVBAsM\
-                                    HVNtYXJ0R3JpZCBSZXNlYXJjaCBEZXBhcnRtZW50MRAwDgYDVQQDDAdUZXN0IENB\
-                                    MR8wHQYJKoZIhvcNAQkBFhB0ZXN0QGV4YW1wbGUuY29tMIIBIjANBgkqhkiG9w0B\
-                                    AQEFAAOCAQ8AMIIBCgKCAQEAtBes0vNZnyZF8ZD/uWoPD4ho273dGm0S3mUfFjaH\
-                                    Zvbv2mE6pI7oY0S+UhP+jc0eRdqsiFEP+CcHeZT7tTybTmNrU3uN4qA2Q+Py15Oz\
-                                    JChn8kf9JU/4D7kmvVwQW3amN9bw4J3zqNFvXrD+rU8K8aj9KSp7elW5usAKQe1U\
-                                    vOwpmNNZplCd2ga9d4WM66zKMb9MpDCDW0/EZrPOfKLRV0FOqIWBPhpoIkd4m57C\
-                                    tUmfmEeTrQ2PXghqPFvUsd7/JgV1mJLVVvv+JR3X3BavT5L2dOBHwZhVay0wv+CV\
-                                    dYISMLVirVvM+9i2VO/eFlyL3v27q48FNIDi0A44A79BbwIDAQABo2AwXjAdBgNV\
-                                    HQ4EFgQUPvdIlP4JBFEDFAkI0mfwvou3MlswHwYDVR0jBBgwFoAUPvdIlP4JBFED\
-                                    FAkI0mfwvou3MlswDwYDVR0TAQH/BAUwAwEB/zALBgNVHQ8EBAMCAQYwDQYJKoZI\
-                                    hvcNAQELBQADggEBAJ+/L1pzGLnUfff983WoI8qNTQTdqp/V83sl9f9Q2QAXZ4ww\
-                                    Z0ZAb0aUhWRUQCRMydzTfhwNtuda/ZhZFTszxrEsUBBWpomQstJugUhiVeITWgbU\
-                                    6IWHXgOgV6E0lhZiAHikz2egM/elDZQSiiFebsDIUiJTz5cG7aNzfyYWoBrqztXp\
-                                    uLvQqIUTybDk1RXMoJvk4dVp2TorXOW9v36AKAidPcl9XkUsbvJIlNmCrWYg/83j\
-                                    ms8ePGAnn2OYNUZWk+ZM3JP3ZCJKSTUpcNmQrM0M8egkr+dWLQPabL2jboGDAet0\
-                                    9dq/fUPTcjmoMkI9lnBP3PsP5lQYGnxoZgrsf0E=";
-
-
-    return BinaryValue(certValue);
-}
-
 void DHTTestApp::handleNodeLeaveNotification()
 {
     nodeIsLeavingSoon = true;
 }
 
-
-template <typename T>
-string ToString(T val)
-{
-    stringstream stream;
-    stream << val;
-    return stream.str();
-}
-
-
 void DHTTestApp::finishApp()
 {
     simtime_t time = globalStatistics->calcMeasuredLifetime(creationTime);
-
+    //recordScalar("SOMA keys", numSomaKeys);
     if (time >= GlobalStatistics::MIN_MEASURED) {
         // record scalar data
         globalStatistics->addStdDev("DHTTestApp: Sent Total Messages/s",
@@ -802,31 +643,15 @@ void DHTTestApp::finishApp()
         globalStatistics->addStdDev("DHTTestApp: Successful PUT Requests/s",
                                     numPutSuccess / time);
 
+ //       globalStatistics->addStdDev("DHTTestApp: Total SOMA keys",
+  //                                  numSomaKeys);
+
+
         if ((numGetSuccess + numGetError) > 0) {
             globalStatistics->addStdDev("DHTTestApp: GET Success Ratio",
                                         (double) numGetSuccess
                                         / (double) (numGetSuccess + numGetError));
         }
     }
-    if (debugOutput) {
-              EV << " thisNode.getIp().str(): " << thisNode.getIp().str()
-                 << " rttSignMyKeyDelay: "  << rttSignMyKeyDelay
-                 << " signOthersKeyDelay: " << signOthersKeyDelay
-                 << " keySignCounter: " << keySignCounter
-                 << endl;
-          }
-    if (rttSignMyKeyDelay >= signOthersKeyDelay)
-    {
-        std::string msg = "Node-TotalTime Delay to Join-Ready-Sign " + thisNode.getIp().str() + " delay rtt: " + ToString(rttSignMyKeyDelay) + " keys signed: " + ToString(keySignCounter);
-        RECORD_STATS(globalStatistics->recordOutVector(msg, rttSignMyKeyDelay));
-    }
-    else
-    {
-        std::string msg = "Node-TotalTime Delay to Join-Ready-Sign " + thisNode.getIp().str() + " delay: " + ToString(signOthersKeyDelay) + " keys signed: " + ToString(keySignCounter);
-        RECORD_STATS(globalStatistics->recordOutVector(msg, signOthersKeyDelay));
-    }
-
-
-
 }
 

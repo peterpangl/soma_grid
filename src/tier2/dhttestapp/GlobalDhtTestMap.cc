@@ -71,8 +71,8 @@ void GlobalDhtTestMap::handleMessage(cMessage* msg)
     DhtTestEntryTimer *entryTimer = NULL;
 
     if (msg == periodicTimer) {
-        RECORD_STATS(globalStatistics->recordOutVector(
-           "GlobalDhtTestMap: Number of stored DHT entries", dataMap.size()));
+        //RECORD_STATS(globalStatistics->recordOutVector(
+        //   "GlobalDhtTestMap: Number of stored DHT entries", dataMap.size()));
         scheduleAt(simTime() + TEST_MAP_INTERVAL, msg);
     } else if ((entryTimer = dynamic_cast<DhtTestEntryTimer*>(msg)) != NULL) {
         dataMap.erase(entryTimer->getKey());

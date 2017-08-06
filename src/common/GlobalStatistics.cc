@@ -184,8 +184,10 @@ void GlobalStatistics::recordHistogram(const std::string& name, double value)
 void GlobalStatistics::recordOutVector(const std::string& name, double value)
 {
     if (!measuring) {
+        EV << "[SOMA-GlobalStatistics::recordOutVector()] not recording \n";
         return;
     }
+    EV << "[SOMA-GlobalStatistics::recordOutVector()] recording \n";
 
     std::map<std::string, OutVector*>::iterator ovPos =
         outVectorMap.find(name);

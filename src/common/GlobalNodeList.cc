@@ -135,8 +135,8 @@ void GlobalNodeList::handleMessage(cMessage* msg)
     }
 
     else if (msg->isName("oracleTimer")) {
-        RECORD_STATS(globalStatistics->recordOutVector(
-                     "GlobalNodeList: Number of nodes", peerStorage.size()));
+        //RECORD_STATS(globalStatistics->recordOutVector(
+         //            "GlobalNodeList: Number of nodes", peerStorage.size()));
         scheduleAt(simTime() + 50, msg);
     } else {
         opp_error("GlobalNodeList::handleMessage: Unknown message type!");

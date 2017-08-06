@@ -1529,6 +1529,197 @@ inline void doUnpacking(cCommBuffer *b, DHTputCAPIResponse& obj) {obj.parsimUnpa
 /**
  * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
  * <pre>
+ * packet DHTgetResponsibleCall extends BaseCallMessage
+ * {
+ *     
+ *     
+ *     
+ * }
+ * </pre>
+ */
+class DHTgetResponsibleCall : public ::BaseCallMessage
+{
+  protected:
+
+  private:
+    void copy(const DHTgetResponsibleCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const DHTgetResponsibleCall&);
+
+  public:
+    DHTgetResponsibleCall(const char *name=NULL, int kind=0);
+    DHTgetResponsibleCall(const DHTgetResponsibleCall& other);
+    virtual ~DHTgetResponsibleCall();
+    DHTgetResponsibleCall& operator=(const DHTgetResponsibleCall& other);
+    virtual DHTgetResponsibleCall *dup() const {return new DHTgetResponsibleCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+};
+
+inline void doPacking(cCommBuffer *b, DHTgetResponsibleCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, DHTgetResponsibleCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
+ * <pre>
+ * packet DHTgetResponsibleResponse extends BaseResponseMessage
+ * {
+ *     int resp;
+ *     bool isSuccess;
+ * }
+ * </pre>
+ */
+class DHTgetResponsibleResponse : public ::BaseResponseMessage
+{
+  protected:
+    int resp_var;
+    bool isSuccess_var;
+
+  private:
+    void copy(const DHTgetResponsibleResponse& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const DHTgetResponsibleResponse&);
+
+  public:
+    DHTgetResponsibleResponse(const char *name=NULL, int kind=0);
+    DHTgetResponsibleResponse(const DHTgetResponsibleResponse& other);
+    virtual ~DHTgetResponsibleResponse();
+    DHTgetResponsibleResponse& operator=(const DHTgetResponsibleResponse& other);
+    virtual DHTgetResponsibleResponse *dup() const {return new DHTgetResponsibleResponse(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual int getResp() const;
+    virtual void setResp(int resp);
+    virtual bool getIsSuccess() const;
+    virtual void setIsSuccess(bool isSuccess);
+};
+
+inline void doPacking(cCommBuffer *b, DHTgetResponsibleResponse& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, DHTgetResponsibleResponse& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
+ * <pre>
+ * packet ChordStateReadyCall extends BaseCallMessage
+ * {
+ * }
+ * </pre>
+ */
+class ChordStateReadyCall : public ::BaseCallMessage
+{
+  protected:
+
+  private:
+    void copy(const ChordStateReadyCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const ChordStateReadyCall&);
+
+  public:
+    ChordStateReadyCall(const char *name=NULL, int kind=0);
+    ChordStateReadyCall(const ChordStateReadyCall& other);
+    virtual ~ChordStateReadyCall();
+    ChordStateReadyCall& operator=(const ChordStateReadyCall& other);
+    virtual ChordStateReadyCall *dup() const {return new ChordStateReadyCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+};
+
+inline void doPacking(cCommBuffer *b, ChordStateReadyCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, ChordStateReadyCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
+ * <pre>
+ * packet DHTKeyPutCall extends BaseCallMessage
+ * {
+ *     OverlayKey key;
+ * }
+ * </pre>
+ */
+class DHTKeyPutCall : public ::BaseCallMessage
+{
+  protected:
+    OverlayKey key_var;
+
+  private:
+    void copy(const DHTKeyPutCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const DHTKeyPutCall&);
+
+  public:
+    DHTKeyPutCall(const char *name=NULL, int kind=0);
+    DHTKeyPutCall(const DHTKeyPutCall& other);
+    virtual ~DHTKeyPutCall();
+    DHTKeyPutCall& operator=(const DHTKeyPutCall& other);
+    virtual DHTKeyPutCall *dup() const {return new DHTKeyPutCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual OverlayKey& getKey();
+    virtual const OverlayKey& getKey() const {return const_cast<DHTKeyPutCall*>(this)->getKey();}
+    virtual void setKey(const OverlayKey& key);
+};
+
+inline void doPacking(cCommBuffer *b, DHTKeyPutCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, DHTKeyPutCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
+ * <pre>
+ * packet overMessage extends cMessage
+ * {
+ *     OverlayKey key;
+ * }
+ * </pre>
+ */
+class overMessage : public ::cMessage
+{
+  protected:
+    OverlayKey key_var;
+
+  private:
+    void copy(const overMessage& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const overMessage&);
+
+  public:
+    overMessage(const char *name=NULL, int kind=0);
+    overMessage(const overMessage& other);
+    virtual ~overMessage();
+    overMessage& operator=(const overMessage& other);
+    virtual overMessage *dup() const {return new overMessage(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual OverlayKey& getKey();
+    virtual const OverlayKey& getKey() const {return const_cast<overMessage*>(this)->getKey();}
+    virtual void setKey(const OverlayKey& key);
+};
+
+inline void doPacking(cCommBuffer *b, overMessage& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, overMessage& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
+ * <pre>
  * packet DHTgetCAPIResponse extends BaseResponseMessage
  * {
  *     DhtDumpEntry result[]; 
@@ -1647,232 +1838,6 @@ class DHTdumpResponse : public ::BaseResponseMessage
 
 inline void doPacking(cCommBuffer *b, DHTdumpResponse& obj) {obj.parsimPack(b);}
 inline void doUnpacking(cCommBuffer *b, DHTdumpResponse& obj) {obj.parsimUnpack(b);}
-
-/**
- * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
- * <pre>
- * packet DHTDataStorageSizeCall extends BaseCallMessage
- * {
- *     
- * }
- * </pre>
- */
-class DHTDataStorageSizeCall : public ::BaseCallMessage
-{
-  protected:
-
-  private:
-    void copy(const DHTDataStorageSizeCall& other);
-
-  protected:
-    // protected and unimplemented operator==(), to prevent accidental usage
-    bool operator==(const DHTDataStorageSizeCall&);
-
-  public:
-    DHTDataStorageSizeCall(const char *name=NULL, int kind=0);
-    DHTDataStorageSizeCall(const DHTDataStorageSizeCall& other);
-    virtual ~DHTDataStorageSizeCall();
-    DHTDataStorageSizeCall& operator=(const DHTDataStorageSizeCall& other);
-    virtual DHTDataStorageSizeCall *dup() const {return new DHTDataStorageSizeCall(*this);}
-    virtual void parsimPack(cCommBuffer *b);
-    virtual void parsimUnpack(cCommBuffer *b);
-
-    // field getter/setter methods
-};
-
-inline void doPacking(cCommBuffer *b, DHTDataStorageSizeCall& obj) {obj.parsimPack(b);}
-inline void doUnpacking(cCommBuffer *b, DHTDataStorageSizeCall& obj) {obj.parsimUnpack(b);}
-
-/**
- * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
- * <pre>
- * packet DHTDataStorageSizeResponse extends BaseResponseMessage
- * {
- *     uint32_t myDHTStorageSize;             
- * }
- * </pre>
- */
-class DHTDataStorageSizeResponse : public ::BaseResponseMessage
-{
-  protected:
-    uint32_t myDHTStorageSize_var;
-
-  private:
-    void copy(const DHTDataStorageSizeResponse& other);
-
-  protected:
-    // protected and unimplemented operator==(), to prevent accidental usage
-    bool operator==(const DHTDataStorageSizeResponse&);
-
-  public:
-    DHTDataStorageSizeResponse(const char *name=NULL, int kind=0);
-    DHTDataStorageSizeResponse(const DHTDataStorageSizeResponse& other);
-    virtual ~DHTDataStorageSizeResponse();
-    DHTDataStorageSizeResponse& operator=(const DHTDataStorageSizeResponse& other);
-    virtual DHTDataStorageSizeResponse *dup() const {return new DHTDataStorageSizeResponse(*this);}
-    virtual void parsimPack(cCommBuffer *b);
-    virtual void parsimUnpack(cCommBuffer *b);
-
-    // field getter/setter methods
-    virtual uint32_t getMyDHTStorageSize() const;
-    virtual void setMyDHTStorageSize(uint32_t myDHTStorageSize);
-};
-
-inline void doPacking(cCommBuffer *b, DHTDataStorageSizeResponse& obj) {obj.parsimPack(b);}
-inline void doUnpacking(cCommBuffer *b, DHTDataStorageSizeResponse& obj) {obj.parsimUnpack(b);}
-
-/**
- * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
- * <pre>
- * packet SignMyKeyDelayCall extends BaseCallMessage
- * {
- *     simtime_t delay;             
- * }
- * </pre>
- */
-class SignMyKeyDelayCall : public ::BaseCallMessage
-{
-  protected:
-    simtime_t delay_var;
-
-  private:
-    void copy(const SignMyKeyDelayCall& other);
-
-  protected:
-    // protected and unimplemented operator==(), to prevent accidental usage
-    bool operator==(const SignMyKeyDelayCall&);
-
-  public:
-    SignMyKeyDelayCall(const char *name=NULL, int kind=0);
-    SignMyKeyDelayCall(const SignMyKeyDelayCall& other);
-    virtual ~SignMyKeyDelayCall();
-    SignMyKeyDelayCall& operator=(const SignMyKeyDelayCall& other);
-    virtual SignMyKeyDelayCall *dup() const {return new SignMyKeyDelayCall(*this);}
-    virtual void parsimPack(cCommBuffer *b);
-    virtual void parsimUnpack(cCommBuffer *b);
-
-    // field getter/setter methods
-    virtual simtime_t getDelay() const;
-    virtual void setDelay(simtime_t delay);
-};
-
-inline void doPacking(cCommBuffer *b, SignMyKeyDelayCall& obj) {obj.parsimPack(b);}
-inline void doUnpacking(cCommBuffer *b, SignMyKeyDelayCall& obj) {obj.parsimUnpack(b);}
-
-/**
- * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
- * <pre>
- * packet ChordDHTNotifyDelayCall extends BaseCallMessage
- * {
- *     simtime_t timeToReady;             
- * }
- * </pre>
- */
-class ChordDHTNotifyDelayCall : public ::BaseCallMessage
-{
-  protected:
-    simtime_t timeToReady_var;
-
-  private:
-    void copy(const ChordDHTNotifyDelayCall& other);
-
-  protected:
-    // protected and unimplemented operator==(), to prevent accidental usage
-    bool operator==(const ChordDHTNotifyDelayCall&);
-
-  public:
-    ChordDHTNotifyDelayCall(const char *name=NULL, int kind=0);
-    ChordDHTNotifyDelayCall(const ChordDHTNotifyDelayCall& other);
-    virtual ~ChordDHTNotifyDelayCall();
-    ChordDHTNotifyDelayCall& operator=(const ChordDHTNotifyDelayCall& other);
-    virtual ChordDHTNotifyDelayCall *dup() const {return new ChordDHTNotifyDelayCall(*this);}
-    virtual void parsimPack(cCommBuffer *b);
-    virtual void parsimUnpack(cCommBuffer *b);
-
-    // field getter/setter methods
-    virtual simtime_t getTimeToReady() const;
-    virtual void setTimeToReady(simtime_t timeToReady);
-};
-
-inline void doPacking(cCommBuffer *b, ChordDHTNotifyDelayCall& obj) {obj.parsimPack(b);}
-inline void doUnpacking(cCommBuffer *b, ChordDHTNotifyDelayCall& obj) {obj.parsimUnpack(b);}
-
-/**
- * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
- * <pre>
- * packet ChordDHTNotifyDelayResponse extends BaseResponseMessage
- * {
- * }
- * </pre>
- */
-class ChordDHTNotifyDelayResponse : public ::BaseResponseMessage
-{
-  protected:
-
-  private:
-    void copy(const ChordDHTNotifyDelayResponse& other);
-
-  protected:
-    // protected and unimplemented operator==(), to prevent accidental usage
-    bool operator==(const ChordDHTNotifyDelayResponse&);
-
-  public:
-    ChordDHTNotifyDelayResponse(const char *name=NULL, int kind=0);
-    ChordDHTNotifyDelayResponse(const ChordDHTNotifyDelayResponse& other);
-    virtual ~ChordDHTNotifyDelayResponse();
-    ChordDHTNotifyDelayResponse& operator=(const ChordDHTNotifyDelayResponse& other);
-    virtual ChordDHTNotifyDelayResponse *dup() const {return new ChordDHTNotifyDelayResponse(*this);}
-    virtual void parsimPack(cCommBuffer *b);
-    virtual void parsimUnpack(cCommBuffer *b);
-
-    // field getter/setter methods
-};
-
-inline void doPacking(cCommBuffer *b, ChordDHTNotifyDelayResponse& obj) {obj.parsimPack(b);}
-inline void doUnpacking(cCommBuffer *b, ChordDHTNotifyDelayResponse& obj) {obj.parsimUnpack(b);}
-
-/**
- * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
- * <pre>
- * packet DHTAddKeyNotifyCall extends BaseCallMessage
- * {
- *     OverlayKey key;
- *     simtime_t timeAdded;
- * }
- * </pre>
- */
-class DHTAddKeyNotifyCall : public ::BaseCallMessage
-{
-  protected:
-    OverlayKey key_var;
-    simtime_t timeAdded_var;
-
-  private:
-    void copy(const DHTAddKeyNotifyCall& other);
-
-  protected:
-    // protected and unimplemented operator==(), to prevent accidental usage
-    bool operator==(const DHTAddKeyNotifyCall&);
-
-  public:
-    DHTAddKeyNotifyCall(const char *name=NULL, int kind=0);
-    DHTAddKeyNotifyCall(const DHTAddKeyNotifyCall& other);
-    virtual ~DHTAddKeyNotifyCall();
-    DHTAddKeyNotifyCall& operator=(const DHTAddKeyNotifyCall& other);
-    virtual DHTAddKeyNotifyCall *dup() const {return new DHTAddKeyNotifyCall(*this);}
-    virtual void parsimPack(cCommBuffer *b);
-    virtual void parsimUnpack(cCommBuffer *b);
-
-    // field getter/setter methods
-    virtual OverlayKey& getKey();
-    virtual const OverlayKey& getKey() const {return const_cast<DHTAddKeyNotifyCall*>(this)->getKey();}
-    virtual void setKey(const OverlayKey& key);
-    virtual simtime_t getTimeAdded() const;
-    virtual void setTimeAdded(simtime_t timeAdded);
-};
-
-inline void doPacking(cCommBuffer *b, DHTAddKeyNotifyCall& obj) {obj.parsimPack(b);}
-inline void doUnpacking(cCommBuffer *b, DHTAddKeyNotifyCall& obj) {obj.parsimUnpack(b);}
 
 /**
  * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
