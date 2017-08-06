@@ -355,7 +355,7 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
 
     if(!haveSigned) {
         newCert = msgValue + " " +
-                //string(signTemplate) +
+                //string(signTemplate) + " " +
                 string(nodeIp) + "|";
 
     }
