@@ -558,7 +558,7 @@ void DHT::handleGetRequest(DHTGetCall* dhtMsg)
 }
 
 
-//petros: this function is called upon the DHTTestAPP sends the somakey
+// this function is called upon the DHTTestAPP sends the somakey
 void DHT::handlePutCAPIRequest(DHTputCAPICall* capiPutMsg)
 {
     // asks the replica list
