@@ -320,20 +320,22 @@ void DHT::handleRpcTimeout(BaseCallMessage* msg, const TransportAddress& dest,
 }
 
 // justify if I have already signed the certificate of the node that sends me the request
-bool DHT::alreadySigned(std::string msgValue, std::string myIP)
+bool DHT::isAlreadySigned(std::string msgValue, std::string myIP)
 {
     bool found = false;
     std::string searchVal = "| " + myIP + "|";
-    EV << "alreadySigned msg: " << msgValue << " search for: " << searchVal << endl;
+    EV << "in isAlreadySigned msg: " << msgValue << " search for: " << searchVal << endl;
 
     if(msgValue.find(searchVal) != std::string::npos){
+        EV << "Already signed " << endl;
         found = true;
     }
+
     return found;
 }
 
 
-// request that is sent from another node
+// request that is sent from another node originated from handlePutCAPIRequest
 void DHT::handlePutRequest(DHTPutCall* dhtMsg)
 {
 
@@ -350,22 +352,20 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
 
     std::string msgValue(dhtMsg->getValue().begin(),dhtMsg->getValue().end());
 
-    bool haveSigned = alreadySigned(msgValue, nodeIp);
+    bool haveSigned = isAlreadySigned(msgValue, nodeIp);
     string newCert = msgValue;
+    EV << "[SOMA-SIGN::handlePutRequest] " << nodeIp << endl;
 
     if(!haveSigned) {
+        EV << "Not already signed " << endl;
         newCert = msgValue + " " +
                 //string(signTemplate) + " " +
                 string(nodeIp) + "|";
-
     }
 
-    EV << "[SOMA-SIGN::handlePutRequest] " << nodeIp << "\n"
-                "newCert " << newCert << endl;
+    EV << "newCert: " << newCert << endl;
 
     // SOMA end
-
-
 
     bool err;
     bool isSibling = overlay->isSiblingFor(overlay->getThisNode(),

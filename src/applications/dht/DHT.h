@@ -113,7 +113,7 @@ private:
     //virtual void refreshDisplay() const override;
 
     void handleKeySign(DHTputCAPICall* capiPutMsg);
-    bool alreadySigned(std::string msgValue, std::string myIP);
+    bool isAlreadySigned(std::string msgValue, std::string myIP);
 
     overMessage *somakeyput_msg;
 
