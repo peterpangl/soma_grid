@@ -169,12 +169,16 @@ private:
     int numSomaKeys; /**< number of SOMA keys signed*/
     simtime_t soma_init_timer, soma_total_time;
     simtime_t soma_keyputtime, soma_fkeysigntime;
+    //simtime_t soma_findNodeTimer;
     cOutVector timeVector;
 
     cMessage *dhttestput_timer, *dhttestget_timer, *dhttestmod_timer, *somakeyput_msg, *somafkeysign_msg;
     bool nodeIsLeavingSoon; //!< true if the node is going to be killed shortly
 
     static const int DHTTESTAPP_VALUE_LEN = 20;
+
+    // our timer
+    cMessage *timerMsg;
 
 public:
     DHTTestApp();

@@ -101,7 +101,7 @@ void DHTTestApp::initializeApp(int stage)
     soma_total_time  = 0;
     soma_keyputtime = -1;
     soma_fkeysigntime = -1;
-    soma_findNodeTimer = par("sendTCPeriod");
+    //soma_findNodeTimer = par("sendTCPeriod");
 
     timeVector.setName("SomaJoinTime");
 
