@@ -101,6 +101,7 @@ void DHTTestApp::initializeApp(int stage)
     soma_total_time  = 0;
     soma_keyputtime = -1;
     soma_fkeysigntime = -1;
+    soma_findNodeTimer = par("sendTCPeriod");
 
     timeVector.setName("SomaJoinTime");
 
@@ -154,6 +155,10 @@ d30PZ1s5fOWAi6OB/7oseewUqtwpiZnouJ+Tf+W+/sjv1Rw/fsB1xIbtcxqOstRs\
 e9GBLPQ76DYU8pNYRM6Romt+GaIJLASFneYlUpBHZYpVTG450Qe6cmApYFP5HNDd\
 nlTe05wO4ZmcALSX| ";
 
+
+    dhttestget_timer = new cMessage("dhttest_get_timer");
+
+    scheduleAt(simTime() + 5,  dhttestget_timer);
 
     /*dhttestput_timer = new cMessage("dhttest_put_timer");
     dhttestget_timer = new cMessage("dhttest_get_timer");
@@ -210,6 +215,9 @@ void DHTTestApp::handlePutCall(BaseCallMessage* msg)
             string(nodeIp) + "|";
 
     OverlayKey somaKey(OverlayKey::sha1(pkIp));
+
+    EV << nodeIp << " -> somakey : " << somaKey << endl;
+
     DHTputCAPICall* dhtPutMsg = new DHTputCAPICall();
     dhtPutMsg->setKey(somaKey);
     dhtPutMsg->setValue(certIp);
@@ -256,8 +264,8 @@ void DHTTestApp::handleRpcResponse(BaseResponseMessage* msg,
     RPC_ON_RESPONSE(DHTgetResponsible)
     {
             handleGetResponsibleResponse(_DHTgetResponsibleResponse);//,
-//                              check_and_cast<DHTStatsContext*>(state.getContext()));
-           // EV << "[SOMA-DHTTestApp::handleResponsibleResponse()]\n";
+            //                              check_and_cast<DHTStatsContext*>(state.getContext()));
+            // EV << "[SOMA-DHTTestApp::handleResponsibleResponse()]\n";
             break;
     }
     RPC_SWITCH_END()
@@ -274,11 +282,13 @@ void DHTTestApp::handleDHTKeyPutCall(DHTKeyPutCall* msg)
 void DHTTestApp::handlePutResponse(DHTputCAPIResponse* msg,
                                    DHTStatsContext* context)
 {
-    //EV << "[SOMA-SIGN-DHTTestApp::handle putResponse] " << "\n" ;
+    EV << "[SOMA-SIGN-DHTTestApp::handle putResponse] node: " << thisNode.getIp() << "\n" ;
 
     DHTEntry entry = {context->value, simTime() + ttl, simTime()};
 
     globalDhtTestMap->insertEntry(context->key, entry);
+
+    // globalDhtTestMap->dumpDHTTestMap();
 
     if (context->measurementPhase == false) {
         // don't count response, if the request was not sent
@@ -469,66 +479,71 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
             timeVector.record(soma_total_time);
         }
     }
-    else if (msg->isName("dhttest_put_timer")) {
-        //EV << "[SOMA-DHTTestApp::handleTimerEvent() : dhttest_put_timer\n";
-        // schedule next timer event
-        scheduleAt(simTime() + truncnormal(mean, deviation), msg);
+//    else if (msg->isName("dhttest_put_timer")) {
+//        //EV << "[SOMA-DHTTestApp::handleTimerEvent() : dhttest_put_timer\n";
+//        // schedule next timer event
+//        scheduleAt(simTime() + truncnormal(mean, deviation), msg);
+//
+//        // do nothing if the network is still in the initialization phase
+//        if (((!activeNetwInitPhase) && (underlayConfigurator->isInInitPhase()))
+//                || underlayConfigurator->isSimulationEndingSoon()
+//                || nodeIsLeavingSoon)
+//            return;
+//
+//        if (p2pnsTraffic) {
+//            if (globalDhtTestMap->p2pnsNameCount < 4*globalNodeList->getNumNodes()) {
+//                for (int i = 0; i < 4; i++) {
+//                    // create a put test message with random destination key
+//                    OverlayKey destKey = OverlayKey::random();
+//                    DHTputCAPICall* dhtPutMsg = new DHTputCAPICall();
+//                    dhtPutMsg->setKey(destKey);
+//                    dhtPutMsg->setValue(generateRandomValue());
+//                    dhtPutMsg->setTtl(ttl);
+//                    dhtPutMsg->setIsModifiable(true);
+//
+//                    RECORD_STATS(numSent++; numPutSent++);
+//                    sendInternalRpcCall(TIER1_COMP, dhtPutMsg,
+//                            new DHTStatsContext(globalStatistics->isMeasuring(),
+//                                                simTime(), destKey, dhtPutMsg->getValue()));
+//                    globalDhtTestMap->p2pnsNameCount++;
+//                }
+//            }
+//            cancelEvent(msg);
+//            return;
+//        }
+//
+//        // create a put test message with random destination key
+//        OverlayKey destKey = OverlayKey::random();
+//        DHTputCAPICall* dhtPutMsg = new DHTputCAPICall();
+//        dhtPutMsg->setKey(destKey);
+//        dhtPutMsg->setValue(generateRandomValue());
+//        dhtPutMsg->setTtl(ttl);
+//        dhtPutMsg->setIsModifiable(true);
+//
+//        RECORD_STATS(numSent++; numPutSent++);
+//        sendInternalRpcCall(TIER1_COMP, dhtPutMsg,
+//                new DHTStatsContext(globalStatistics->isMeasuring(),
+//                                    simTime(), destKey, dhtPutMsg->getValue()));
+//    }
+    else if (msg->isName("dhttest_get_timer")) {
+//        scheduleAt(simTime() + truncnormal(mean, deviation), msg);
+        EV << "[DHTTestApp::handleTimerEvent() @ dhttest_get_timer " << thisNode.getIp() << endl;
+
 
         // do nothing if the network is still in the initialization phase
-        if (((!activeNetwInitPhase) && (underlayConfigurator->isInInitPhase()))
-                || underlayConfigurator->isSimulationEndingSoon()
-                || nodeIsLeavingSoon)
-            return;
-
-        if (p2pnsTraffic) {
-            if (globalDhtTestMap->p2pnsNameCount < 4*globalNodeList->getNumNodes()) {
-                for (int i = 0; i < 4; i++) {
-                    // create a put test message with random destination key
-                    OverlayKey destKey = OverlayKey::random();
-                    DHTputCAPICall* dhtPutMsg = new DHTputCAPICall();
-                    dhtPutMsg->setKey(destKey);
-                    dhtPutMsg->setValue(generateRandomValue());
-                    dhtPutMsg->setTtl(ttl);
-                    dhtPutMsg->setIsModifiable(true);
-
-                    RECORD_STATS(numSent++; numPutSent++);
-                    sendInternalRpcCall(TIER1_COMP, dhtPutMsg,
-                            new DHTStatsContext(globalStatistics->isMeasuring(),
-                                                simTime(), destKey, dhtPutMsg->getValue()));
-                    globalDhtTestMap->p2pnsNameCount++;
-                }
-            }
-            cancelEvent(msg);
-            return;
-        }
-
-        // create a put test message with random destination key
-        OverlayKey destKey = OverlayKey::random();
-        DHTputCAPICall* dhtPutMsg = new DHTputCAPICall();
-        dhtPutMsg->setKey(destKey);
-        dhtPutMsg->setValue(generateRandomValue());
-        dhtPutMsg->setTtl(ttl);
-        dhtPutMsg->setIsModifiable(true);
-
-        RECORD_STATS(numSent++; numPutSent++);
-        sendInternalRpcCall(TIER1_COMP, dhtPutMsg,
-                new DHTStatsContext(globalStatistics->isMeasuring(),
-                                    simTime(), destKey, dhtPutMsg->getValue()));
-    } else if (msg->isName("dhttest_get_timer")) {
-        scheduleAt(simTime() + truncnormal(mean, deviation), msg);
-
-        // do nothing if the network is still in the initialization phase
-        if (((!activeNetwInitPhase) && (underlayConfigurator->isInInitPhase()))
-                || underlayConfigurator->isSimulationEndingSoon()
-                || nodeIsLeavingSoon) {
-            return;
-        }
+//        if (((!activeNetwInitPhase) && (underlayConfigurator->isInInitPhase()))
+//                || underlayConfigurator->isSimulationEndingSoon()
+//                || nodeIsLeavingSoon) {
+//            return;
+//        }
 
         if (p2pnsTraffic && (uniform(0, 1) > ((double)mean/1800.0))) {
             return;
         }
 
         const OverlayKey& key = globalDhtTestMap->getRandomKey();
+
+        EV << "[DHTTestApp::handleTimerEvent() @ dhttest_get_timer " << thisNode.getIp() << " randomKey: " << key << endl;
 
         if (key.isUnspecified()) {
             EV << "[DHTTestApp::handleTimerEvent() @ " << thisNode.getIp()
@@ -537,14 +552,14 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                << endl;
             return;
         }
+        scheduleAt(simTime() + 5, msg);
+//        DHTgetCAPICall* dhtGetMsg = new DHTgetCAPICall();
+//        dhtGetMsg->setKey(key);
+//        RECORD_STATS(numSent++; numGetSent++);
 
-        DHTgetCAPICall* dhtGetMsg = new DHTgetCAPICall();
-        dhtGetMsg->setKey(key);
-        RECORD_STATS(numSent++; numGetSent++);
-
-        sendInternalRpcCall(TIER1_COMP, dhtGetMsg,
-                new DHTStatsContext(globalStatistics->isMeasuring(),
-                                    simTime(), key));
+//        sendInternalRpcCall(TIER1_COMP, dhtGetMsg,
+//                new DHTStatsContext(globalStatistics->isMeasuring(),
+//                                    simTime(), key));
     } else if (msg->isName("dhttest_mod_timer")) {
         scheduleAt(simTime() + truncnormal(mean, deviation), msg);
 
