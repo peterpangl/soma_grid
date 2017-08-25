@@ -33,6 +33,7 @@ simple DHTTestApp extends BaseApp
         int testTtl;      // TTL for stored test records
         bool activeNetwInitPhase;    // send messages when network is in init phase?
         bool p2pnsTraffic; // model p2pns application traffic
+        double sendTCPeriod @unit(s);   // period parameter for the Trust Chain needs.
 }
 
 
