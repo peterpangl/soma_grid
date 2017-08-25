@@ -526,16 +526,14 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
 //                                    simTime(), destKey, dhtPutMsg->getValue()));
 //    }
     else if (msg->isName("dhttest_get_timer")) {
-//        scheduleAt(simTime() + truncnormal(mean, deviation), msg);
-        EV << "[DHTTestApp::handleTimerEvent() @ dhttest_get_timer " << thisNode.getIp() << endl;
-
+        scheduleAt(simTime() + truncnormal(mean, deviation), msg);
 
         // do nothing if the network is still in the initialization phase
-//        if (((!activeNetwInitPhase) && (underlayConfigurator->isInInitPhase()))
-//                || underlayConfigurator->isSimulationEndingSoon()
-//                || nodeIsLeavingSoon) {
-//            return;
-//        }
+        if (((!activeNetwInitPhase) && (underlayConfigurator->isInInitPhase()))
+                || underlayConfigurator->isSimulationEndingSoon()
+                || nodeIsLeavingSoon) {
+            return;
+        }
 
         if (p2pnsTraffic && (uniform(0, 1) > ((double)mean/1800.0))) {
             return;
@@ -543,23 +541,21 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
 
         const OverlayKey& key = globalDhtTestMap->getRandomKey();
 
-        EV << "[DHTTestApp::handleTimerEvent() @ dhttest_get_timer " << thisNode.getIp() << " randomKey: " << key << endl;
-
         if (key.isUnspecified()) {
             EV << "[DHTTestApp::handleTimerEvent() @ " << thisNode.getIp()
-               << " (" << thisNode.getKey().toString(16) << ")]\n"
-               << "    Error: No key available in global DHT test map!"
-               << endl;
+                           << " (" << thisNode.getKey().toString(16) << ")]\n"
+                           << "    Error: No key available in global DHT test map!"
+                           << endl;
             return;
         }
-        scheduleAt(simTime() + 5, msg);
-//        DHTgetCAPICall* dhtGetMsg = new DHTgetCAPICall();
-//        dhtGetMsg->setKey(key);
-//        RECORD_STATS(numSent++; numGetSent++);
 
-//        sendInternalRpcCall(TIER1_COMP, dhtGetMsg,
-//                new DHTStatsContext(globalStatistics->isMeasuring(),
-//                                    simTime(), key));
+        DHTgetCAPICall* dhtGetMsg = new DHTgetCAPICall();
+        dhtGetMsg->setKey(key);
+        RECORD_STATS(numSent++; numGetSent++);
+
+        sendInternalRpcCall(TIER1_COMP, dhtGetMsg,
+                new DHTStatsContext(globalStatistics->isMeasuring(),
+                        simTime(), key));
     } else if (msg->isName("dhttest_mod_timer")) {
         scheduleAt(simTime() + truncnormal(mean, deviation), msg);
 
