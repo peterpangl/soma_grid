@@ -79,6 +79,12 @@ public:
      */
     void eraseEntry(const OverlayKey& key);
 
+
+    /*
+     * Prints all the keys of all currently stored DHT records
+     */
+    void dumpDHTTestMap();
+
     /*
      * Returns the key of a random currently stored DHT record from the global
      * list of all currently stored DHT records.

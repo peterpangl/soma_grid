@@ -137,4 +137,17 @@ const OverlayKey& GlobalDhtTestMap::getRandomKey()
     return it->first;
 }
 
+void GlobalDhtTestMap::dumpDHTTestMap()
+{
+    if (dataMap.size() == 0) {
+        return;
+    }
 
+    std::map<OverlayKey, DHTEntry>::iterator it = dataMap.begin();
+
+    EV << " in dumpDHTTestMap " << endl;
+    for (; it != dataMap.end(); it++){
+        EV << " key: " << it->first  << endl;
+    }
+
+}
