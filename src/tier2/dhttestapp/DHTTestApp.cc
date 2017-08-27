@@ -530,11 +530,11 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
        // scheduleAt(simTime() + truncnormal(mean, deviation), msg);
 
         // do nothing if the network is still in the initialization phase
-//        if (((!activeNetwInitPhase) && (underlayConfigurator->isInInitPhase()))
-//                || underlayConfigurator->isSimulationEndingSoon()
-//                || nodeIsLeavingSoon) {
-//            return;
-//        }
+        if (((!activeNetwInitPhase) && (underlayConfigurator->isInInitPhase()))
+                || underlayConfigurator->isSimulationEndingSoon()
+                || nodeIsLeavingSoon) {
+            return;
+        }
 //
 //        if (p2pnsTraffic && (uniform(0, 1) > ((double)mean/1800.0))) {
 //            return;
