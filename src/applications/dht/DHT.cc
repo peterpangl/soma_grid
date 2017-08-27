@@ -319,7 +319,7 @@ void DHT::handleRpcTimeout(BaseCallMessage* msg, const TransportAddress& dest,
     RPC_SWITCH_END( )
 }
 
-// justify if I have already signed the certificate of the node that sends me the request
+// SOMA;justify if I have already signed the certificate of the node that sends me the request
 bool DHT::isAlreadySigned(std::string msgValue, std::string myIP)
 {
     bool found = false;
@@ -338,9 +338,6 @@ bool DHT::isAlreadySigned(std::string msgValue, std::string myIP)
 // request that is sent from another node originated from handlePutCAPIRequest
 void DHT::handlePutRequest(DHTPutCall* dhtMsg)
 {
-
-    //SOMA - gkarop TODO: add digital signature here
-
 
     std::string tempString = "PUT_REQUEST received: "
             + std::string(dhtMsg->getKey().toString(16));
@@ -479,13 +476,27 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
                              isSibling);
     }
 
+    EV << "[SOMA-SIGN::dumpDht " << endl;
+    DhtDumpVector *vec = dataStorage->dumpDht();
+    DhtDumpVector::iterator i;
+
+    for (i = vec->begin(); i!= vec->end(); i++){
+        EV << "i.key_var: " << i->getKey() << endl;
+        EV << "i.value_var: " << i->getValue() << endl;
+    }
     // send back
     DHTPutResponse* responseMsg = new DHTPutResponse();
     responseMsg->setSuccess(true);
     responseMsg->setBitLength(PUTRESPONSE_L(responseMsg));
     RECORD_STATS(normalMessages++; numBytesNormal += responseMsg->getByteLength());
 
+
+
+
     sendRpcResponse(dhtMsg, responseMsg);
+
+
+
 }
 
 void DHT::handleGetRequest(DHTGetCall* dhtMsg)
@@ -593,6 +604,8 @@ void DHT::handleKeySign(DHTputCAPICall* capiPutMsg)
 
 void DHT::handleGetCAPIRequest(DHTgetCAPICall* capiGetMsg)
 {
+    EV << "SOMA DHT::handleGetCAPIRequest " << endl;
+
     LookupCall* lookupCall = new LookupCall();
     lookupCall->setKey(capiGetMsg->getKey());
     lookupCall->setNumSiblings(numReplica);
@@ -605,7 +618,7 @@ void DHT::handleGetCAPIRequest(DHTgetCAPICall* capiGetMsg)
     pendingRpcs.insert(make_pair(capiGetMsg->getNonce(), entry));
 }
 
-// @author gkarop
+// SOMA @author gkarop
 void DHT::handleDumpDhtRequest(DHTdumpCall* call)
 {
     DHTdumpResponse* response = new DHTdumpResponse();
@@ -622,7 +635,7 @@ void DHT::handleDumpDhtRequest(DHTdumpCall* call)
     sendRpcResponse(call, response);
 }
 
-
+// SOMA
 void DHT::handleGetResponsibleRequest(DHTgetResponsibleCall* call)
 {
     DHTgetResponsibleResponse* response = new DHTgetResponsibleResponse();
@@ -658,6 +671,15 @@ void DHT::handlePutResponse(DHTPutResponse* dhtMsg, int rpcId)
 
 void DHT::handleGetResponse(DHTGetResponse* dhtMsg, int rpcId)
 {
+
+    EV << "SOMA DHT::handleGetResposne, node: " << overlay->getThisNode().getIp() <<
+            " key: " << dhtMsg->getKey() <<
+            " getResultArraySize: " << dhtMsg->getResultArraySize() << endl;
+
+    if (dhtMsg->getResultArraySize() > 0)
+            EV << " getResult value: " << dhtMsg->getResult(0).getValue() << endl;
+
+
     NodeVector* hashVector = NULL;
     PendingRpcs::iterator it = pendingRpcs.find(rpcId);
 

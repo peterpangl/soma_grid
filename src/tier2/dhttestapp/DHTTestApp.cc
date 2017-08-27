@@ -288,7 +288,7 @@ void DHTTestApp::handlePutResponse(DHTputCAPIResponse* msg,
 
     globalDhtTestMap->insertEntry(context->key, entry);
 
-    // globalDhtTestMap->dumpDHTTestMap();
+    //globalDhtTestMap->dumpDHTTestMap();
 
     if (context->measurementPhase == false) {
         // don't count response, if the request was not sent
@@ -526,21 +526,22 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
 //                                    simTime(), destKey, dhtPutMsg->getValue()));
 //    }
     else if (msg->isName("dhttest_get_timer")) {
-        scheduleAt(simTime() + truncnormal(mean, deviation), msg);
+        EV<< "SOMA dhttest_get_timer" << endl;
+       // scheduleAt(simTime() + truncnormal(mean, deviation), msg);
 
         // do nothing if the network is still in the initialization phase
-        if (((!activeNetwInitPhase) && (underlayConfigurator->isInInitPhase()))
-                || underlayConfigurator->isSimulationEndingSoon()
-                || nodeIsLeavingSoon) {
-            return;
-        }
-
-        if (p2pnsTraffic && (uniform(0, 1) > ((double)mean/1800.0))) {
-            return;
-        }
+//        if (((!activeNetwInitPhase) && (underlayConfigurator->isInInitPhase()))
+//                || underlayConfigurator->isSimulationEndingSoon()
+//                || nodeIsLeavingSoon) {
+//            return;
+//        }
+//
+//        if (p2pnsTraffic && (uniform(0, 1) > ((double)mean/1800.0))) {
+//            return;
+//        }
 
         const OverlayKey& key = globalDhtTestMap->getRandomKey();
-
+        EV << "SOMA key: " << key << endl;
         if (key.isUnspecified()) {
             EV << "[DHTTestApp::handleTimerEvent() @ " << thisNode.getIp()
                            << " (" << thisNode.getKey().toString(16) << ")]\n"
@@ -548,7 +549,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                            << endl;
             return;
         }
-
+        EV<< "SOMA dhttest_get_timer DHTgetCAPICall" << endl;
         DHTgetCAPICall* dhtGetMsg = new DHTgetCAPICall();
         dhtGetMsg->setKey(key);
         RECORD_STATS(numSent++; numGetSent++);
