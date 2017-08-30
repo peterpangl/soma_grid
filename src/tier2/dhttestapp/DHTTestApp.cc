@@ -69,6 +69,11 @@ void DHTTestApp::initializeApp(int stage)
     p2pnsTraffic = par("p2pnsTraffic");
     deviation = mean / 10;
 
+    //-- SOMA TC(Trust Chain)
+    numSomaTrustReqs = par("somaTrustReqs");
+    EV << "Node " << thisNode.getIp() << ", will request signed certs from " << numSomaTrustReqs << " other nodes." << endl;
+    //--
+
     if (p2pnsTraffic) {
         ttl = 3600*24*365;
     } else {
@@ -97,6 +102,7 @@ void DHTTestApp::initializeApp(int stage)
     numPutSuccess = 0;
 
     numSomaKeys = 0;
+    sentReqsFlag = 0;
     soma_init_timer  = simTime();
     soma_total_time  = 0;
     soma_keyputtime = -1;
@@ -216,7 +222,7 @@ void DHTTestApp::handlePutCall(BaseCallMessage* msg)
 
     OverlayKey somaKey(OverlayKey::sha1(pkIp));
 
-    EV << nodeIp << " -> somakey : " << somaKey << endl;
+    EV << nodeIp << " -> s omakey : " << somaKey << endl;
 
     DHTputCAPICall* dhtPutMsg = new DHTputCAPICall();
     dhtPutMsg->setKey(somaKey);
@@ -288,7 +294,7 @@ void DHTTestApp::handlePutResponse(DHTputCAPIResponse* msg,
 
     globalDhtTestMap->insertEntry(context->key, entry);
 
-    //globalDhtTestMap->dumpDHTTestMap();
+    globalDhtTestMap->dumpDHTTestMap();
 
     if (context->measurementPhase == false) {
         // don't count response, if the request was not sent
@@ -449,6 +455,27 @@ void DHTTestApp::handleTraceMessage(cMessage* msg)
     delete[] cmd;
     delete msg;
 }
+//
+//bool DHTTestApp::keyAlreadyUsed(const OverlayKey& k)
+//{
+//    EV << "in DHTTestApp::keyAlreadyUsed" << endl;
+//    EV << "key to search: " << k << endl;
+//
+//    bool prvUsed = false;
+//    std::map<OverlayKey, Trust>::iterator it;
+//
+//    if (accessedNodes.size() > 0)
+//        for(it = accessedNodes.begin(); it != accessedNodes.end(); it++)
+//            if ( it->first == k)
+//            {
+//                EV << "key found " << endl;
+//                prvUsed = true;
+//            }
+//
+//
+//    return prvUsed;
+//
+//}
 
 void DHTTestApp::handleTimerEvent(cMessage* msg)
 {
@@ -526,37 +553,62 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
 //                                    simTime(), destKey, dhtPutMsg->getValue()));
 //    }
     else if (msg->isName("dhttest_get_timer")) {
-        EV<< "SOMA dhttest_get_timer" << endl;
        // scheduleAt(simTime() + truncnormal(mean, deviation), msg);
-
+        EV << "get_timer 1 node:" << thisNode.getIp() << endl;
         // do nothing if the network is still in the initialization phase
         if (((!activeNetwInitPhase) && (underlayConfigurator->isInInitPhase()))
                 || underlayConfigurator->isSimulationEndingSoon()
                 || nodeIsLeavingSoon) {
+            scheduleAt(simTime() + 4,  msg); // reschedule the selfmsg
             return;
         }
-//
-//        if (p2pnsTraffic && (uniform(0, 1) > ((double)mean/1800.0))) {
-//            return;
-//        }
 
-        const OverlayKey& key = globalDhtTestMap->getRandomKey();
-        EV << "SOMA key: " << key << endl;
-        if (key.isUnspecified()) {
-            EV << "[DHTTestApp::handleTimerEvent() @ " << thisNode.getIp()
-                           << " (" << thisNode.getKey().toString(16) << ")]\n"
-                           << "    Error: No key available in global DHT test map!"
-                           << endl;
-            return;
+        //-- SOMA send the request to other node
+        if (sentReqsFlag < numSomaTrustReqs) {
+
+            const OverlayKey& key = globalDhtTestMap->getRandomKey();
+
+            OverlayKey tKey = key;
+            Trust tmpTrust = {false, "null"};
+            int trials = 0;
+            while( !accessedNodes.insert(std::make_pair(tKey, tmpTrust)).second ){
+                // element already present, choose another random key
+                EV << "Key already present: " << tKey << endl;
+                const OverlayKey& key = globalDhtTestMap->getRandomKey();
+                OverlayKey tKey = key;
+                trials++;
+
+                // don't loop forever
+                if (trials > 10){
+                    scheduleAt(simTime() + 4,  msg); // reschedule the msg
+                    EV << "Reached maximum trials for getting a different key " << endl;
+                    return;
+                }
+            }
+
+            EV << "Node: " << thisNode.getIp() << " is going to send request to node with SOMA key : " << key << endl;
+
+            if (key.isUnspecified()) {
+                EV << "[DHTTestApp::handleTimerEvent() @ " << thisNode.getIp()
+                                   << " (" << thisNode.getKey().toString(16) << ")]\n"
+                                   << "    Error: No key available in global DHT test map!"
+                                   << endl;
+                return;
+            }
+            sentReqsFlag++;
+
+            DHTgetCAPICall* dhtGetMsg = new DHTgetCAPICall();
+            dhtGetMsg->setKey(key);
+            RECORD_STATS(numSent++; numGetSent++);
+
+            sendInternalRpcCall(TIER1_COMP, dhtGetMsg,
+                    new DHTStatsContext(globalStatistics->isMeasuring(),
+                            simTime(), key));
+
+            scheduleAt(simTime() + 4,  msg); // reschedule the msg
+
         }
-        EV<< "SOMA dhttest_get_timer DHTgetCAPICall" << endl;
-        DHTgetCAPICall* dhtGetMsg = new DHTgetCAPICall();
-        dhtGetMsg->setKey(key);
-        RECORD_STATS(numSent++; numGetSent++);
-
-        sendInternalRpcCall(TIER1_COMP, dhtGetMsg,
-                new DHTStatsContext(globalStatistics->isMeasuring(),
-                        simTime(), key));
+        //--
     } else if (msg->isName("dhttest_mod_timer")) {
         scheduleAt(simTime() + truncnormal(mean, deviation), msg);
 

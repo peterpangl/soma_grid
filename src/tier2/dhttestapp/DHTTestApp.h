@@ -39,6 +39,14 @@
 
 class GlobalDhtTestMap;
 
+
+struct Trust
+{
+    bool isItTrusted;
+    std::string trustedNodeIP;
+};
+
+
 /**
  * A simple test application for the DHT layer
  *
@@ -83,6 +91,13 @@ private:
      * generate a random human readable binary value
      */
     BinaryValue generateRandomValue();
+
+    //-- SOMA related function
+    /**
+     * Check a structure if the argument k has already been used
+     */
+//    bool keyAlreadyUsed(const OverlayKey& k);
+    //--
 
     bool handleRpcCall(BaseCallMessage* msg);
 
@@ -167,6 +182,10 @@ private:
     int numPutSuccess; /**< number of success in put responses*/
 
     int numSomaKeys; /**< number of SOMA keys signed*/
+    int numSomaTrustReqs; /**< number of requests for signed certifications from other nodes in order to build the trust chain */
+    int sentReqsFlag;
+    std::map<OverlayKey, Trust> accessedNodes;
+
     simtime_t soma_init_timer, soma_total_time;
     simtime_t soma_keyputtime, soma_fkeysigntime;
     //simtime_t soma_findNodeTimer;
