@@ -200,7 +200,11 @@ bool DHTTestApp::handleRpcCall(BaseCallMessage* msg)
         handleDHTKeyPutCall(_DHTKeyPutCall);//,
         break;
     }
-
+    RPC_ON_CALL(DHTreturnSignedCert)
+    {
+        handleDHTreturnSignedCert(_DHTreturnSignedCertCall);
+        break;
+    }
     // end the switch
     RPC_SWITCH_END();
 
@@ -243,6 +247,11 @@ void DHTTestApp::handlePutCall(BaseCallMessage* msg)
     sendInternalRpcCall(TIER1_COMP, dhtGetRespMsg);
 }
 
+void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
+{
+    EV << "SOMASigned Cert Value: "  << msg->getSignedCert() << endl;
+}
+
 
 void DHTTestApp::handleRpcResponse(BaseResponseMessage* msg,
                                    const RpcState& state, simtime_t rtt)
@@ -269,10 +278,10 @@ void DHTTestApp::handleRpcResponse(BaseResponseMessage* msg,
     }
     RPC_ON_RESPONSE(DHTgetResponsible)
     {
-            handleGetResponsibleResponse(_DHTgetResponsibleResponse);//,
-            //                              check_and_cast<DHTStatsContext*>(state.getContext()));
-            // EV << "[SOMA-DHTTestApp::handleResponsibleResponse()]\n";
-            break;
+        handleGetResponsibleResponse(_DHTgetResponsibleResponse);//,
+        //                              check_and_cast<DHTStatsContext*>(state.getContext()));
+        // EV << "[SOMA-DHTTestApp::handleResponsibleResponse()]\n";
+        break;
     }
     RPC_SWITCH_END()
 }

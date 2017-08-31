@@ -105,9 +105,11 @@ private:
 
     void handleGetResponsibleResponse(DHTgetResponsibleResponse* msg);//,
 //                                       DHTStatsContext* context);
+
+
     void handlePutCall(BaseCallMessage* msg);
     void handleDHTKeyPutCall(DHTKeyPutCall* msg);
-
+    void handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg);
     /**
      * processes get responses
      *

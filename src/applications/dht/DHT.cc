@@ -476,14 +476,7 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
                              isSibling);
     }
 
-    EV << "[SOMA-SIGN::dumpDht " << endl;
-    DhtDumpVector *vec = dataStorage->dumpDht();
-    DhtDumpVector::iterator i;
 
-    for (i = vec->begin(); i!= vec->end(); i++){
-        EV << "i.key_var: " << i->getKey() << endl;
-        EV << "i.value_var: " << i->getValue() << endl;
-    }
     // send back
     DHTPutResponse* responseMsg = new DHTPutResponse();
     responseMsg->setSuccess(true);
@@ -671,20 +664,33 @@ void DHT::handlePutResponse(DHTPutResponse* dhtMsg, int rpcId)
 
 void DHT::handleGetResponse(DHTGetResponse* dhtMsg, int rpcId)
 {
-
-    EV << "SOMA DHT::handleGetResposne, node: " << overlay->getThisNode().getIp() <<
-            " key: " << dhtMsg->getKey() <<
-            " getResultArraySize: " << dhtMsg->getResultArraySize() << endl;
-
-    if (dhtMsg->getResultArraySize() > 0)
-            EV << " getResult value: " << dhtMsg->getResult(0).getValue() << endl;
-
-
     NodeVector* hashVector = NULL;
     PendingRpcs::iterator it = pendingRpcs.find(rpcId);
 
+
     if (it == pendingRpcs.end()) // unknown request
         return;
+
+    if (dhtMsg->getResultArraySize() > 0){
+        EV << "SOMA DHT::handleGetResposne, for node: " << overlay->getThisNode().getIp()
+                <<  " key: "                            << dhtMsg->getKey()
+                <<  " getResult value: "                << dhtMsg->getResult(0).getValue() << endl;
+        BinaryValue certVal = dhtMsg->getResult(0).getValue();
+
+        std::ostringstream ss;
+        ss << certVal;
+
+        std::string tmpCert = ss.str();
+        EV << "tmpCert:"<< tmpCert << endl;
+
+        // send the SignedCertValue to the DHTTestApp
+        DHTreturnSignedCertCall* sCert = new DHTreturnSignedCertCall();
+
+        sCert->setSignedCert(tmpCert.c_str());
+
+        sendInternalRpcCall(TIER2_COMP, sCert); // send to DHTTestApp the signed Cert
+    }
+
 
     if (it->second.state == GET_VALUE_SENT) {
         // we have sent a 'real' get request
@@ -826,6 +832,15 @@ void DHT::update(const NodeHandle& node, bool joined)
        << " (" << overlay->getThisNode().getKey().toString(16) << ")]\n"
        << "    Update called()"
        << endl;
+
+    EV << "[SOMA-SIGN::dumpDht " << endl;
+    DhtDumpVector *vec = dataStorage->dumpDht();
+    DhtDumpVector::iterator i;
+
+    for (i = vec->begin(); i!= vec->end(); i++){
+        EV << "i.key_var: " << i->getKey() << endl;
+        EV << "i.value_var: " << i->getValue() << endl;
+    }
 
     if (secureMaintenance) {
         for (it = dataStorage->begin(); it != dataStorage->end(); it++) {

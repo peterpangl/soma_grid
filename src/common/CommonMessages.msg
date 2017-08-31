@@ -447,6 +447,17 @@ packet DHTputCAPIResponse extends BaseResponseMessage
 }
 
 //
+// Message type to respond to a DHTgetCAPICall requesting a node's cert
+//
+// @author Petros
+//
+packet DHTreturnSignedCertCall extends BaseCallMessage
+{
+	string signedCert;
+}
+
+
+//
 //
 // @author gkarop
 //

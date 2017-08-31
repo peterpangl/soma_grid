@@ -1529,6 +1529,44 @@ inline void doUnpacking(cCommBuffer *b, DHTputCAPIResponse& obj) {obj.parsimUnpa
 /**
  * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
  * <pre>
+ * packet DHTreturnSignedCertCall extends BaseCallMessage
+ * {
+ * 	string signedCert;
+ * }
+ * </pre>
+ */
+class DHTreturnSignedCertCall : public ::BaseCallMessage
+{
+  protected:
+    opp_string signedCert_var;
+
+  private:
+    void copy(const DHTreturnSignedCertCall& other);
+
+  protected:
+    // protected and unimplemented operator==(), to prevent accidental usage
+    bool operator==(const DHTreturnSignedCertCall&);
+
+  public:
+    DHTreturnSignedCertCall(const char *name=NULL, int kind=0);
+    DHTreturnSignedCertCall(const DHTreturnSignedCertCall& other);
+    virtual ~DHTreturnSignedCertCall();
+    DHTreturnSignedCertCall& operator=(const DHTreturnSignedCertCall& other);
+    virtual DHTreturnSignedCertCall *dup() const {return new DHTreturnSignedCertCall(*this);}
+    virtual void parsimPack(cCommBuffer *b);
+    virtual void parsimUnpack(cCommBuffer *b);
+
+    // field getter/setter methods
+    virtual const char * getSignedCert() const;
+    virtual void setSignedCert(const char * signedCert);
+};
+
+inline void doPacking(cCommBuffer *b, DHTreturnSignedCertCall& obj) {obj.parsimPack(b);}
+inline void doUnpacking(cCommBuffer *b, DHTreturnSignedCertCall& obj) {obj.parsimUnpack(b);}
+
+/**
+ * Class generated from <tt>common/CommonMessages.msg</tt> by opp_msgc.
+ * <pre>
  * packet DHTgetResponsibleCall extends BaseCallMessage
  * {
  *     
