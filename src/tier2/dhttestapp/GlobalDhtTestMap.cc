@@ -148,6 +148,7 @@ void GlobalDhtTestMap::dumpDHTTestMap()
     EV << " in dumpDHTTestMap " << endl;
     for (; it != dataMap.end(); it++){
         EV << " key: " << it->first  << endl;
+        EV << " value: " << it->second.value << endl;
     }
 
 }
