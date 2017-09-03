@@ -485,27 +485,7 @@ void DHTTestApp::handleTraceMessage(cMessage* msg)
     delete[] cmd;
     delete msg;
 }
-//
-//bool DHTTestApp::keyAlreadyUsed(const OverlayKey& k)
-//{
-//    EV << "in DHTTestApp::keyAlreadyUsed" << endl;
-//    EV << "key to search: " << k << endl;
-//
-//    bool prvUsed = false;
-//    std::map<OverlayKey, Trust>::iterator it;
-//
-//    if (accessedNodes.size() > 0)
-//        for(it = accessedNodes.begin(); it != accessedNodes.end(); it++)
-//            if ( it->first == k)
-//            {
-//                EV << "key found " << endl;
-//                prvUsed = true;
-//            }
-//
-//
-//    return prvUsed;
-//
-//}
+
 
 void DHTTestApp::handleTimerEvent(cMessage* msg)
 {
