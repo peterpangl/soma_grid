@@ -7832,19 +7832,32 @@ DHTreturnSignedCertCall& DHTreturnSignedCertCall::operator=(const DHTreturnSigne
 
 void DHTreturnSignedCertCall::copy(const DHTreturnSignedCertCall& other)
 {
+    this->nodeKey_var = other.nodeKey_var;
     this->signedCert_var = other.signedCert_var;
 }
 
 void DHTreturnSignedCertCall::parsimPack(cCommBuffer *b)
 {
     BaseCallMessage::parsimPack(b);
+    doPacking(b,this->nodeKey_var);
     doPacking(b,this->signedCert_var);
 }
 
 void DHTreturnSignedCertCall::parsimUnpack(cCommBuffer *b)
 {
     BaseCallMessage::parsimUnpack(b);
+    doUnpacking(b,this->nodeKey_var);
     doUnpacking(b,this->signedCert_var);
+}
+
+OverlayKey& DHTreturnSignedCertCall::getNodeKey()
+{
+    return nodeKey_var;
+}
+
+void DHTreturnSignedCertCall::setNodeKey(const OverlayKey& nodeKey)
+{
+    this->nodeKey_var = nodeKey;
 }
 
 const char * DHTreturnSignedCertCall::getSignedCert() const
@@ -7904,7 +7917,7 @@ const char *DHTreturnSignedCertCallDescriptor::getProperty(const char *propertyn
 int DHTreturnSignedCertCallDescriptor::getFieldCount(void *object) const
 {
     cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 1+basedesc->getFieldCount(object) : 1;
+    return basedesc ? 2+basedesc->getFieldCount(object) : 2;
 }
 
 unsigned int DHTreturnSignedCertCallDescriptor::getFieldTypeFlags(void *object, int field) const
@@ -7916,9 +7929,10 @@ unsigned int DHTreturnSignedCertCallDescriptor::getFieldTypeFlags(void *object, 
         field -= basedesc->getFieldCount(object);
     }
     static unsigned int fieldTypeFlags[] = {
+        FD_ISCOMPOUND,
         FD_ISEDITABLE,
     };
-    return (field>=0 && field<1) ? fieldTypeFlags[field] : 0;
+    return (field>=0 && field<2) ? fieldTypeFlags[field] : 0;
 }
 
 const char *DHTreturnSignedCertCallDescriptor::getFieldName(void *object, int field) const
@@ -7930,16 +7944,18 @@ const char *DHTreturnSignedCertCallDescriptor::getFieldName(void *object, int fi
         field -= basedesc->getFieldCount(object);
     }
     static const char *fieldNames[] = {
+        "nodeKey",
         "signedCert",
     };
-    return (field>=0 && field<1) ? fieldNames[field] : NULL;
+    return (field>=0 && field<2) ? fieldNames[field] : NULL;
 }
 
 int DHTreturnSignedCertCallDescriptor::findField(void *object, const char *fieldName) const
 {
     cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount(object) : 0;
-    if (fieldName[0]=='s' && strcmp(fieldName, "signedCert")==0) return base+0;
+    if (fieldName[0]=='n' && strcmp(fieldName, "nodeKey")==0) return base+0;
+    if (fieldName[0]=='s' && strcmp(fieldName, "signedCert")==0) return base+1;
     return basedesc ? basedesc->findField(object, fieldName) : -1;
 }
 
@@ -7952,9 +7968,10 @@ const char *DHTreturnSignedCertCallDescriptor::getFieldTypeString(void *object, 
         field -= basedesc->getFieldCount(object);
     }
     static const char *fieldTypeStrings[] = {
+        "OverlayKey",
         "string",
     };
-    return (field>=0 && field<1) ? fieldTypeStrings[field] : NULL;
+    return (field>=0 && field<2) ? fieldTypeStrings[field] : NULL;
 }
 
 const char *DHTreturnSignedCertCallDescriptor::getFieldProperty(void *object, int field, const char *propertyname) const
@@ -7994,7 +8011,8 @@ std::string DHTreturnSignedCertCallDescriptor::getFieldAsString(void *object, in
     }
     DHTreturnSignedCertCall *pp = (DHTreturnSignedCertCall *)object; (void)pp;
     switch (field) {
-        case 0: return oppstring2string(pp->getSignedCert());
+        case 0: {std::stringstream out; out << pp->getNodeKey(); return out.str();}
+        case 1: return oppstring2string(pp->getSignedCert());
         default: return "";
     }
 }
@@ -8009,7 +8027,7 @@ bool DHTreturnSignedCertCallDescriptor::setFieldAsString(void *object, int field
     }
     DHTreturnSignedCertCall *pp = (DHTreturnSignedCertCall *)object; (void)pp;
     switch (field) {
-        case 0: pp->setSignedCert((value)); return true;
+        case 1: pp->setSignedCert((value)); return true;
         default: return false;
     }
 }
@@ -8023,9 +8041,10 @@ const char *DHTreturnSignedCertCallDescriptor::getFieldStructName(void *object, 
         field -= basedesc->getFieldCount(object);
     }
     static const char *fieldStructNames[] = {
+        "OverlayKey",
         NULL,
     };
-    return (field>=0 && field<1) ? fieldStructNames[field] : NULL;
+    return (field>=0 && field<2) ? fieldStructNames[field] : NULL;
 }
 
 void *DHTreturnSignedCertCallDescriptor::getFieldStructPointer(void *object, int field, int i) const
@@ -8038,6 +8057,7 @@ void *DHTreturnSignedCertCallDescriptor::getFieldStructPointer(void *object, int
     }
     DHTreturnSignedCertCall *pp = (DHTreturnSignedCertCall *)object; (void)pp;
     switch (field) {
+        case 0: return (void *)(&pp->getNodeKey()); break;
         default: return NULL;
     }
 }

@@ -1531,6 +1531,7 @@ inline void doUnpacking(cCommBuffer *b, DHTputCAPIResponse& obj) {obj.parsimUnpa
  * <pre>
  * packet DHTreturnSignedCertCall extends BaseCallMessage
  * {
+ *     OverlayKey nodeKey;
  * 	string signedCert;
  * }
  * </pre>
@@ -1538,6 +1539,7 @@ inline void doUnpacking(cCommBuffer *b, DHTputCAPIResponse& obj) {obj.parsimUnpa
 class DHTreturnSignedCertCall : public ::BaseCallMessage
 {
   protected:
+    OverlayKey nodeKey_var;
     opp_string signedCert_var;
 
   private:
@@ -1557,6 +1559,9 @@ class DHTreturnSignedCertCall : public ::BaseCallMessage
     virtual void parsimUnpack(cCommBuffer *b);
 
     // field getter/setter methods
+    virtual OverlayKey& getNodeKey();
+    virtual const OverlayKey& getNodeKey() const {return const_cast<DHTreturnSignedCertCall*>(this)->getNodeKey();}
+    virtual void setNodeKey(const OverlayKey& nodeKey);
     virtual const char * getSignedCert() const;
     virtual void setSignedCert(const char * signedCert);
 };

@@ -187,6 +187,7 @@ private:
     int numSomaTrustReqs; /**< number of requests for signed certifications from other nodes in order to build the trust chain */
     int sentReqsFlag;
     std::map<OverlayKey, Trust> accessedNodes;
+    void dumpAccessedNodes();
 
     simtime_t soma_init_timer, soma_total_time;
     simtime_t soma_keyputtime, soma_fkeysigntime;
@@ -200,6 +201,7 @@ private:
 
     // our timer
     cMessage *timerMsg;
+    int i;
 
 public:
     DHTTestApp();

@@ -453,6 +453,7 @@ packet DHTputCAPIResponse extends BaseResponseMessage
 //
 packet DHTreturnSignedCertCall extends BaseCallMessage
 {
+    OverlayKey nodeKey;
 	string signedCert;
 }
 

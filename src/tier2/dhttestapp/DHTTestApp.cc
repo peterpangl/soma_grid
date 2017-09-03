@@ -247,9 +247,30 @@ void DHTTestApp::handlePutCall(BaseCallMessage* msg)
     sendInternalRpcCall(TIER1_COMP, dhtGetRespMsg);
 }
 
+void DHTTestApp::dumpAccessedNodes()
+{
+    EV << "dumpAccessedNodes: " << endl;
+
+    std::map<OverlayKey, Trust>::iterator it;
+
+    if (accessedNodes.size() > 0) {
+        int i = 0;
+        for (it = accessedNodes.begin(); it != accessedNodes.end(); it++) {
+            EV << "key " << i << ": " << it->first << endl;
+            i++;
+        }
+    }
+}
+
+
+// Retrieve the signed certificate value
 void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
 {
-    EV << "SOMASigned Cert Value: "  << msg->getSignedCert() << endl;
+    EV << "SOMASigned Cert Value: "  << msg->getSignedCert() <<
+            "node's key: " << msg->getNodeKey() << endl;
+
+    dumpAccessedNodes();
+
 }
 
 

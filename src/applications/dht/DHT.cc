@@ -687,6 +687,7 @@ void DHT::handleGetResponse(DHTGetResponse* dhtMsg, int rpcId)
         DHTreturnSignedCertCall* sCert = new DHTreturnSignedCertCall();
 
         sCert->setSignedCert(tmpCert.c_str());
+        sCert->setNodeKey(dhtMsg->getKey());
 
         sendInternalRpcCall(TIER2_COMP, sCert); // send to DHTTestApp the signed Cert
     }
