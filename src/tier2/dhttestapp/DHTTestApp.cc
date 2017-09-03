@@ -269,7 +269,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
     EV << "SOMASigned Cert Value: "  << msg->getSignedCert() <<
             "node's key: " << msg->getNodeKey() << endl;
 
-    dumpAccessedNodes();
+    //dumpAccessedNodes();
 
 }
 
