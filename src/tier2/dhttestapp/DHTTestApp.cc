@@ -255,22 +255,59 @@ void DHTTestApp::dumpAccessedNodes()
 
     if (accessedNodes.size() > 0) {
         int i = 0;
-        for (it = accessedNodes.begin(); it != accessedNodes.end(); it++) {
+        for (it = accessedNodes.begin(); it != accessedNodes.end(); it++,i++) {
             EV << "key " << i << ": " << it->first << endl;
-            i++;
+            if(it->second.isItTrusted){
+                EV << " can be trusted" << endl;
+            }
+            else{
+                EV << " cannot be trusted" << endl;
+            }
         }
     }
+}
+
+
+bool DHTTestApp::haveSignedOtherNodeCert(string myIP, string signedCert)
+{
+    bool haveSigned = false;
+    std::string findStr = myIP + "|";
+
+    return haveSigned = signedCert.find(findStr) != std::string::npos;
+
 }
 
 
 // Retrieve the signed certificate value
 void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
 {
+    EV << "DHTTestApp::handleDHTreturnSignedCert myIP:" << thisNode.getIp() << endl;
     EV << "SOMASigned Cert Value: "  << msg->getSignedCert() <<
-            "node's key: " << msg->getNodeKey() << endl;
+            "\nother node's key: " << msg->getNodeKey() << endl;
 
-    //dumpAccessedNodes();
+    dumpAccessedNodes();
+    string myIp = thisNode.getIp().str();
+    string reqstdNodeSCert = msg->getSignedCert();
+    OverlayKey reqstdNodeKey = msg->getNodeKey();
+    std::map<OverlayKey, Trust>::iterator it;
 
+    it = accessedNodes.find(reqstdNodeKey);
+    if(it != accessedNodes.end()) {
+        //key found in accessedNodes
+        bool haveSignedCert = haveSignedOtherNodeCert(myIp, reqstdNodeSCert);
+        if(haveSignedCert){
+            // update the Trust for that node
+            it->second.isItTrusted = true;
+            EV << "Have signed it, trust it" << endl;
+        }
+        else{
+            it->second.isItTrusted = false;
+            EV << "Don't have signed it, don't trust it" << endl;
+        }
+    }
+    else{
+        EV << reqstdNodeKey << " did not found in accessedNodes " << endl;
+    }
 }
 
 
@@ -579,7 +616,8 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
             const OverlayKey& key = globalDhtTestMap->getRandomKey();
 
             OverlayKey tKey = key;
-            Trust tmpTrust = {false, "null"};
+            Trust tmpTrust;
+            tmpTrust.isItTrusted = false;
             int trials = 0;
             while( !accessedNodes.insert(std::make_pair(tKey, tmpTrust)).second ){
                 // element already present, choose another random key
@@ -725,6 +763,24 @@ void DHTTestApp::finishApp()
             globalStatistics->addStdDev("DHTTestApp: GET Success Ratio",
                                         (double) numGetSuccess
                                         / (double) (numGetSuccess + numGetError));
+        }
+
+        // TrustChain Results
+        if (accessedNodes.size() > 0){
+            std::map<OverlayKey, Trust>::iterator it;
+            EV << "\nNode: " << thisNode.getIp() << " requested certs from " << accessedNodes.size() << " nodes.\nThe node's keys and trust result are: " <<     endl;
+            int cnter = 0;
+            for(it = accessedNodes.begin(); it != accessedNodes.end(); it++){
+                if(it->second.isItTrusted){
+                    EV << "key: " << it->first << " - Trust" << endl;
+                    cnter++;
+                }
+                else{
+                    EV << "key: " << it->first << " - no Trust" << endl;
+                }
+            }
+            double trustPercentOverRequests = ((double)cnter / accessedNodes.size()) *100;
+            EV << "trustPercentOverRequests: " << trustPercentOverRequests << "%" << endl;
         }
     }
 }

@@ -43,7 +43,6 @@ class GlobalDhtTestMap;
 struct Trust
 {
     bool isItTrusted;
-    std::string trustedNodeIP;
 };
 
 
@@ -188,6 +187,7 @@ private:
     int sentReqsFlag;
     std::map<OverlayKey, Trust> accessedNodes;
     void dumpAccessedNodes();
+    bool haveSignedOtherNodeCert(std::string, std::string reqstdNodeSCert);
 
     simtime_t soma_init_timer, soma_total_time;
     simtime_t soma_keyputtime, soma_fkeysigntime;
