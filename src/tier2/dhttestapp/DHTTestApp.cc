@@ -293,12 +293,22 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
 
     it = accessedNodes.find(reqstdNodeKey);
     if(it != accessedNodes.end()) {
+
         //key found in accessedNodes
         bool haveSignedCert = haveSignedOtherNodeCert(myIp, reqstdNodeSCert);
         if(haveSignedCert){
             // update the Trust for that node
             it->second.isItTrusted = true;
             EV << "Have signed it, trust it" << endl;
+
+            //-- Measure the time from sending the Request till the reception of the response
+            it->second.timestmpRcv = simTime();
+            EV << "timestmpSend: " << it->second.timestmpSend << endl;
+            EV << "timestmpRcv: " << it->second.timestmpRcv << endl;
+
+            it->second.rtt = it->second.timestmpRcv - it->second.timestmpSend;
+            EV << "timestmpRTT: " << it->second.rtt << endl;
+            //--
         }
         else{
             it->second.isItTrusted = false;
@@ -619,6 +629,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
             Trust tmpTrust;
             tmpTrust.isItTrusted = false;
             int trials = 0;
+
             while( !accessedNodes.insert(std::make_pair(tKey, tmpTrust)).second ){
                 // element already present, choose another random key
                 EV << "Key already present: " << tKey << endl;
@@ -626,12 +637,20 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                 OverlayKey tKey = key;
                 trials++;
 
-                // don't loop forever
+                // keep the trials check or you may loop forever
                 if (trials > 10){
                     scheduleAt(simTime() + 4,  msg); // reschedule the msg
                     EV << "Reached maximum trials for getting a different key " << endl;
                     return;
                 }
+            }
+
+            std::map<OverlayKey, Trust>::iterator it;
+            it = accessedNodes.find(tKey);
+
+            if (it != accessedNodes.end()){
+                it->second.timestmpSend = simTime();
+                EV << "timestmpSend: " << it->second.timestmpSend << endl;
             }
 
             EV << "Node: " << thisNode.getIp() << " is going to send request to node with SOMA key : " << key << endl;
@@ -772,7 +791,8 @@ void DHTTestApp::finishApp()
             int cnter = 0;
             for(it = accessedNodes.begin(); it != accessedNodes.end(); it++){
                 if(it->second.isItTrusted){
-                    EV << "key: " << it->first << " - Trust" << endl;
+                    EV << "-key: " << it->first << " - Trust" << endl;
+                    EV << "-SimTime Delay for response: " << it->second.rtt << endl;
                     cnter++;
                 }
                 else{

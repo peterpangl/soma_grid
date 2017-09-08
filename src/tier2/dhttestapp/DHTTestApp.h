@@ -43,6 +43,9 @@ class GlobalDhtTestMap;
 struct Trust
 {
     bool isItTrusted;
+    simtime_t timestmpSend;
+    simtime_t timestmpRcv;
+    simtime_t rtt;
 };
 
 
