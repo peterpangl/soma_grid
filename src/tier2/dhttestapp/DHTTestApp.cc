@@ -306,7 +306,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
             EV << "timestmpSend: " << it->second.timestmpSend << endl;
             EV << "timestmpRcv: " << it->second.timestmpRcv << endl;
 
-            it->second.rtt = it->second.timestmpRcv - it->second.timestmpSend;
+            it->second.rtt = it->second.timestmpRcv - it->second.timestmpSend + 0.005;
             EV << "timestmpRTT: " << it->second.rtt << endl;
             //--
         }
