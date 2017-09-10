@@ -370,9 +370,9 @@ void DHTTestApp::handlePutResponse(DHTputCAPIResponse* msg,
     DHTEntry entry = {context->value, simTime() + ttl, simTime()};
 
     globalDhtTestMap->insertEntry(context->key, entry);
-
-    globalDhtTestMap->dumpDHTTestMap();
-
+    // --Debug
+    //globalDhtTestMap->dumpDHTTestMap();
+    //--
     if (context->measurementPhase == false) {
         // don't count response, if the request was not sent
         // in the measurement phase

@@ -324,7 +324,7 @@ bool DHT::isAlreadySigned(std::string msgValue, std::string myIP)
 {
     bool found = false;
     std::string searchVal = "| " + myIP + "|";
-    EV << "in isAlreadySigned msg: " << msgValue << " search for: " << searchVal << endl;
+    //EV << "in isAlreadySigned msg: " << msgValue << " search for: " << searchVal << endl;
 
     if(msgValue.find(searchVal) != std::string::npos){
         EV << "Already signed " << endl;
@@ -356,11 +356,11 @@ void DHT::handlePutRequest(DHTPutCall* dhtMsg)
     if(!haveSigned) {
         EV << "Not already signed " << endl;
         newCert = msgValue + " " +
-                //string(signTemplate) + " " +
+                string(signTemplate) + " " +
                 string(nodeIp) + "|";
     }
 
-    EV << "newCert: " << newCert << endl;
+    //EV << "newCert: " << newCert << endl;
 
     // SOMA end
 
@@ -834,14 +834,16 @@ void DHT::update(const NodeHandle& node, bool joined)
        << "    Update called()"
        << endl;
 
-    EV << "[SOMA-SIGN::dumpDht " << endl;
-    DhtDumpVector *vec = dataStorage->dumpDht();
-    DhtDumpVector::iterator i;
-
-    for (i = vec->begin(); i!= vec->end(); i++){
-        EV << "i.key_var: " << i->getKey() << endl;
-        EV << "i.value_var: " << i->getValue() << endl;
-    }
+    //-- Debug
+    //    EV << "[SOMA-SIGN::dumpDht " << endl;
+    //    DhtDumpVector *vec = dataStorage->dumpDht();
+    //    DhtDumpVector::iterator i;
+    //
+    //    for (i = vec->begin(); i!= vec->end(); i++){
+    //        EV << "i.key_var: " << i->getKey() << endl;
+    //        EV << "i.value_var: " << i->getValue() << endl;
+    //    }
+    //--
 
     if (secureMaintenance) {
         for (it = dataStorage->begin(); it != dataStorage->end(); it++) {
