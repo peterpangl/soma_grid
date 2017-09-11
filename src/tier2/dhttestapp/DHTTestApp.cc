@@ -28,6 +28,8 @@
 #include <RpcMacros.h>
 #include "CommonMessages_m.h"
 
+#include <iostream>
+#include <fstream>
 #include <GlobalDhtTestMap.h>
 
 #include "DHTTestApp.h"
@@ -786,21 +788,27 @@ void DHTTestApp::finishApp()
 
         // TrustChain Results
         if (accessedNodes.size() > 0){
+            std::ofstream outFile;
+            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+
             std::map<OverlayKey, Trust>::iterator it;
-            EV << "\nNode: " << thisNode.getIp() << " requested certs from " << accessedNodes.size() << " nodes.\nThe node's keys and trust result are: " <<     endl;
+
+            //EV << "\nNode: " << thisNode.getIp() << " requested certs from " << accessedNodes.size() << " nodes.\nThe node's keys and trust result are: " <<     endl;
+            outFile << "\nNode: " << thisNode.getIp() << " requested certs from " << accessedNodes.size() << " nodes.\nThe node's keys and trust result are: " << endl;
+
             int cnter = 0;
             for(it = accessedNodes.begin(); it != accessedNodes.end(); it++){
                 if(it->second.isItTrusted){
-                    EV << "-key: " << it->first << " - Trust" << endl;
-                    EV << "-SimTime Delay for response: " << it->second.rtt << endl;
+                    outFile << "-key: " << it->first << " - Trust" << endl;
+                    outFile << "-SimTime Delay for response: " << it->second.rtt << endl;
                     cnter++;
                 }
                 else{
-                    EV << "key: " << it->first << " - no Trust" << endl;
+                    outFile << "key: " << it->first << " - no Trust" << endl;
                 }
             }
             double trustPercentOverRequests = ((double)cnter / accessedNodes.size()) *100;
-            EV << "trustPercentOverRequests: " << trustPercentOverRequests << "%" << endl;
+            outFile << "trustPercentOverRequests: " << trustPercentOverRequests << "%" << endl;
         }
     }
 }
