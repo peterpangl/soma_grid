@@ -803,9 +803,9 @@ void DHTTestApp::finishApp()
                     outFile << "-SimTime Delay for response: " << it->second.rtt << endl;
                     cnter++;
                 }
-                else{
-                    outFile << "key: " << it->first << " - no Trust" << endl;
-                }
+//                else{
+//                    outFile << "key: " << it->first << " - no Trust" << endl;
+//                }
             }
             double trustPercentOverRequests = ((double)cnter / accessedNodes.size()) *100;
             outFile << "trustPercentOverRequests: " << trustPercentOverRequests << "%" << endl;
