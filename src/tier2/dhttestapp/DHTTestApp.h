@@ -201,6 +201,7 @@ private:
     bool nodeIsLeavingSoon; //!< true if the node is going to be killed shortly
 
     static const int DHTTESTAPP_VALUE_LEN = 20;
+    static const int GET_REQ_INTERVAL = 2;
 
     // our timer
     cMessage *timerMsg;
