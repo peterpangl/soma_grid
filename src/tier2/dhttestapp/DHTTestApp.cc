@@ -228,7 +228,12 @@ void DHTTestApp::handlePutCall(BaseCallMessage* msg)
 
     OverlayKey somaKey(OverlayKey::sha1(pkIp));
 
-    EV << nodeIp << " -> s omakey : " << somaKey << endl;
+    EV << nodeIp << " -> somakey : " << somaKey << endl;
+
+    std::ofstream outFile;
+    outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+
+    outFile << "\nnode: " << thisNode.getIp() << " key sent" << std::flush;
 
     DHTputCAPICall* dhtPutMsg = new DHTputCAPICall();
     dhtPutMsg->setKey(somaKey);
@@ -618,7 +623,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
         if (((!activeNetwInitPhase) && (underlayConfigurator->isInInitPhase()))
                 || underlayConfigurator->isSimulationEndingSoon()
                 || nodeIsLeavingSoon) {
-            scheduleAt(simTime() + 4,  msg); // reschedule the selfmsg
+            scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the selfmsg
             return;
         }
 
@@ -627,26 +632,32 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
 
             const OverlayKey& key = globalDhtTestMap->getRandomKey();
 
+            if (key.isUnspecified()){
+                scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
+                return;
+            }
+
             OverlayKey tKey = key;
             Trust tmpTrust;
             tmpTrust.isItTrusted = false;
             int trials = 0;
 
-            while( !accessedNodes.insert(std::make_pair(tKey, tmpTrust)).second ){
+            while (accessedNodes.find(tKey) != accessedNodes.end()){
                 // element already present, choose another random key
                 EV << "Key already present: " << tKey << endl;
                 const OverlayKey& key = globalDhtTestMap->getRandomKey();
-                OverlayKey tKey = key;
+                tKey = key;
                 trials++;
 
                 // keep the trials check or you may loop forever
                 if (trials > 10){
-                    scheduleAt(simTime() + 4,  msg); // reschedule the msg
+                    scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
                     EV << "Reached maximum trials for getting a different key " << endl;
                     return;
                 }
             }
 
+            accessedNodes.insert(std::make_pair(tKey, tmpTrust));
             std::map<OverlayKey, Trust>::iterator it;
             it = accessedNodes.find(tKey);
 
@@ -674,7 +685,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                     new DHTStatsContext(globalStatistics->isMeasuring(),
                             simTime(), key));
 
-            scheduleAt(simTime() + 4,  msg); // reschedule the msg
+            scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
 
         }
         //--
@@ -785,16 +796,16 @@ void DHTTestApp::finishApp()
                                         (double) numGetSuccess
                                         / (double) (numGetSuccess + numGetError));
         }
-
+        std::ofstream outFile;
+        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+        outFile << "\nNode: " << thisNode.getIp()  << " requested certs from " << accessedNodes.size() <<  "nodes.";
         // TrustChain Results
         if (accessedNodes.size() > 0){
-            std::ofstream outFile;
-            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
 
             std::map<OverlayKey, Trust>::iterator it;
 
             //EV << "\nNode: " << thisNode.getIp() << " requested certs from " << accessedNodes.size() << " nodes.\nThe node's keys and trust result are: " <<     endl;
-            outFile << "\nNode: " << thisNode.getIp() << " requested certs from " << accessedNodes.size() << " nodes.\nThe node's keys and trust result are: " << endl;
+            outFile << "\nThe node's keys and trust result are: " << endl;
 
             int cnter = 0;
             for(it = accessedNodes.begin(); it != accessedNodes.end(); it++){
@@ -807,9 +818,13 @@ void DHTTestApp::finishApp()
 //                    outFile << "key: " << it->first << " - no Trust" << endl;
 //                }
             }
+
             double trustPercentOverRequests = ((double)cnter / accessedNodes.size()) *100;
             outFile << "trustPercentOverRequests: " << trustPercentOverRequests << "%" << endl;
+
         }
+
+        outFile.close();
     }
 }
 
