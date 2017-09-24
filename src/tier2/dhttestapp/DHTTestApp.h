@@ -46,7 +46,7 @@ struct childNodeInfo
 {
     OverlayKey nodeKey;
     bool sentReq;  // true/false if we have/haven't sent a request
-    OverlayKey dueNode; // the node for which is searched the Trust
+    OverlayKey dueNode; // the "father" node for which is being searched the Trust
     bool isItTrusted;
     int level;
 
@@ -181,6 +181,7 @@ private:
     void handleRpcResponse(BaseResponseMessage* msg, const RpcState& state,
                            simtime_t rtt);
 
+    void doTheCertRequest(const OverlayKey& key);
     UnderlayConfigurator* underlayConfigurator; /**< pointer to UnderlayConfigurator in this node */
 
     GlobalNodeList* globalNodeList; /**< pointer to GlobalNodeList in this node*/
