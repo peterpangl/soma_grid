@@ -34,6 +34,7 @@ simple DHTTestApp extends BaseApp
         bool activeNetwInitPhase;    // send messages when network is in init phase?
         bool p2pnsTraffic; // model p2pns application traffic
         int somaTrustReqs;   // period parameter for the Trust Chain needs.
+        int globalTrustLevel; // level of depth that will reach in the search of Trust	
 }
 
 
