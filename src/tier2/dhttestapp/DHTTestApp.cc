@@ -73,6 +73,8 @@ void DHTTestApp::initializeApp(int stage)
 
     //-- SOMA TC(Trust Chain)
     numSomaTrustReqs = par("somaTrustReqs");
+    globalTrustLevel = par("globalTrustLevel");
+
     EV << "Node " << thisNode.getIp() << ", will request signed certs from " << numSomaTrustReqs << " other nodes." << endl;
     //--
 
@@ -110,7 +112,7 @@ void DHTTestApp::initializeApp(int stage)
     soma_keyputtime = -1;
     soma_fkeysigntime = -1;
     //soma_findNodeTimer = par("sendTCPeriod");
-
+    certVerficationDelay = 0.005;
     timeVector.setName("SomaJoinTime");
 
     //initRpcs();
@@ -230,10 +232,11 @@ void DHTTestApp::handlePutCall(BaseCallMessage* msg)
 
     EV << nodeIp << " -> somakey : " << somaKey << endl;
 
-    std::ofstream outFile;
-    outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
-
-    outFile << "\nnode: " << thisNode.getIp() << " key sent" << std::flush;
+      // Debugging
+//    std::ofstream outFile;
+//    outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+//
+//    outFile << "\nnode: " << thisNode.getIp() << " key sent:" << somaKey << std::flush;
 
     DHTputCAPICall* dhtPutMsg = new DHTputCAPICall();
     dhtPutMsg->setKey(somaKey);
@@ -258,7 +261,7 @@ void DHTTestApp::dumpAccessedNodes()
 {
     EV << "dumpAccessedNodes: " << endl;
 
-    std::map<OverlayKey, Trust>::iterator it;
+    std::map<OverlayKey, TrustNodeLvlOne>::iterator it;
 
     if (accessedNodes.size() > 0) {
         int i = 0;
@@ -292,38 +295,54 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
     EV << "SOMASigned Cert Value: "  << msg->getSignedCert() <<
             "\nother node's key: " << msg->getNodeKey() << endl;
 
-    dumpAccessedNodes();
-    string myIp = thisNode.getIp().str();
-    string reqstdNodeSCert = msg->getSignedCert();
-    OverlayKey reqstdNodeKey = msg->getNodeKey();
-    std::map<OverlayKey, Trust>::iterator it;
+    //    dumpAccessedNodes();
+    if (globalTrustLevel == LevelOne) {
 
-    it = accessedNodes.find(reqstdNodeKey);
-    if(it != accessedNodes.end()) {
+        string myIp = thisNode.getIp().str();
+        string reqstdNodeSCert = msg->getSignedCert();
+        OverlayKey reqstdNodeKey = msg->getNodeKey();
+        std::map<OverlayKey, TrustNodeLvlOne>::iterator it;
 
-        //key found in accessedNodes
-        bool haveSignedCert = haveSignedOtherNodeCert(myIp, reqstdNodeSCert);
-        if(haveSignedCert){
-            // update the Trust for that node
-            it->second.isItTrusted = true;
-            EV << "Have signed it, trust it" << endl;
+        it = accessedNodes.find(reqstdNodeKey);
+        if(it != accessedNodes.end()) {
 
-            //-- Measure the time from sending the Request till the reception of the response
-            it->second.timestmpRcv = simTime();
-            EV << "timestmpSend: " << it->second.timestmpSend << endl;
-            EV << "timestmpRcv: " << it->second.timestmpRcv << endl;
+            //key found in accessedNodes
+            bool haveSignedCert = haveSignedOtherNodeCert(myIp, reqstdNodeSCert);
+            if(haveSignedCert){
+                // update the Trust for that node
+                it->second.isItTrusted = true;
+                //            EV << "Have signed it, trust it" << endl;
 
-            it->second.rtt = it->second.timestmpRcv - it->second.timestmpSend + 0.005;
-            EV << "timestmpRTT: " << it->second.rtt << endl;
-            //--
+                //-- Measure the time from sending the Request till the reception of the response
+                it->second.timestmpRcv = simTime();
+                //            EV << "timestmpSend: " << it->second.timestmpSend << endl;
+                //            EV << "timestmpRcv: " << it->second.timestmpRcv << endl;
+
+                it->second.rtt = it->second.timestmpRcv - it->second.timestmpSend + certVerficationDelay;
+                EV << "timestmpRTT: " << it->second.rtt << endl;
+                //--
+            }
+            else{
+                it->second.isItTrusted = false;
+                EV << "Don't have signed it, don't trust it" << endl;
+            }
         }
         else{
-            it->second.isItTrusted = false;
-            EV << "Don't have signed it, don't trust it" << endl;
+            EV << reqstdNodeKey << " did not found in accessedNodes " << endl;
         }
     }
-    else{
-        EV << reqstdNodeKey << " did not found in accessedNodes " << endl;
+    else {
+        /*--first parse the pendingReqs nodes in depth and then go to the next pendingReq node of level1
+         *--When the node is trusted or not remove it from pending requests and put it in the accessedNodes with the indicator "isItTrusted" to True
+         *--if you don't find trust for the Node of the level that exist in Pending Req, check if the search in next level is permitted (globalTrustLevel), if yes, put it
+         *  -- in the map pendingNodes(assigning the struct values)
+         *--if you don't find trust from a pending node and the level is equal with globalTrustLevel then remove it from the pending nodes, otherwise take his signatures after checking that
+         *  --do not exist in the pending nodes and push back in the map
+         *
+         *--if you don't find the node just ignore, may have been deleted because has been found trust/notTrust
+         * */
+
+
     }
 }
 
@@ -552,7 +571,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
         }
         else if (soma_fkeysigntime > -1 && soma_keyputtime < soma_fkeysigntime)
         {
-            soma_total_time = soma_fkeysigntime - soma_init_timer;
+//            soma_totaTrustl_time = soma_fkeysigntime - soma_init_timer;
             timeVector.record(soma_total_time);
         }
     }
@@ -617,8 +636,8 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
 //                                    simTime(), destKey, dhtPutMsg->getValue()));
 //    }
     else if (msg->isName("dhttest_get_timer")) {
-       // scheduleAt(simTime() + truncnormal(mean, deviation), msg);
-        EV << "get_timer 1 node:" << thisNode.getIp() << endl;
+        // scheduleAt(simTime() + truncnormal(mean, deviation), msg);
+
         // do nothing if the network is still in the initialization phase
         if (((!activeNetwInitPhase) && (underlayConfigurator->isInInitPhase()))
                 || underlayConfigurator->isSimulationEndingSoon()
@@ -626,69 +645,175 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
             scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the selfmsg
             return;
         }
+        // Debugging
+        std::ofstream outFile;
+        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
 
-        //-- SOMA send the request to other node
-        if (sentReqsFlag < numSomaTrustReqs) {
+        /* Handle TC of levelOne */
+        if (globalTrustLevel == LevelOne) {
 
-            const OverlayKey& key = globalDhtTestMap->getRandomKey();
+            //-- SOMA send the request to other node
+            if (sentReqsFlag < numSomaTrustReqs) {
 
-            if (key.isUnspecified()){
-                scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
-                return;
-            }
-
-            OverlayKey tKey = key;
-            Trust tmpTrust;
-            tmpTrust.isItTrusted = false;
-            int trials = 0;
-
-            while (accessedNodes.find(tKey) != accessedNodes.end()){
-                // element already present, choose another random key
-                EV << "Key already present: " << tKey << endl;
                 const OverlayKey& key = globalDhtTestMap->getRandomKey();
-                tKey = key;
-                trials++;
 
-                // keep the trials check or you may loop forever
-                if (trials > 10){
+                if (key.isUnspecified()){
                     scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
-                    EV << "Reached maximum trials for getting a different key " << endl;
                     return;
                 }
+
+                OverlayKey tKey = key;
+                TrustNodeLvlOne tmpTrust;
+                tmpTrust.isItTrusted = false;
+                int trials = 0;
+
+                while (accessedNodes.find(tKey) != accessedNodes.end()){
+                    // element already present, choose another random key
+                    EV << "Key already present: " << tKey << endl;
+                    const OverlayKey& key = globalDhtTestMap->getRandomKey();
+                    tKey = key;
+                    trials++;
+
+                    // keep the trials check or you may loop forever
+                    if (trials > 10){
+                        scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
+                        EV << "Reached maximum trials for getting a different key " << endl;
+                        return;
+                    }
+                }
+
+                accessedNodes.insert(std::make_pair(tKey, tmpTrust));
+                std::map<OverlayKey, TrustNodeLvlOne>::iterator it;
+                it = accessedNodes.find(tKey);
+
+                if (it != accessedNodes.end()){
+                    it->second.timestmpSend = simTime();
+                    EV << "timestmpSend: " << it->second.timestmpSend << endl;
+                }
+
+//                EV << "Node: " << thisNode.getIp() << " is going to send request to node with SOMA key : " << key << endl;
+//                std::ofstream outFile;
+//                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+//
+//                outFile << "Node: " << thisNode.getIp() << " is going to send request to node with SOMA key : " << key << std::flush;
+
+                if (key.isUnspecified()) {
+                    EV << "[DHTTestApp::handleTimerEvent() @ " << thisNode.getIp()
+                                           << " (" << thisNode.getKey().toString(16) << ")]\n"
+                                           << "    Error: No key available in global DHT test map!"
+                                           << endl;
+                    return;
+                }
+                sentReqsFlag++;
+
+                DHTgetCAPICall* dhtGetMsg = new DHTgetCAPICall();
+                dhtGetMsg->setKey(key);
+                RECORD_STATS(numSent++; numGetSent++);
+
+                sendInternalRpcCall(TIER1_COMP, dhtGetMsg,
+                        new DHTStatsContext(globalStatistics->isMeasuring(),
+                                simTime(), key));
+
+                scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
+
             }
-
-            accessedNodes.insert(std::make_pair(tKey, tmpTrust));
-            std::map<OverlayKey, Trust>::iterator it;
-            it = accessedNodes.find(tKey);
-
-            if (it != accessedNodes.end()){
-                it->second.timestmpSend = simTime();
-                EV << "timestmpSend: " << it->second.timestmpSend << endl;
-            }
-
-            EV << "Node: " << thisNode.getIp() << " is going to send request to node with SOMA key : " << key << endl;
-
-            if (key.isUnspecified()) {
-                EV << "[DHTTestApp::handleTimerEvent() @ " << thisNode.getIp()
-                                   << " (" << thisNode.getKey().toString(16) << ")]\n"
-                                   << "    Error: No key available in global DHT test map!"
-                                   << endl;
-                return;
-            }
-            sentReqsFlag++;
-
-            DHTgetCAPICall* dhtGetMsg = new DHTgetCAPICall();
-            dhtGetMsg->setKey(key);
-            RECORD_STATS(numSent++; numGetSent++);
-
-            sendInternalRpcCall(TIER1_COMP, dhtGetMsg,
-                    new DHTStatsContext(globalStatistics->isMeasuring(),
-                            simTime(), key));
-
-            scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
-
         }
         //--
+        else {
+            /*
+             * Search if pendingReqs is not empty, if is not empty and there is Node that "hasBeenReqed=false" then proceed with the request of this node.
+             *  if is not empty but all the indicators "hasBeenReqed=true" then getRandomKey, put it in the pendingReqs and do the Request
+             *  if is empty then getRandomKey, put it in the pendingReqs and do the Request */
+            //-- SOMA send the request to other node
+
+            outFile << "\nnode: " << thisNode.getIp() << " time_to REQ"  << std::flush;
+
+            if (!pendingReqs.empty()){
+                std::vector<TrustNode>::iterator it = pendingReqs.begin();
+                outFile << "\n pendingReqs not empty" << std::flush;
+                // parse the entries of level 1 till you find one subentry with hasBeenReqed= false
+                for (; it != pendingReqs.end(); it++) {
+                    // since the node exists in pendingReqs, is not decided if is trusted or not
+
+                    outFile << "\n it->node search: " << it->nodeKey << std::flush;
+                    if(!it->pendingChildNodes.empty()) {
+                        // there are child nodes which we search if anyone has not been requested
+
+                        std::vector<childNodeInfo>::iterator itCh = it->pendingChildNodes.begin();
+                        for (; itCh != it->pendingChildNodes.end(); itCh++){
+
+                            outFile << "\n it2->node search: " << itCh->nodeKey << std::flush;
+                            if (!itCh->sentReq) {
+
+                                outFile << "\n it2->node found: " << itCh->nodeKey << std::flush;
+
+                                // search if already exist in my KeyRing
+                                std::map<OverlayKey, TrustNodeLvlOne>::iterator itAcc;
+                                itAcc = accessedNodes.find(itCh->nodeKey);
+                                if (itAcc != accessedNodes.end()) {
+                                    // exists in my KeyRing (trusted or not); don't make the request
+                                    // check if is the last node in the childPendingNodes, if yes decide the Trust of the level1 node, put it in the accessedNodes
+
+                                    outFile << "\n it2->node : " << itCh->nodeKey << " exists in the keyRing" << std::flush;
+
+                                    TrustNodeLvlOne trust;
+                                    trust.foundTrustAtLevel = itCh->level;
+                                    trust.isItTrusted = itAcc->second.isItTrusted; // true
+                                    trust.timestmpSend = it->timestmpSend;
+                                    trust.timestmpRcv = simTime();
+                                    trust.rtt = it->timestmpSend - simTime(); // no request happens
+
+                                    if (itAcc->second.isItTrusted) {
+                                        outFile << "\n trust it" << std::flush;
+                                        // the level1 node is trusted so i trust my level1 father node
+                                        // insert in the map of accessedNodes
+
+                                        accessedNodes.insert(std::make_pair(it->nodeKey, trust));   // store the node in the accessedNodes
+                                        pendingReqs.erase(it);  // remove it from the pendingReqs since we found a trust
+                                    }
+                                    else{
+                                        outFile << "\n don't trust it" << std::flush;
+                                        // the level1 node is not trusted, if
+                                        // else just remove current child node from the pending list
+                                        if (it->pendingChildNodes.size() == 0) {
+                                            // last node in the vector, set that the father node is not trusted, put it in the accessedNodes and erase it from pending
+
+                                            outFile << "\n i am the last node" << std::flush;
+                                            accessedNodes.insert(std::make_pair(it->nodeKey, trust));   // store the node in the accessedNodes
+                                            pendingReqs.erase(it);  // remove it from the pendingReqs since we found a trust
+                                        }
+                                        else {
+
+                                            outFile << "\n i am not the last node.Just remove me from the list" << std::flush;
+                                            pendingChildNodes.erase(itCh);
+                                        }
+                                    }
+                                    scheduleAt(simTime(),  msg); // reschedule the msg with no retard since we have not make any request
+                                    return;
+                                }
+                                else{
+                                    //proceed with the Request
+                                }
+
+                                break;
+                            }
+                        }
+                        //exit for loop if .end() then all setReq was true
+                        //you have to getRandomkey
+                    }
+                }
+            }
+            if (sentReqsFlag < numSomaTrustReqs) {
+
+            }
+
+
+
+            return;
+
+
+
+        }
     } else if (msg->isName("dhttest_mod_timer")) {
         scheduleAt(simTime() + truncnormal(mean, deviation), msg);
 
@@ -802,7 +927,7 @@ void DHTTestApp::finishApp()
         // TrustChain Results
         if (accessedNodes.size() > 0){
 
-            std::map<OverlayKey, Trust>::iterator it;
+            std::map<OverlayKey, TrustNodeLvlOne>::iterator it;
 
             //EV << "\nNode: " << thisNode.getIp() << " requested certs from " << accessedNodes.size() << " nodes.\nThe node's keys and trust result are: " <<     endl;
             outFile << "\nThe node's keys and trust result are: " << endl;

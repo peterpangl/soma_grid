@@ -36,18 +36,41 @@
 #include <BaseApp.h>
 #include <set>
 #include <sstream>
+#include <vector>
 
 class GlobalDhtTestMap;
 
+#define LevelOne 1
 
-struct Trust
+struct childNodeInfo
+{
+    OverlayKey nodeKey;
+    bool sentReq;  // true/false if we have/haven't sent a request
+    OverlayKey dueNode; // the node for which is searched the Trust
+    bool isItTrusted;
+    int level;
+
+};
+
+struct TrustNode
+{
+    OverlayKey nodeKey;
+    bool isItTrusted;
+    int trustAtLevel;
+    simtime_t timestmpSend;
+    simtime_t timestmpRcv;
+    simtime_t rtt;
+    std::vector<childNodeInfo> pendingChildNodes;
+};
+
+struct TrustNodeLvlOne
 {
     bool isItTrusted;
+    int foundTrustAtLevel;
     simtime_t timestmpSend;
     simtime_t timestmpRcv;
     simtime_t rtt;
 };
-
 
 /**
  * A simple test application for the DHT layer
@@ -187,8 +210,13 @@ private:
 
     int numSomaKeys; /**< number of SOMA keys signed*/
     int numSomaTrustReqs; /**< number of requests for signed certifications from other nodes in order to build the trust chain */
+    int globalTrustLevel;
     int sentReqsFlag;
-    std::map<OverlayKey, Trust> accessedNodes;
+    double certVerficationDelay;
+    std::map<OverlayKey, TrustNodeLvlOne> accessedNodes;
+    std::vector<childNodeInfo> pendingChildNodes;
+    std::vector<TrustNode> pendingReqs;  /**< use this map in order to store the requests of the ongoing process to from the Trust Chain for levels bigger than 1 */
+
     void dumpAccessedNodes();
     bool haveSignedOtherNodeCert(std::string, std::string reqstdNodeSCert);
 
