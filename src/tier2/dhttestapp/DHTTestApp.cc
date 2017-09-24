@@ -560,6 +560,19 @@ void DHTTestApp::handleTraceMessage(cMessage* msg)
 }
 
 
+void DHTTestApp::doTheCertRequest(const OverlayKey& key)
+{
+    sentReqsFlag++;
+    DHTgetCAPICall* dhtGetMsg = new DHTgetCAPICall();
+    dhtGetMsg->setKey(key);
+    RECORD_STATS(numSent++; numGetSent++);
+
+    sendInternalRpcCall(TIER1_COMP, dhtGetMsg,
+            new DHTStatsContext(globalStatistics->isMeasuring(),
+                    simTime(), key));
+}
+
+
 void DHTTestApp::handleTimerEvent(cMessage* msg)
 {
     if (msg->isName("somakey_put_timer")) {
@@ -737,7 +750,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
 
                     outFile << "\n it->node search: " << it->nodeKey << std::flush;
                     if(!it->pendingChildNodes.empty()) {
-                        // there are child nodes which we search if anyone has not been requested
+                        // there are child nodes which we search if anyone has not been requested yet
 
                         std::vector<childNodeInfo>::iterator itCh = it->pendingChildNodes.begin();
                         for (; itCh != it->pendingChildNodes.end(); itCh++){
@@ -789,13 +802,14 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                                         }
                                     }
                                     scheduleAt(simTime(),  msg); // reschedule the msg with no retard since we have not make any request
-                                    return;
                                 }
                                 else{
-                                    //proceed with the Request
+                                    // Node does not exist in the keyRing; proceed with the Request in the network
+                                    itCh->sentReq = true;
+                                    doTheCertRequest(itCh->nodeKey);
+                                    scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
                                 }
-
-                                break;
+                                return; // remove the return if you want to make the requests without scheduled event
                             }
                         }
                         //exit for loop if .end() then all setReq was true
