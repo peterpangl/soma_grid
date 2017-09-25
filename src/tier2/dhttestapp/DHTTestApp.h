@@ -220,6 +220,7 @@ private:
 
     void dumpAccessedNodes();
     bool haveSignedOtherNodeCert(std::string, std::string reqstdNodeSCert);
+    bool existsInPendingReqsLvl1(const OverlayKey& key);
 
     simtime_t soma_init_timer, soma_total_time;
     simtime_t soma_keyputtime, soma_fkeysigntime;

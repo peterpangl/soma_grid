@@ -573,6 +573,27 @@ void DHTTestApp::doTheCertRequest(const OverlayKey& key)
 }
 
 
+bool DHTTestApp::existsInPendingReqsLvl1(const OverlayKey& key)
+{
+
+    bool nodeExists = false;
+
+    if (!pendingReqs.empty()) {
+        std::vector<TrustNode>::iterator it = pendingReqs.begin();
+        for(; it != pendingReqs.end(); it++)
+            if(it->nodeKey == key) {
+                // Debugging
+                std::ofstream outFile;
+                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                outFile << "\n node found: " << it->nodeKey << " in existsInPendingReqsLvl1" << std::flush;
+                nodeExists = true;
+                break;
+            }
+    }
+    return nodeExists;
+}
+
+
 void DHTTestApp::handleTimerEvent(cMessage* msg)
 {
     if (msg->isName("somakey_put_timer")) {
@@ -735,10 +756,9 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
         else {
             /*
              * Search if pendingReqs is not empty, if is not empty and there is Node that "hasBeenReqed=false" then proceed with the request of this node.
-             *  if is not empty but all the indicators "hasBeenReqed=true" then getRandomKey, put it in the pendingReqs and do the Request
+             *  if is not empty but all the indicators "sentReq=true" then getRandomKey, put it in the pendingReqs and do the Request
              *  if is empty then getRandomKey, put it in the pendingReqs and do the Request */
             //-- SOMA send the request to other node
-
             outFile << "\nnode: " << thisNode.getIp() << " time_to REQ"  << std::flush;
 
             if (!pendingReqs.empty()){
@@ -812,21 +832,54 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                                 return; // remove the return if you want to make the requests without scheduled event
                             }
                         }
-                        //exit for loop if .end() then all setReq was true
-                        //you have to getRandomkey
                     }
                 }
             }
-            if (sentReqsFlag < numSomaTrustReqs) {
+            // pendingReqs do not exist or all the nodes in pendingChildNodes have been requested (itCh->sentReq) is true
+            if (sentReqsFlag <= numSomaTrustReqs) {
+                const OverlayKey& key = globalDhtTestMap->getRandomKey();
 
+                if (key.isUnspecified()){
+                    scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
+                    return;
+                }
+
+                OverlayKey tKey = key;
+                TrustNode tmpTrust;
+                tmpTrust.isItTrusted = false;
+                int trials = 0;
+
+                while ((accessedNodes.find(tKey) != accessedNodes.end()) or
+                        existsInPendingReqsLvl1(tKey)){
+                    // this key has already been accessed, choose another random key
+                    //   EV << "Key already present: " << tKey << endl;
+                    const OverlayKey& key = globalDhtTestMap->getRandomKey();
+                    tKey = key;
+                    trials++;
+
+                    // keep the trials check or you may loop forever
+                    if (trials > 10){
+                        scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
+                        EV << "Reached maximum trials for getting a different key " << endl;
+                        return;
+                    }
+                }
+
+                // insert the new node in the PendingReqs
+                TrustNode tN;
+                tN.isItTrusted = false;
+                tN.nodeKey = tKey;
+                tN.timestmpSend = simTime();
+                tN.timestmpRcv = 0;
+                tN.rtt = 0;
+                tN.trustAtLevel = 0;
+
+                pendingReqs.push_back(tN);
+
+                // do the Request
+                doTheCertRequest(tN.nodeKey);
+                scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
             }
-
-
-
-            return;
-
-
-
         }
     } else if (msg->isName("dhttest_mod_timer")) {
         scheduleAt(simTime() + truncnormal(mean, deviation), msg);
