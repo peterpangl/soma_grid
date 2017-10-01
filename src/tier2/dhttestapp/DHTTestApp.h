@@ -37,6 +37,7 @@
 #include <set>
 #include <sstream>
 #include <vector>
+#include <boost/regex.hpp>
 
 class GlobalDhtTestMap;
 
@@ -215,12 +216,13 @@ private:
     int sentReqsFlag;
     double certVerficationDelay;
     std::map<OverlayKey, TrustNodeLvlOne> accessedNodes;
-    std::vector<childNodeInfo> pendingChildNodes;
-    std::vector<TrustNode> pendingReqs;  /**< use this map in order to store the requests of the ongoing process to from the Trust Chain for levels bigger than 1 */
+    std::vector<childNodeInfo> pendingChildNodes; /**< this vector is associated with every level1 node for which we have started the process of finding trust. Will keep the "child" nodes for the node of level1 */
+    std::vector<TrustNode> pendingReqs;  /**< this vector will keep the requests that are made till we find trust regarding the globalTrustLevel */
 
     void dumpAccessedNodes();
     bool haveSignedOtherNodeCert(std::string, std::string reqstdNodeSCert);
     bool existsInPendingReqsLvl1(const OverlayKey& key);
+    std::list<OverlayKey> convertIPsToKeys(std::string s);
 
     simtime_t soma_init_timer, soma_total_time;
     simtime_t soma_keyputtime, soma_fkeysigntime;
@@ -236,6 +238,7 @@ private:
     // our timer
     cMessage *timerMsg;
     int i;
+    bool debug;
 
 public:
     DHTTestApp();

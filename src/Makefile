@@ -415,8 +415,8 @@ endif
 # >>>
 # inserted from file 'makefrag':
 INCLUDE_PATH += -I$(OMNETPP_ROOT)/src/sim/parsim -I/sw/include
-LIBS += -L/sw/lib
-OMNETPP_LIBS += -lgmp
+LIBS += -L/sw/lib -L/usr/lib
+OMNETPP_LIBS += -lgmp -lboost_regex -lboost_regex-mt
 
 
 # <<<

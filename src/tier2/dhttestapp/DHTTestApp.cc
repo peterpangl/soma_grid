@@ -32,6 +32,7 @@
 #include <fstream>
 #include <GlobalDhtTestMap.h>
 
+
 #include "DHTTestApp.h"
 
 Define_Module(DHTTestApp);
@@ -114,6 +115,7 @@ void DHTTestApp::initializeApp(int stage)
     //soma_findNodeTimer = par("sendTCPeriod");
     certVerficationDelay = 0.005;
     timeVector.setName("SomaJoinTime");
+    debug = true;
 
     //initRpcs();
     WATCH(numSent);
@@ -288,6 +290,49 @@ bool DHTTestApp::haveSignedOtherNodeCert(string myIP, string signedCert)
 }
 
 
+// Convert the Ips that exist in the signedCertificate to Overlay keys (somakeys)
+std::list<OverlayKey> DHTTestApp::convertIPsToKeys(std::string s){
+    std::list<OverlayKey> keyList;
+    std::list<string> IPs;
+
+    boost::smatch m;
+    boost::regex e ("(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})");   // matches IP addresses
+
+    while (boost::regex_search (s,m,e)) {
+      for (boost::smatch::iterator it = m.begin(); it!=m.end(); ++it) {
+          std::cout << *it << std::endl;
+          IPs.push_back(*it);
+          if(debug) {
+              std::ofstream outFile;
+              outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+              outFile << "\n IP: " << *it << std::flush;
+          }
+          ++it;
+      }
+      s = m.suffix().str();
+    }
+    if ( m.size() > 0 )
+    {
+        string pkIp;
+        std::list<string>::iterator it;
+        for (it = IPs.begin(); it != IPs.end(); it++)
+        {
+            pkIp = string(publickey) + string(*it);
+            OverlayKey somakey(OverlayKey::sha1(pkIp));
+            keyList.push_back(somakey);
+
+            if(debug) {
+                std::ofstream outFile;
+                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                outFile << "\n converted to key: " << somakey << std::flush;
+            }
+        }
+    }
+
+    return keyList;
+}
+
+
 // Retrieve the signed certificate value
 void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
 {
@@ -332,15 +377,68 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
         }
     }
     else {
-        /*--first parse the pendingReqs nodes in depth and then go to the next pendingReq node of level1
-         *--When the node is trusted or not remove it from pending requests and put it in the accessedNodes with the indicator "isItTrusted" to True
-         *--if you don't find trust for the Node of the level that exist in Pending Req, check if the search in next level is permitted (globalTrustLevel), if yes, put it
-         *  -- in the map pendingNodes(assigning the struct values)
-         *--if you don't find trust from a pending node and the level is equal with globalTrustLevel then remove it from the pending nodes, otherwise take his signatures after checking that
-         *  --do not exist in the pending nodes and push back in the map
-         *
-         *--if you don't find the node just ignore, may have been deleted because has been found trust/notTrust
-         * */
+        /*-- a cert has arrived.
+         *-- get the key of the node that responded to the request; OverlayKey reqstdNodeKey = msg->getNodeKey();*/
+        string myIp = thisNode.getIp().str();
+        string reqstdNodeSCert = msg->getSignedCert();
+        OverlayKey reqstdNodeKey = msg->getNodeKey();
+
+        if (debug) {
+            std::ofstream outFile;
+            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+            outFile << "\n Got CERT Response from: " << reqstdNodeKey << " with cert: " << reqstdNodeSCert<<std::flush;
+        }
+
+        std::list<OverlayKey> keysSignedReqedNode = convertIPsToKeys(reqstdNodeSCert); //if thisNode exists then we trust
+        if (debug) {
+            std::ofstream outFile;
+            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+            std::list<OverlayKey>::iterator it;
+            outFile << "\n IPs to keys: " <<std::flush;
+            for(it = keysSignedReqedNode.begin(); it != keysSignedReqedNode.end(); it++){
+                outFile << "\n " << *it <<std::flush;
+            }
+        }
+
+        if( !pendingReqs.empty()) {
+
+            std::vector<TrustNode>::iterator it = pendingReqs.begin();
+            // find the reqed Node (in pendingReqs), if is levelOne or greater level
+            for(; it != pendingReqs.end(); it++) {
+                // depth search
+                if(it->nodeKey != reqstdNodeKey){
+                    ;
+                }
+                else{
+                   // found at level1
+                    ;
+                }
+            }
+
+            /* We have 1 vector (pendingReqs) that we store the requests that have been initiated.
+             * Upon we find or not Trust of this node, is removed from pendingReqs and is inserted in accessedNodes
+             *
+             *--With the given key
+             *--parse the pendingReqs nodes in depth in order to find the key that has been made a request for; if you don't find it then go to the next pendingReq node of level1
+             *-- if you find it then:
+             *--When the node is trusted or not remove it from pending requests and put it in the accessedNodes with the indicator "isItTrusted" to True
+             *--if you don't find trust for the Node of the level that exist in Pending Req, check if the search in next level is permitted (globalTrustLevel), if yes,
+             *--- convert the IPs included in the certification to keys (string pkIp = string(publickey) + string(nodeIp); // OverlayKey somaKey(OverlayKey::sha1(pkIp)); put it
+             *  -- in the vector of pendingNodes (assigning the struct values) of the father of the node that has been made the request
+             *--if you don't find trust from a pending node and the level is equal with globalTrustLevel then remove it from the pending nodes, otherwise take his signatures after checking that
+             *  --do not exist in the pending nodes and push back in the map
+             *
+             *--if you don't find the node just ignore, may have been deleted because has been found trust/notTrust
+             * */
+
+        }
+        else{
+            std::ofstream outFile;
+            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+            outFile << "\n  pendingReqs is empty " << std::flush;
+        }
+
+
 
 
     }
@@ -503,16 +601,16 @@ void DHTTestApp::handleTraceMessage(cMessage* msg)
 {
     //EV << "[SOMA-DHTTestApp::handleTraceMessage()\n";
 
-    char* cmd = new char[strlen(msg->getName()) + 1];
-    strcpy(cmd, msg->getName());
+    char* cmd = new char[std::strlen(msg->getName()) + 1];
+    std::strcpy(cmd, msg->getName());
 
-    if (strlen(msg->getName()) < 5) {
+    if (std::strlen(msg->getName()) < 5) {
         delete[] cmd;
         delete msg;
         return;
     }
 
-    if (strncmp(cmd, "PUT ", 4) == 0) {
+    if (std::strncmp(cmd, "PUT ", 4) == 0) {
         // Generate key
         char* buf = cmd + 4;
 
@@ -539,7 +637,7 @@ void DHTTestApp::handleTraceMessage(cMessage* msg)
         sendInternalRpcCall(TIER1_COMP, dhtPutMsg,
                 new DHTStatsContext(globalStatistics->isMeasuring(),
                                     simTime(), destKey, buf));
-    } else if (strncmp(cmd, "GET ", 4) == 0) {
+    } else if (std::strncmp(cmd, "GET ", 4) == 0) {
         // Get key
         BinaryValue b(cmd + 4);
         OverlayKey key(OverlayKey::sha1(b));
@@ -566,6 +664,11 @@ void DHTTestApp::doTheCertRequest(const OverlayKey& key)
     DHTgetCAPICall* dhtGetMsg = new DHTgetCAPICall();
     dhtGetMsg->setKey(key);
     RECORD_STATS(numSent++; numGetSent++);
+    if(debug) {
+        std::ofstream outFile;
+        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+        outFile << "\n send request to : " << key << std::flush;
+    }
 
     sendInternalRpcCall(TIER1_COMP, dhtGetMsg,
             new DHTStatsContext(globalStatistics->isMeasuring(),
@@ -583,9 +686,11 @@ bool DHTTestApp::existsInPendingReqsLvl1(const OverlayKey& key)
         for(; it != pendingReqs.end(); it++)
             if(it->nodeKey == key) {
                 // Debugging
-                std::ofstream outFile;
-                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
-                outFile << "\n node found: " << it->nodeKey << " in existsInPendingReqsLvl1" << std::flush;
+                if (debug){
+                    std::ofstream outFile;
+                    outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                    outFile << "\n node with key: " << it->nodeKey << " already exists in existsInPendingReqsLvl1" << std::flush;
+                }
                 nodeExists = true;
                 break;
             }
