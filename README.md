@@ -1,7 +1,7 @@
 # soma_grid
 -------------Boost------------
-
-Notes regarding boost:
+You will have to install the Boost library in order to run the code since the last commits.
+In the DHTTestApp code, boost functions are used.
 Boost library used for the regular expressions related functions that provides. In order to add it and use it along with the omnetpp,
 below are the steps that need to follow:
 -download boost 1.65.1
