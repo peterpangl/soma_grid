@@ -125,7 +125,6 @@ void DHTTestApp::initializeApp(int stage)
     WATCH(numPutSent);
     WATCH(numPutError);
     WATCH(numPutSuccess);
-
     //WATCH(numSomaKeys);
     //globalStatistics = GlobalStatisticsAccess().get();
 
@@ -232,6 +231,12 @@ void DHTTestApp::handlePutCall(BaseCallMessage* msg)
 
     OverlayKey somaKey(OverlayKey::sha1(pkIp));
 
+    if (debug){
+        std::ofstream outFile;
+        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+        outFile << "\n nodeIp: " << nodeIp << " - somaKey: " << somaKey << std::flush;
+    }
+
     EV << nodeIp << " -> somakey : " << somaKey << endl;
 
       // Debugging
@@ -318,18 +323,60 @@ std::list<OverlayKey> DHTTestApp::convertIPsToKeys(std::string s){
         for (it = IPs.begin(); it != IPs.end(); it++)
         {
             pkIp = string(publickey) + string(*it);
-            OverlayKey somakey(OverlayKey::sha1(pkIp));
-            keyList.push_back(somakey);
+            OverlayKey key(OverlayKey::sha1(pkIp));
+            keyList.push_back(key);
 
             if(debug) {
                 std::ofstream outFile;
                 outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
-                outFile << "\n converted to key: " << somakey << std::flush;
+                outFile << "\n converted to key: " << key << std::flush;
             }
         }
     }
 
     return keyList;
+}
+
+
+// the keys to be inserted as child nodes for search in the pendingChildNodes list of level 1 node
+void DHTTestApp::insertChildNodes(std::vector<TrustNode>::iterator it, std::list<OverlayKey> keys, int level)
+{
+    std::list<OverlayKey>::iterator itList;
+    std::vector<childNodeInfo>::iterator it2;
+    if (debug){
+        std::ofstream outFile;
+        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+        outFile << "\n insertChildNodes " << std::flush;
+    }
+    for (itList = keys.begin(); itList != keys.end(); itList++) {
+        bool alreadyExists = false;
+        for(it2 = it->pendingChildNodes.begin(); it2 != it->pendingChildNodes.end(); it2++) {
+            if (it2->nodeKey == *itList) {
+                if (debug){
+                    std::ofstream outFile;
+                    outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                    outFile << "\n found the same it2->nodeKey: " << it2->nodeKey << " with " << *itList << std::flush;
+                }
+                alreadyExists = true;
+                break;
+            }
+        }
+        if(!alreadyExists) {
+            if (debug){
+                std::ofstream outFile;
+                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                outFile << "\n insert in pendingChildNodes the:  " << *itList << std::flush;
+            }
+            childNodeInfo newNode;
+            newNode.dueNode = it->nodeKey;
+            newNode.isItTrusted = false;
+            newNode.level = level+1;
+            newNode.nodeKey = *itList;
+            newNode.responseRcved = false;
+            newNode.sentReq = false;
+            it->pendingChildNodes.push_back(newNode);
+        }
+    }
 }
 
 
@@ -378,8 +425,16 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
     }
     else {
         /*-- a cert has arrived.
-         *-- get the key of the node that responded to the request; OverlayKey reqstdNodeKey = msg->getNodeKey();*/
+         *-- get the key of the node that responded to the request; OverlayKey reqstdNodeKey = msg->getNodeKey();
+         *--  We have 1 vector (pendingReqs) that we store the requests that have been initiated.
+         * Upon we find or not Trust of this node, is removed from pendingReqs and is inserted in accessedNodes
+         *
+         *--With the given key
+         *--parse the pendingReqs nodes in depth in order to find the key that has been made a request for; if you don't find it then go to the next pendingReq node of level1
+         */
         string myIp = thisNode.getIp().str();
+        string pkIp = string(publickey) + string(myIp);
+        OverlayKey somaKey(OverlayKey::sha1(pkIp));
         string reqstdNodeSCert = msg->getSignedCert();
         OverlayKey reqstdNodeKey = msg->getNodeKey();
 
@@ -399,48 +454,197 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                 outFile << "\n " << *it <<std::flush;
             }
         }
-
-        if( !pendingReqs.empty()) {
-
-            std::vector<TrustNode>::iterator it = pendingReqs.begin();
-            // find the reqed Node (in pendingReqs), if is levelOne or greater level
-            for(; it != pendingReqs.end(); it++) {
-                // depth search
-                if(it->nodeKey != reqstdNodeKey){
-                    ;
-                }
-                else{
-                   // found at level1
-                    ;
-                }
-            }
-
-            /* We have 1 vector (pendingReqs) that we store the requests that have been initiated.
-             * Upon we find or not Trust of this node, is removed from pendingReqs and is inserted in accessedNodes
-             *
-             *--With the given key
-             *--parse the pendingReqs nodes in depth in order to find the key that has been made a request for; if you don't find it then go to the next pendingReq node of level1
-             *-- if you find it then:
-             *--When the node is trusted or not remove it from pending requests and put it in the accessedNodes with the indicator "isItTrusted" to True
-             *--if you don't find trust for the Node of the level that exist in Pending Req, check if the search in next level is permitted (globalTrustLevel), if yes,
-             *--- convert the IPs included in the certification to keys (string pkIp = string(publickey) + string(nodeIp); // OverlayKey somaKey(OverlayKey::sha1(pkIp)); put it
-             *  -- in the vector of pendingNodes (assigning the struct values) of the father of the node that has been made the request
-             *--if you don't find trust from a pending node and the level is equal with globalTrustLevel then remove it from the pending nodes, otherwise take his signatures after checking that
-             *  --do not exist in the pending nodes and push back in the map
-             *
-             *--if you don't find the node just ignore, may have been deleted because has been found trust/notTrust
-             * */
-
-        }
-        else{
+        std::list<OverlayKey>::iterator it;
+        bool isTheNodeTrusted = false;
+        if (debug) {
             std::ofstream outFile;
             outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
-            outFile << "\n  pendingReqs is empty " << std::flush;
+            outFile << "\nis the node trusted? "<< std::flush;
+        }
+        // search if somaKey exists in the signatures
+        for(it = keysSignedReqedNode.begin(); it != keysSignedReqedNode.end(); it++){
+            if (debug) {
+                std::ofstream outFile;
+                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                outFile << "\nkey from list:  " << *it << std::flush;
+                outFile << "   --- myKey:  " << somaKey << std::flush;
+            }
+            if(*it == somaKey){
+                isTheNodeTrusted = true;
+                break;
+            }
+        }
+        if (debug) {
+            std::ofstream outFile;
+            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+            outFile << "\nTrusted: " << isTheNodeTrusted << std::flush;
         }
 
+        if( !pendingReqs.empty()) {
+            std::vector<TrustNode>::iterator it = pendingReqs.begin();
+            // find the reqed Node (in pendingReqs), if is levelOne or greater level
+            bool breakSrch = false;
+            for(; it != pendingReqs.end(); it++) {
 
+                if(it->nodeKey != reqstdNodeKey){
+                    // depth search for the node of Level1
+                    if (debug) {
+                        std::ofstream outFile;
+                        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                        outFile << "\n it->node search: " << it->nodeKey << std::flush;
+                    }
 
+                    if(!it->pendingChildNodes.empty()) {
+                        // findChildNode (request has been sent and the keu
+                        std::vector<childNodeInfo>::iterator itCh = it->pendingChildNodes.begin();
+                        for (; itCh != it->pendingChildNodes.end(); itCh++){
 
+                            if(debug){
+                                std::ofstream outFile;
+                                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                                outFile << "\n itCh->node: " << itCh->nodeKey <<  std::flush;
+                            }
+
+                            if (itCh->sentReq && itCh->nodeKey == reqstdNodeKey) {
+                                // the node with the key found
+                                if(debug){
+                                    std::ofstream outFile;
+                                    outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                                    outFile << "\n Child that sent req found: "<< itCh->nodeKey << std::flush;
+                                }
+                                itCh->responseRcved = true;
+
+                                if (isTheNodeTrusted) {
+                                    //  move the node of level1 to the accessedNodes
+                                    TrustNodeLvlOne nodeLvlOne;
+                                    nodeLvlOne.foundTrustAtLevel = itCh->level;
+                                    nodeLvlOne.isItTrusted = isTheNodeTrusted;
+                                    nodeLvlOne.timestmpSend = it->timestmpSend;
+                                    nodeLvlOne.timestmpRcv = simTime();
+                                    nodeLvlOne.rtt = nodeLvlOne.timestmpRcv - nodeLvlOne.timestmpSend;
+
+                                    if(debug){
+                                        std::ofstream outFile;
+                                        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                                        outFile << "\n  key: " << it->nodeKey <<
+                                                "\n  foundTrustAtLevel: " << nodeLvlOne.foundTrustAtLevel <<
+                                                "\n  isTheNodeTrusted: " << nodeLvlOne.isItTrusted <<
+                                                "\n  rtt: " << nodeLvlOne.rtt << std::flush;
+                                    }
+                                    accessedNodes.insert(std::make_pair(it->nodeKey, nodeLvlOne));   // store the node in the accessedNodes
+                                    if(debug){
+                                        std::ofstream outFile;
+                                        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                                        outFile << "\n  dumpAccessedNodes: " << std::flush;
+                                        std::map<OverlayKey, TrustNodeLvlOne>::iterator itAcc;
+                                        for(itAcc = accessedNodes.begin(); itAcc != accessedNodes.end(); itAcc++){
+                                            outFile << "\n  key:  " << itAcc->first << std::flush;
+                                        }
+                                    }
+                                    pendingReqs.erase(it);  // remove it from the pendingReqs since we found a trust
+                                    breakSrch = true;
+                                    break;
+                                } //--
+                                else {
+                                    // node is not trusted,
+                                    // check the globalTrust level and decide if you will include the childs of child in the trust chain search
+                                    if (itCh->level < globalTrustLevel) {
+                                        // insert the nodes in the pendingChildNodes
+                                        insertChildNodes(it, keysSignedReqedNode, itCh->level+1);
+                                    }
+                                    else{
+                                        // check if is the last node and trust has not been found
+                                        std::vector<childNodeInfo>::iterator itCh2 = it->pendingChildNodes.begin();
+                                        bool lastOne = true;
+                                        for (; itCh2 != it->pendingChildNodes.end(); itCh2++) {
+                                            if (!itCh2->responseRcved) {
+                                                lastOne = false;
+                                            }
+                                        }
+                                        if(lastOne) {
+                                            if(debug){
+                                                std::ofstream outFile;
+                                                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                                                outFile << "\n last node" << std::flush;
+                                            }
+                                            TrustNodeLvlOne nodeLvlOne;
+                                            nodeLvlOne.foundTrustAtLevel = itCh->level;
+                                            nodeLvlOne.isItTrusted = isTheNodeTrusted;
+                                            nodeLvlOne.timestmpSend = it->timestmpSend;
+                                            nodeLvlOne.timestmpRcv = simTime();
+                                            nodeLvlOne.rtt = nodeLvlOne.timestmpRcv - nodeLvlOne.timestmpSend;
+
+                                            if(debug){
+                                                std::ofstream outFile;
+                                                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                                                outFile << "\n  key: " << it->nodeKey <<
+                                                        "\n  foundTrustAtLevel: " << nodeLvlOne.foundTrustAtLevel <<
+                                                        "\n  isTheNodeTrusted: " << nodeLvlOne.isItTrusted <<
+                                                        "\n  rtt: " << nodeLvlOne.rtt << std::flush;
+                                            }
+                                            accessedNodes.insert(std::make_pair(it->nodeKey, nodeLvlOne));   // store the node in the accessedNodes
+                                            pendingReqs.erase(it);  // remove it from the pendingReqs since we found a negative trust
+                                        }
+                                    }
+                                }
+                            }//--
+                        }//-- for pendingChildNodes
+                        if(breakSrch)
+                            break; // break from the loop of pendingReqs
+                    }
+                    else{
+                        //pendingChildNodes are empty, continue with the next node in pendingReqs
+                        continue;
+                    }
+                }
+                else{
+                   // found key of node at level1, if is trusted put it in accessedNodes
+                    if (debug){
+                        std::ofstream outFile;
+                        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                        outFile << "\n !!found key of node at level1" << std::flush;
+                    }
+                    if(isTheNodeTrusted){
+                        // Node is trusted, move the node of level1 to the accessedNodes
+
+                        TrustNodeLvlOne nodeLvlOne;
+                        nodeLvlOne.foundTrustAtLevel = 1;
+                        nodeLvlOne.isItTrusted = isTheNodeTrusted;
+                        nodeLvlOne.timestmpSend = it->timestmpSend;
+                        nodeLvlOne.timestmpRcv = simTime();
+                        nodeLvlOne.rtt = nodeLvlOne.timestmpRcv - nodeLvlOne.timestmpSend;
+                        if(debug){
+                            std::ofstream outFile;
+                            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                            outFile << "\n  key: " << it->nodeKey <<
+                                    "\n  foundTrustAtLevel: " << nodeLvlOne.foundTrustAtLevel <<
+                                    "\n  isTheNodeTrusted: " << nodeLvlOne.isItTrusted <<
+                                    "\n  rtt: " << nodeLvlOne.rtt << std::flush;
+                        }
+                        accessedNodes.insert(std::make_pair(it->nodeKey, nodeLvlOne));   // store the node in the accessedNodes
+                        pendingReqs.erase(it);
+                        break;
+                    }
+                    else{
+                        // Node is not trusted, if signed by other nodes put these nodes in pendingChildNodes
+                        if (debug){
+                            std::ofstream outFile;
+                            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                            outFile << "\n !!Node level1 is not trusted, put sign nodes in pendingChildNodes" << std::flush;
+                        }
+                        insertChildNodes(it, keysSignedReqedNode, LevelOne+1);
+                    }
+                }
+            }// -- for pendingReqs
+        }
+        else{
+            //do nothing
+            if (debug){
+                std::ofstream outFile;
+                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                outFile << "\n  pendingReqs is empty " << std::flush;
+            }
+        }
     }
 }
 
@@ -699,6 +903,19 @@ bool DHTTestApp::existsInPendingReqsLvl1(const OverlayKey& key)
 }
 
 
+OverlayKey DHTTestApp::getMyKey()
+{
+    string myIp = thisNode.getIp().str();
+    string pkIp = string(publickey) + string(myIp);
+    OverlayKey somaKey(OverlayKey::sha1(pkIp));
+    if (debug){
+        std::ofstream outFile;
+        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+        outFile << "\ngetMyKey: " << somaKey << std::flush;
+    }
+    return somaKey;
+}
+
 void DHTTestApp::handleTimerEvent(cMessage* msg)
 {
     if (msg->isName("somakey_put_timer")) {
@@ -806,7 +1023,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                 tmpTrust.isItTrusted = false;
                 int trials = 0;
 
-                while (accessedNodes.find(tKey) != accessedNodes.end()){
+                while (accessedNodes.find(tKey) != accessedNodes.end() or tKey == getMyKey()){
                     // element already present, choose another random key
                     EV << "Key already present: " << tKey << endl;
                     const OverlayKey& key = globalDhtTestMap->getRandomKey();
@@ -870,6 +1087,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                 std::vector<TrustNode>::iterator it = pendingReqs.begin();
                 outFile << "\n pendingReqs not empty" << std::flush;
                 // parse the entries of level 1 till you find one subentry with hasBeenReqed= false
+                bool brk = false;
                 for (; it != pendingReqs.end(); it++) {
                     // since the node exists in pendingReqs, is not decided if is trusted or not
 
@@ -899,7 +1117,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                                     trust.isItTrusted = itAcc->second.isItTrusted; // true
                                     trust.timestmpSend = it->timestmpSend;
                                     trust.timestmpRcv = simTime();
-                                    trust.rtt = it->timestmpSend - simTime(); // no request happens
+                                    trust.rtt = simTime() - it->timestmpSend; // no request happens
 
                                     if (itAcc->second.isItTrusted) {
                                         outFile << "\n trust it" << std::flush;
@@ -908,39 +1126,54 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
 
                                         accessedNodes.insert(std::make_pair(it->nodeKey, trust));   // store the node in the accessedNodes
                                         pendingReqs.erase(it);  // remove it from the pendingReqs since we found a trust
+                                        brk = true;
+                                        break;
                                     }
                                     else{
                                         outFile << "\n don't trust it" << std::flush;
-                                        // the level1 node is not trusted, if
-                                        // else just remove current child node from the pending list
-                                        if (it->pendingChildNodes.size() == 0) {
-                                            // last node in the vector, set that the father node is not trusted, put it in the accessedNodes and erase it from pending
-
-                                            outFile << "\n i am the last node" << std::flush;
+                                        // the level1 node is not trusted,
+                                        itCh->sentReq = true;
+                                        itCh->isItTrusted = false;
+                                        itCh->responseRcved = true;
+                                        // check if this is the last one, all the other nodes have got Response and this is the last one
+                                        std::vector<childNodeInfo>::iterator itCh2 = it->pendingChildNodes.begin();
+                                        bool lastOne = true;
+                                        for (; itCh2 != it->pendingChildNodes.end(); itCh2++) {
+                                            if (!itCh2->responseRcved) {
+                                                lastOne = false;
+                                            }
+                                        }
+                                        if(lastOne) {
+                                            outFile << "\n last node" << std::flush;
                                             accessedNodes.insert(std::make_pair(it->nodeKey, trust));   // store the node in the accessedNodes
                                             pendingReqs.erase(it);  // remove it from the pendingReqs since we found a trust
-                                        }
-                                        else {
-
-                                            outFile << "\n i am not the last node.Just remove me from the list" << std::flush;
-                                            pendingChildNodes.erase(itCh);
+                                            brk = true;
+                                            break;
                                         }
                                     }
                                     scheduleAt(simTime(),  msg); // reschedule the msg with no retard since we have not make any request
                                 }
                                 else{
                                     // Node does not exist in the keyRing; proceed with the Request in the network
-                                    itCh->sentReq = true;
-                                    doTheCertRequest(itCh->nodeKey);
-                                    scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
+
+                                    if (itCh->nodeKey != getMyKey()){
+                                        itCh->sentReq = true;
+                                        itCh->responseRcved = false;
+                                        doTheCertRequest(itCh->nodeKey);
+                                    }
+                                    scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msgs
+
                                 }
                                 return; // remove the return if you want to make the requests without scheduled event
                             }
                         }
+                        if (brk) {
+                            break;
+                        }
                     }
                 }
             }
-            // pendingReqs do not exist or all the nodes in pendingChildNodes have been requested (itCh->sentReq) is true
+            // pendingReqs do not exist or all the nodes in pendingChildNodes have been requested, (itCh->sentReq) is true
             if (sentReqsFlag <= numSomaTrustReqs) {
                 const OverlayKey& key = globalDhtTestMap->getRandomKey();
 
@@ -955,8 +1188,8 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                 int trials = 0;
 
                 while ((accessedNodes.find(tKey) != accessedNodes.end()) or
-                        existsInPendingReqsLvl1(tKey)){
-                    // this key has already been accessed, choose another random key
+                        existsInPendingReqsLvl1(tKey) or tKey == getMyKey()){
+                    // this key has already been accessed or it's thisNode, choose another random key
                     //   EV << "Key already present: " << tKey << endl;
                     const OverlayKey& key = globalDhtTestMap->getRandomKey();
                     tKey = key;

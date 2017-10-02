@@ -49,6 +49,7 @@ struct childNodeInfo
     bool sentReq;  // true/false if we have/haven't sent a request
     OverlayKey dueNode; // the "father" node for which is being searched the Trust
     bool isItTrusted;
+    bool responseRcved;
     int level;
 
 };
@@ -183,6 +184,7 @@ private:
                            simtime_t rtt);
 
     void doTheCertRequest(const OverlayKey& key);
+
     UnderlayConfigurator* underlayConfigurator; /**< pointer to UnderlayConfigurator in this node */
 
     GlobalNodeList* globalNodeList; /**< pointer to GlobalNodeList in this node*/
@@ -223,6 +225,8 @@ private:
     bool haveSignedOtherNodeCert(std::string, std::string reqstdNodeSCert);
     bool existsInPendingReqsLvl1(const OverlayKey& key);
     std::list<OverlayKey> convertIPsToKeys(std::string s);
+    void insertChildNodes(std::vector<TrustNode>::iterator it, std::list<OverlayKey> keys, int level);
+    OverlayKey getMyKey();
 
     simtime_t soma_init_timer, soma_total_time;
     simtime_t soma_keyputtime, soma_fkeysigntime;
