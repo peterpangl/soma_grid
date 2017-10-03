@@ -350,13 +350,11 @@ void DHTTestApp::insertChildNodes(std::vector<TrustNode>::iterator it, std::list
     }
     for (itList = keys.begin(); itList != keys.end(); itList++) {
         bool alreadyExists = false;
+        if (it->nodeKey == *itList){
+            alreadyExists = true;
+        }
         for(it2 = it->pendingChildNodes.begin(); it2 != it->pendingChildNodes.end(); it2++) {
             if (it2->nodeKey == *itList) {
-                if (debug){
-                    std::ofstream outFile;
-                    outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
-                    outFile << "\n found the same it2->nodeKey: " << it2->nodeKey << " with " << *itList << std::flush;
-                }
                 alreadyExists = true;
                 break;
             }
@@ -441,19 +439,19 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
         if (debug) {
             std::ofstream outFile;
             outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
-            outFile << "\n Got CERT Response from: " << reqstdNodeKey << " with cert: " << reqstdNodeSCert<<std::flush;
+            outFile << "\n node:" << myIp << " Got CERT Response from: " << reqstdNodeKey << " with cert: " << reqstdNodeSCert<<std::flush;
         }
 
         std::list<OverlayKey> keysSignedReqedNode = convertIPsToKeys(reqstdNodeSCert); //if thisNode exists then we trust
-        if (debug) {
-            std::ofstream outFile;
-            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
-            std::list<OverlayKey>::iterator it;
-            outFile << "\n IPs to keys: " <<std::flush;
-            for(it = keysSignedReqedNode.begin(); it != keysSignedReqedNode.end(); it++){
-                outFile << "\n " << *it <<std::flush;
-            }
-        }
+//        if (debug) {
+//            std::ofstream outFile;
+//            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+//            std::list<OverlayKey>::iterator it;
+//            outFile << "\n IPs to keys: " <<std::flush;
+//            for(it = keysSignedReqedNode.begin(); it != keysSignedReqedNode.end(); it++){
+//                outFile << "\n " << *it <<std::flush;
+//            }
+//        }
         std::list<OverlayKey>::iterator it;
         bool isTheNodeTrusted = false;
         if (debug) {
@@ -1213,7 +1211,11 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                 tN.trustAtLevel = 0;
 
                 pendingReqs.push_back(tN);
-
+                if (debug){
+                    std::ofstream outFile;
+                    outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                    outFile << "\n **Insert node in pendingReqs: " << tN.nodeKey << std::flush;
+                }
                 // do the Request
                 doTheCertRequest(tN.nodeKey);
                 scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
