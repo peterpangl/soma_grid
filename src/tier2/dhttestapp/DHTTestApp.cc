@@ -115,7 +115,7 @@ void DHTTestApp::initializeApp(int stage)
     //soma_findNodeTimer = par("sendTCPeriod");
     certVerficationDelay = 0.005;
     timeVector.setName("SomaJoinTime");
-    debug = false;
+    debug = true;
 
     //initRpcs();
     WATCH(numSent);
@@ -472,12 +472,6 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
         }
         // search if somaKey exists in the signatures
         for(it = keysSignedReqedNode.begin(); it != keysSignedReqedNode.end(); it++){
-            if (debug) {
-                std::ofstream outFile;
-                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
-                outFile << "\nkey from list:  " << *it << std::flush;
-                outFile << "   --- myKey:  " << somaKey << std::flush;
-            }
             if(*it == somaKey){
                 isTheNodeTrusted = true;
                 break;
@@ -1397,7 +1391,8 @@ void DHTTestApp::finishApp()
         }
         std::ofstream outFile;
         outFile.open("/home/xubuntu/sim/OverSim/simulations/results/stats.txt", std::ios_base::app);
-        outFile << "\nNode: " << thisNode.getIp()  << " requested certs from " << accessedNodes.size() <<  "nodes.";
+        outFile << "\nNode: " << thisNode.getIp()  << " requested certs from " << sentReqsFlag <<  " nodes.";
+        outFile << "\nDecided about: " << accessedNodes.size() <<  " nodes.";
         // TrustChain Results
         if (accessedNodes.size() > 0){
 
@@ -1415,9 +1410,9 @@ void DHTTestApp::finishApp()
                         outFile << "-Found Trust at Level: " << it->second.foundTrustAtLevel << endl;
                     cnter++;
                 }
-//                else{
-//                    outFile << "key: " << it->first << " - no Trust" << endl;
-//                }
+                else{
+                    outFile << "-key: " << it->first << " - no Trust" << endl;
+                }
             }
 
             double trustPercentOverRequests = ((double)cnter / accessedNodes.size()) *100;
