@@ -491,12 +491,12 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
 
         if( !pendingReqs.empty()) {
             std::vector<TrustNode>::iterator it = pendingReqs.begin();
-            // find the reqed Node (in pendingReqs), if is levelOne or greater level
+            // Find the reqed Node (in pendingReqs), if is levelOne or greater level
             bool breakSrch = false;
             for(; it != pendingReqs.end(); it++) {
 
                 if(it->nodeKey != reqstdNodeKey){
-                    // depth search for the node of Level1
+                    // Depth search for the node of Level1
                     if (debug) {
                         std::ofstream outFile;
                         outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
@@ -504,7 +504,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                     }
 
                     if(!it->pendingChildNodes.empty()) {
-                        // findChildNode
+                        // Find the ChildNode
                         std::vector<childNodeInfo>::iterator itCh = it->pendingChildNodes.begin();
                         for (; itCh != it->pendingChildNodes.end(); itCh++){
 
@@ -515,7 +515,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                             }
 
                             if (itCh->sentReq && itCh->nodeKey == reqstdNodeKey && !itCh->responseRcved) {
-                                // the node with the key found
+                                // The node with the key found
                                 if(debug){
                                     std::ofstream outFile;
                                     outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
@@ -524,7 +524,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                                 itCh->responseRcved = true;
 
                                 if (isTheNodeTrusted) {
-                                    //  move the node of level1 to the accessedNodes
+                                    //  Move the node of level1 to the accessedNodes
                                     TrustNodeLvlOne nodeLvlOne;
                                     nodeLvlOne.foundTrustAtLevel = itCh->level;
                                     nodeLvlOne.isItTrusted = isTheNodeTrusted;
@@ -563,19 +563,23 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
 
                                 } //--
                                 else {
-                                    // node is not trusted,
-                                    // check the globalTrust level and decide if you will include the childs of child in the trust chain search
+                                    // Node is not trusted,
+                                    // Check the globalTrust level and decide if you will include the childs of child in the trust chain search
                                     if (itCh->level < globalTrustLevel) {
                                         // insert the nodes in the pendingChildNodes
                                         insertChildNodes(it, keysSignedReqedNode, itCh->level+1);
                                     }
                                     else{
-                                        // check if is the last node and trust has not been found
+                                        // Check if is the last node and trust has not been found and no other requests are going to happen
                                         std::vector<childNodeInfo>::iterator itCh2 = it->pendingChildNodes.begin();
-                                        bool lastOne = true;
-                                        for (; itCh2 != it->pendingChildNodes.end(); itCh2++) {
-                                            if (!itCh2->responseRcved) {
-                                                lastOne = false;
+                                        bool lastOne = false;
+                                        if(sentReqsFlag >= numSomaTrustReqs){
+                                            lastOne = true;
+
+                                            for (; itCh2 != it->pendingChildNodes.end(); itCh2++) {
+                                                if (!itCh2->responseRcved) {
+                                                    lastOne = false;
+                                                }
                                             }
                                         }
                                         if(lastOne) {
