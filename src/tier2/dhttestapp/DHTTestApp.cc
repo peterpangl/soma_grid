@@ -1182,21 +1182,24 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                                             }
                                         }
                                         pendingReqs.erase(it);  // remove it from the pendingReqs since we found a trust
-                                        brk = true;
-                                        break;
+//                                        brk = true;
+//                                        break;
                                     }
                                     else{
                                         outFile << "\n Child node : " << itCh->nodeKey << " is not Trusted" << std::flush;
                                         // the level1 node is not trusted
-                                        itCh->sentReq = true;
+                                        itCh->sentReq = true; // virtually
                                         itCh->isItTrusted = false;
                                         itCh->responseRcved = true;
-                                        // check if this is the last one, all the other nodes have received a Response and this is the last one
+                                        // check if this is the last one node in the pendingChild nodes , all the other nodes have received a Response and this is the last one
                                         std::vector<childNodeInfo>::iterator itCh2 = it->pendingChildNodes.begin();
-                                        bool lastOne = true;
-                                        for (; itCh2 != it->pendingChildNodes.end(); itCh2++) {
-                                            if (!itCh2->responseRcved) {
-                                                lastOne = false;
+                                        bool lastOne = false;
+                                        if(sentReqsFlag >= numSomaTrustReqs){
+                                            lastOne = true;
+                                            for (; itCh2 != it->pendingChildNodes.end(); itCh2++) {
+                                                if (!itCh2->responseRcved) {
+                                                    lastOne = false;
+                                                }
                                             }
                                         }
                                         if(lastOne) {
@@ -1210,8 +1213,8 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                                                 }
                                             }
                                             pendingReqs.erase(it);  // remove it from the pendingReqs since we found a trust
-                                            brk = true;
-                                            break;
+//                                            brk = true;
+//                                            break;
                                         }
                                     }
                                     scheduleAt(simTime(),  msg); // reschedule the msg with no retard since we have not make any request
@@ -1224,15 +1227,14 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                                         itCh->responseRcved = false;
                                         doTheCertRequest(itCh->nodeKey);
                                     }
-                                    scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msgs
-
+                                    scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
                                 }
                                 return; // remove the return if you want to make the requests without scheduled event
                             }
                         }
-                        if (brk) {
-                            break;
-                        }
+//                        if (brk) {
+//                            break;
+//                        }
                     }
                 }
             }
