@@ -116,7 +116,7 @@ void DHTTestApp::initializeApp(int stage)
     certVerficationDelay = 0.005;
     timeVector.setName("SomaJoinTime");
     debug = true;
-
+    pendReqsNum = 0;
     //initRpcs();
     WATCH(numSent);
     WATCH(numGetSent);
@@ -343,20 +343,30 @@ void DHTTestApp::insertChildNodes(std::vector<TrustNode>::iterator it, std::list
 {
     std::list<OverlayKey>::iterator itList;
     std::vector<childNodeInfo>::iterator it2;
+    std::vector<TrustNode>::iterator itPR;
+    int brkFlag = false;
     if (debug){
         std::ofstream outFile;
         outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
-        outFile << "\n insertChildNodes " << std::flush;
+        outFile << "\nin insertChildNodes " << std::flush;
     }
     for (itList = keys.begin(); itList != keys.end(); itList++) {
         bool alreadyExists = false;
-        if (it->nodeKey == *itList){
-            alreadyExists = true;
-        }
-        for(it2 = it->pendingChildNodes.begin(); it2 != it->pendingChildNodes.end(); it2++) {
-            if (it2->nodeKey == *itList) {
+        for(itPR = pendingReqs.begin(); itPR != pendingReqs.end(); itPR++){
+            if(itPR->nodeKey == *itList and itPR->pendingChildNodes.size() > 0){
                 alreadyExists = true;
                 break;
+            }
+            else{
+                for(it2 = it->pendingChildNodes.begin(); it2 != it->pendingChildNodes.end(); it2++) {
+                    if (it2->nodeKey == *itList) {
+                        alreadyExists = true;
+                        brkFlag = true;
+                        break;
+                    }
+                }
+                if (brkFlag)
+                    break;
             }
         }
         if(!alreadyExists) {
@@ -1277,6 +1287,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                     outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                     outFile << "\n " << thisNode.getIp() << " **Insert node in pendingReqs: " << tN.nodeKey << std::flush;
                 }
+                pendReqsNum++;
                 // do the Request
                 doTheCertRequest(tN.nodeKey);
                 scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
@@ -1391,33 +1402,35 @@ void DHTTestApp::finishApp()
         }
         std::ofstream outFile;
         outFile.open("/home/xubuntu/sim/OverSim/simulations/results/stats.txt", std::ios_base::app);
-        outFile << "\nNode: " << thisNode.getIp()  << " requested certs from " << sentReqsFlag <<  " nodes.";
-        outFile << "\nDecided about: " << accessedNodes.size() <<  " nodes.";
+        outFile << "\n\nNode: " << thisNode.getIp()  << " started Level 1 Requests for " << pendReqsNum << " nodes";
         // TrustChain Results
         if (accessedNodes.size() > 0){
 
             std::map<OverlayKey, TrustNodeLvlOne>::iterator it;
 
             //EV << "\nNode: " << thisNode.getIp() << " requested certs from " << accessedNodes.size() << " nodes.\nThe node's keys and trust result are: " <<     endl;
-            outFile << "\nThe node's keys and trust result are: " << endl;
+            outFile << "\nThe node's accessed keys and trust result are: " << endl;
 
             int cnter = 0;
             for(it = accessedNodes.begin(); it != accessedNodes.end(); it++){
                 if(it->second.isItTrusted){
-                    outFile << "-key: " << it->first << " - Trust" << endl;
-                    outFile << "-SimTime Delay for response: " << it->second.rtt << endl;
+                    outFile << "--key: " << it->first << " - Trust" << endl;
+                    outFile << "--SimTime Delay for response: " << it->second.rtt << endl;
                     if (globalTrustLevel > LevelOne)
                         outFile << "-Found Trust at Level: " << it->second.foundTrustAtLevel << endl;
                     cnter++;
                 }
                 else{
-                    outFile << "-key: " << it->first << " - no Trust" << endl;
+                    outFile << "--key: " << it->first << " - no Trust" << endl;
                 }
             }
 
-            double trustPercentOverRequests = ((double)cnter / accessedNodes.size()) *100;
-            outFile << "trustPercentOverRequests: " << trustPercentOverRequests << "%" << endl;
+            double trustPercentOverRequests = ((double)cnter / pendReqsNum) *100;
+            outFile << "trust Percent Over Level1 Requests: " << trustPercentOverRequests << "%" << endl;
 
+        }
+        else {
+            outFile << "\n--Found no Trust \ntrustPercentOverRequests: 0%" << endl;
         }
 
         outFile.close();
