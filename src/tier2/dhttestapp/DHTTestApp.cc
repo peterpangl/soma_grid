@@ -1125,9 +1125,10 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
         //--
         else {
             /*
-             * Search if pendingReqs is not empty, if is not empty and there is Node that "hasBeenReqed=false" then proceed with the request of this node.
-             *  if is not empty but all the indicators "sentReq=true" then getRandomKey, put it in the pendingReqs and do the Request
-             *  if is empty then getRandomKey, put it in the pendingReqs and do the Request */
+             * If pendingReqs is not empty and there is node in pendingChildNodes that has not been Requested then proceed with the request of this node.
+             * If all nodes of pendingChildNodes have been requested or pendingReqs is empty then get a new key(does not exists in accessedNodes neither in pendingReqs) and proceed with the Request.
+             *
+             * */
             //-- SOMA send the request to other node
             outFile << "\nnode: " << thisNode.getIp() << " time_to REQ"  << std::flush;
 
