@@ -622,10 +622,6 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                         if(breakSrch)
                             break; // break from the loop of pendingReqs
                     }
-                    else{
-                        //pendingChildNodes are empty, continue with the next node in pendingReqs
-                        continue;
-                    }
                 }
                 else{
                    // found key of node at level1, if is trusted put it in accessedNodes
