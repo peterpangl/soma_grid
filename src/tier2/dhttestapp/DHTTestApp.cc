@@ -514,7 +514,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                                 outFile << "\n itCh->node: " << itCh->nodeKey <<  std::flush;
                             }
 
-                            if (itCh->sentReq && itCh->nodeKey == reqstdNodeKey) {
+                            if (itCh->sentReq && itCh->nodeKey == reqstdNodeKey && !itCh->responseRcved) {
                                 // the node with the key found
                                 if(debug){
                                     std::ofstream outFile;
