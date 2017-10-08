@@ -233,7 +233,7 @@ void DHTTestApp::handlePutCall(BaseCallMessage* msg)
 
     if (debug){
         std::ofstream outFile;
-        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
         outFile << "\n nodeIp: " << nodeIp << " - somaKey: " << somaKey << std::flush;
     }
 
@@ -241,7 +241,7 @@ void DHTTestApp::handlePutCall(BaseCallMessage* msg)
 
       // Debugging
 //    std::ofstream outFile;
-//    outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+//    outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
 //
 //    outFile << "\nnode: " << thisNode.getIp() << " key sent:" << somaKey << std::flush;
 
@@ -309,7 +309,7 @@ std::list<OverlayKey> DHTTestApp::convertIPsToKeys(std::string s){
           IPs.push_back(*it);
           if(debug) {
               std::ofstream outFile;
-              outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+              outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
               outFile << "\n IP: " << *it << std::flush;
           }
           ++it;
@@ -328,7 +328,7 @@ std::list<OverlayKey> DHTTestApp::convertIPsToKeys(std::string s){
 
             if(debug) {
                 std::ofstream outFile;
-                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                 outFile << "\n converted to key: " << key << std::flush;
             }
         }
@@ -345,7 +345,7 @@ void DHTTestApp::insertChildNodes(std::vector<TrustNode>::iterator it, std::list
     std::vector<childNodeInfo>::iterator it2;
     if (debug){
         std::ofstream outFile;
-        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
         outFile << "\n insertChildNodes " << std::flush;
     }
     for (itList = keys.begin(); itList != keys.end(); itList++) {
@@ -362,7 +362,7 @@ void DHTTestApp::insertChildNodes(std::vector<TrustNode>::iterator it, std::list
         if(!alreadyExists) {
             if (debug){
                 std::ofstream outFile;
-                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                 outFile << "\n " << thisNode.getIp() << " insert in pendingChildNodes the:  " << *itList << std::flush;
             }
             childNodeInfo newNode;
@@ -375,7 +375,7 @@ void DHTTestApp::insertChildNodes(std::vector<TrustNode>::iterator it, std::list
             it->pendingChildNodes.push_back(newNode);
             if (debug){
                 std::ofstream outFile;
-                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                 outFile << "\n newNode.dueNode " << newNode.dueNode << std::flush;
                 outFile << "\n newNode.isItTrusted " << newNode.isItTrusted << std::flush;
                 outFile << "\n newNode.level " << newNode.level << std::flush;
@@ -449,14 +449,14 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
 
         if (debug) {
             std::ofstream outFile;
-            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
             outFile << "\n node:" << myIp << " Got CERT Response from: " << reqstdNodeKey << " with cert: " << reqstdNodeSCert<<std::flush;
         }
 
         std::list<OverlayKey> keysSignedReqedNode = convertIPsToKeys(reqstdNodeSCert); //if thisNode exists then we trust
 //        if (debug) {
 //            std::ofstream outFile;
-//            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+//            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
 //            std::list<OverlayKey>::iterator it;
 //            outFile << "\n IPs to keys: " <<std::flush;
 //            for(it = keysSignedReqedNode.begin(); it != keysSignedReqedNode.end(); it++){
@@ -467,14 +467,14 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
         bool isTheNodeTrusted = false;
         if (debug) {
             std::ofstream outFile;
-            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
             outFile << "\nis the node trusted? "<< std::flush;
         }
         // search if somaKey exists in the signatures
         for(it = keysSignedReqedNode.begin(); it != keysSignedReqedNode.end(); it++){
             if (debug) {
                 std::ofstream outFile;
-                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                 outFile << "\nkey from list:  " << *it << std::flush;
                 outFile << "   --- myKey:  " << somaKey << std::flush;
             }
@@ -485,7 +485,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
         }
         if (debug) {
             std::ofstream outFile;
-            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
             outFile << "\nTrusted: " << isTheNodeTrusted << std::flush;
         }
 
@@ -499,7 +499,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                     // depth search for the node of Level1
                     if (debug) {
                         std::ofstream outFile;
-                        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                         outFile << "\n it->node search: " << it->nodeKey << std::flush;
                     }
 
@@ -510,7 +510,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
 
                             if(debug){
                                 std::ofstream outFile;
-                                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                                 outFile << "\n itCh->node: " << itCh->nodeKey <<  std::flush;
                             }
 
@@ -518,7 +518,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                                 // the node with the key found
                                 if(debug){
                                     std::ofstream outFile;
-                                    outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                                    outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                                     outFile << "\n Child that sent req for, found: "<< itCh->nodeKey << std::flush;
                                 }
                                 itCh->responseRcved = true;
@@ -534,7 +534,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
 
                                     if(debug){
                                         std::ofstream outFile;
-                                        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                                        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                                         outFile << "\n*  key: " << it->nodeKey <<
                                                 "\n  foundTrustAtLevel: " << nodeLvlOne.foundTrustAtLevel <<
                                                 "\n  isTheNodeTrusted: " << nodeLvlOne.isItTrusted <<
@@ -544,7 +544,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                                     accessedNodes.insert(std::make_pair(k, nodeLvlOne));   // store the node in the accessedNodes
                                     if(debug){
                                         std::ofstream outFile;
-                                        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                                        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                                         outFile << "\n  dumpAccessedNodes: " << std::flush;
                                         std::map<OverlayKey, TrustNodeLvlOne>::iterator itAcc;
                                         for(itAcc = accessedNodes.begin(); itAcc != accessedNodes.end(); itAcc++){
@@ -557,7 +557,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                                     pendingReqs.erase(it);  // remove it from the pendingReqs since we found a trust
                                     if (debug){
                                         std::ofstream outFile;
-                                        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                                        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                                         outFile << "\n pendingReqs.erased (it)" << std::flush;
                                     }
 
@@ -581,7 +581,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                                         if(lastOne) {
                                             if(debug){
                                                 std::ofstream outFile;
-                                                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                                                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                                                 outFile << "\n last node" << std::flush;
                                             }
                                             TrustNodeLvlOne nodeLvlOne;
@@ -593,7 +593,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
 
                                             if(debug){
                                                 std::ofstream outFile;
-                                                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                                                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                                                 outFile << "\n**  key: " << it->nodeKey <<
                                                         "\n  foundTrustAtLevel: " << nodeLvlOne.foundTrustAtLevel <<
                                                         "\n  isTheNodeTrusted: " << nodeLvlOne.isItTrusted <<
@@ -604,7 +604,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                                             pendingReqs.erase(it);  // remove it from the pendingReqs since we found a negative trust
                                             if(debug){
                                                 std::ofstream outFile;
-                                                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                                                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                                                 outFile << "\n  dumpAccessedNodes: " << std::flush;
                                                 std::map<OverlayKey, TrustNodeLvlOne>::iterator itAcc;
                                                 for(itAcc = accessedNodes.begin(); itAcc != accessedNodes.end(); itAcc++){
@@ -631,7 +631,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                    // found key of node at level1, if is trusted put it in accessedNodes
                     if (debug){
                         std::ofstream outFile;
-                        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                         outFile << "\n " << thisNode.getIp() << " !!found key of node at level1" << std::flush;
                     }
                     if(isTheNodeTrusted){
@@ -645,7 +645,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                         nodeLvlOne.rtt = nodeLvlOne.timestmpRcv - nodeLvlOne.timestmpSend;
                         if(debug){
                             std::ofstream outFile;
-                            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                             outFile << "\n  key: " << it->nodeKey <<
                                     "\n  foundTrustAtLevel: " << nodeLvlOne.foundTrustAtLevel <<
                                     "\n  isTheNodeTrusted: " << nodeLvlOne.isItTrusted <<
@@ -654,7 +654,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                         accessedNodes.insert(std::make_pair(it->nodeKey, nodeLvlOne));   // store the node in the accessedNodes
                         if(debug){
                             std::ofstream outFile;
-                            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                             outFile << "\n  dumpAccessedNodes: " << std::flush;
                             std::map<OverlayKey, TrustNodeLvlOne>::iterator itAcc;
                             for(itAcc = accessedNodes.begin(); itAcc != accessedNodes.end(); itAcc++){
@@ -668,7 +668,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                         // Node is not trusted, if signed by other nodes put these nodes in pendingChildNodes
                         if (debug){
                             std::ofstream outFile;
-                            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                             outFile << "\n !!Node level1 is not trusted, put sign nodes in pendingChildNodes" << std::flush;
                         }
                         insertChildNodes(it, keysSignedReqedNode, LevelOne+1);
@@ -680,7 +680,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
             //do nothing
             if (debug){
                 std::ofstream outFile;
-                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                 outFile << "\n  pendingReqs is empty " << std::flush;
             }
         }
@@ -909,7 +909,7 @@ void DHTTestApp::doTheCertRequest(const OverlayKey& key)
     RECORD_STATS(numSent++; numGetSent++);
     if(debug) {
         std::ofstream outFile;
-        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
         outFile << "\n send request to : " << key << std::flush;
     }
 
@@ -931,7 +931,7 @@ bool DHTTestApp::existsInPendingReqsLvl1(const OverlayKey& key)
                 // Debugging
                 if (debug){
                     std::ofstream outFile;
-                    outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                    outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                     outFile << "\n node with key: " << it->nodeKey << " already exists in existsInPendingReqsLvl1" << std::flush;
                 }
                 nodeExists = true;
@@ -949,7 +949,7 @@ OverlayKey DHTTestApp::getMyKey()
     OverlayKey somaKey(OverlayKey::sha1(pkIp));
     if (debug){
         std::ofstream outFile;
-        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
         outFile << "\ngetMyKey: " << somaKey << std::flush;
     }
     return somaKey;
@@ -1042,7 +1042,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
         }
         // Debugging
         std::ofstream outFile;
-        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
 
         /* Handle TC of levelOne */
         if (globalTrustLevel == LevelOne) {
@@ -1080,7 +1080,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                 accessedNodes.insert(std::make_pair(tKey, tmpTrust));
                 if(debug){
                     std::ofstream outFile;
-                    outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                    outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                     outFile << "\n  dumpAccessedNodes: " << std::flush;
                     std::map<OverlayKey, TrustNodeLvlOne>::iterator itAcc;
                     for(itAcc = accessedNodes.begin(); itAcc != accessedNodes.end(); itAcc++){
@@ -1097,7 +1097,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
 
 //                EV << "Node: " << thisNode.getIp() << " is going to send request to node with SOMA key : " << key << endl;
 //                std::ofstream outFile;
-//                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+//                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
 //
 //                outFile << "Node: " << thisNode.getIp() << " is going to send request to node with SOMA key : " << key << std::flush;
 
@@ -1127,7 +1127,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
             /*
              * If pendingReqs is not empty and there is node in pendingChildNodes that has not been Requested then proceed with the request of this node.
              * If all nodes of pendingChildNodes have been requested or pendingReqs is empty then get a new key(does not exists in accessedNodes neither in pendingReqs) and proceed with the Request.
-             *
+             * Note: since the node exists in pendingReqs, has not been decided if is trusted or not
              * */
             //-- SOMA send the request to other node
             outFile << "\nnode: " << thisNode.getIp() << " time_to REQ"  << std::flush;
@@ -1135,29 +1135,27 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
             if (!pendingReqs.empty()){
                 std::vector<TrustNode>::iterator it = pendingReqs.begin();
                 outFile << "\n pendingReqs not empty" << std::flush;
-                // parse the entries of level 1 till you find one subentry with hasBeenReqed= false
+                // Parse the child entries of level 1 till you find a ChildNode which has not been requested
                 bool brk = false;
                 for (; it != pendingReqs.end(); it++) {
-                    // since the node exists in pendingReqs, is not decided if is trusted or not
 
                     outFile << "\n it->node search: " << it->nodeKey << std::flush;
                     if(!it->pendingChildNodes.empty()) {
-                        // there are child nodes which we search if anyone has not been requested yet
 
+                        // Search for a child node for which we have not made a request
                         std::vector<childNodeInfo>::iterator itCh = it->pendingChildNodes.begin();
                         for (; itCh != it->pendingChildNodes.end(); itCh++){
 
                             outFile << "\n Child node to find in pendingChildNodes: " << itCh->nodeKey << std::flush;
                             if (!itCh->sentReq) {
-
+                                // Found node that has not been requested
                                 outFile << "\n " << itCh->nodeKey << " has not sent request for, search in the keyRing "<< std::flush;
 
-                                // search if already exist in my KeyRing
+                                // Search if already exist in my KeyRing
                                 std::map<OverlayKey, TrustNodeLvlOne>::iterator itAcc;
                                 itAcc = accessedNodes.find(itCh->nodeKey);
                                 if (itAcc != accessedNodes.end()) {
-                                    // exists in my KeyRing (trusted or not); don't make the request
-                                    // check if is the last node in the childPendingNodes, if yes decide the Trust of the level1 node, put it in the accessedNodes
+                                    // Node exists in my KeyRing (trusted or not); don't send the request to the network
 
                                     outFile << "\n Child node : " << itCh->nodeKey << " found in the keyRing" << std::flush;
 
@@ -1166,16 +1164,17 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                                     trust.isItTrusted = itAcc->second.isItTrusted; // true/false
                                     trust.timestmpSend = it->timestmpSend;
                                     trust.timestmpRcv = simTime();
-                                    trust.rtt = simTime() - it->timestmpSend; // no request happens
+                                    trust.rtt = simTime() - it->timestmpSend; // no request is made
 
+                                    // Check if it is the last node in the childPendingNodes. if yes, decide the Trust of the level1 node and put it in the accessedNodes
                                     if (itAcc->second.isItTrusted) {
-                                        // the level1 node is trusted so i trust my level1 father node
-                                        // insert in the map of accessedNodes
-                                        outFile << "\n Child node : " << itCh->nodeKey << " is Trusted" << std::flush;
+                                        // The level1 node is trusted so i trust this level1 father node (it->nodeKey)
+                                        // Put it in the accessedNodes and remove the entry from pendingReqs
+                                        outFile << "\n Child node : " << itCh->nodeKey << " is Trusted from the KeyRing" << std::flush;
                                         accessedNodes.insert(std::make_pair(it->nodeKey, trust));   // store the node in the accessedNodes
                                         if(debug){
                                             std::ofstream outFile;
-                                            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                                            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                                             outFile << "\n  dumpAccessedNodes: " << std::flush;
                                             std::map<OverlayKey, TrustNodeLvlOne>::iterator itAcc;
                                             for(itAcc = accessedNodes.begin(); itAcc != accessedNodes.end(); itAcc++){
@@ -1188,11 +1187,11 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                                     }
                                     else{
                                         outFile << "\n Child node : " << itCh->nodeKey << " is not Trusted" << std::flush;
-                                        // the level1 node is not trusted,
+                                        // the level1 node is not trusted
                                         itCh->sentReq = true;
                                         itCh->isItTrusted = false;
                                         itCh->responseRcved = true;
-                                        // check if this is the last one, all the other nodes have got Response and this is the last one
+                                        // check if this is the last one, all the other nodes have received a Response and this is the last one
                                         std::vector<childNodeInfo>::iterator itCh2 = it->pendingChildNodes.begin();
                                         bool lastOne = true;
                                         for (; itCh2 != it->pendingChildNodes.end(); itCh2++) {
@@ -1279,7 +1278,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                 pendingReqs.push_back(tN);
                 if (debug){
                     std::ofstream outFile;
-                    outFile.open("/home/xubuntu/sim/OverSim/simulations/results/results.txt", std::ios_base::app);
+                    outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                     outFile << "\n " << thisNode.getIp() << " **Insert node in pendingReqs: " << tN.nodeKey << std::flush;
                 }
                 // do the Request
