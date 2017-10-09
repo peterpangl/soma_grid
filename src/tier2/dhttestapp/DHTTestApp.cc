@@ -1143,7 +1143,6 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                 std::vector<TrustNode>::iterator it = pendingReqs.begin();
                 outFile << "\n pendingReqs not empty" << std::flush;
                 // Parse the child entries of level 1 till you find a ChildNode which has not been requested
-                bool brk = false;
                 for (; it != pendingReqs.end(); it++) {
 
                     outFile << "\n it->node search: " << it->nodeKey << std::flush;
