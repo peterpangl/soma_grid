@@ -243,6 +243,7 @@ private:
     cMessage *timerMsg;
     int i;
     bool debug;
+    int pendReqsNum;
 
 public:
     DHTTestApp();

@@ -534,7 +534,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                                     nodeLvlOne.isItTrusted = isTheNodeTrusted;
                                     nodeLvlOne.timestmpSend = it->timestmpSend;
                                     nodeLvlOne.timestmpRcv = simTime();
-                                    nodeLvlOne.rtt = nodeLvlOne.timestmpRcv - nodeLvlOne.timestmpSend;
+                                    nodeLvlOne.rtt = nodeLvlOne.timestmpRcv - nodeLvlOne.timestmpSend + certVerficationDelay;
 
                                     if(debug){
                                         std::ofstream outFile;
@@ -597,7 +597,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                                             nodeLvlOne.isItTrusted = isTheNodeTrusted;
                                             nodeLvlOne.timestmpSend = it->timestmpSend;
                                             nodeLvlOne.timestmpRcv = simTime();
-                                            nodeLvlOne.rtt = nodeLvlOne.timestmpRcv - nodeLvlOne.timestmpSend;
+                                            nodeLvlOne.rtt = nodeLvlOne.timestmpRcv - nodeLvlOne.timestmpSend + certVerficationDelay;
 
                                             if(debug){
                                                 std::ofstream outFile;
@@ -646,7 +646,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                         nodeLvlOne.isItTrusted = isTheNodeTrusted;
                         nodeLvlOne.timestmpSend = it->timestmpSend;
                         nodeLvlOne.timestmpRcv = simTime();
-                        nodeLvlOne.rtt = nodeLvlOne.timestmpRcv - nodeLvlOne.timestmpSend;
+                        nodeLvlOne.rtt = nodeLvlOne.timestmpRcv - nodeLvlOne.timestmpSend + certVerficationDelay;
                         if(debug){
                             std::ofstream outFile;
                             outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
@@ -908,6 +908,7 @@ void DHTTestApp::handleTraceMessage(cMessage* msg)
 void DHTTestApp::doTheCertRequest(const OverlayKey& key)
 {
     sentReqsFlag++;
+    RECORD_STATS(sentReqsFlag++);
     DHTgetCAPICall* dhtGetMsg = new DHTgetCAPICall();
     dhtGetMsg->setKey(key);
     RECORD_STATS(numSent++; numGetSent++);
@@ -951,11 +952,11 @@ OverlayKey DHTTestApp::getMyKey()
     string myIp = thisNode.getIp().str();
     string pkIp = string(publickey) + string(myIp);
     OverlayKey somaKey(OverlayKey::sha1(pkIp));
-    if (debug){
-        std::ofstream outFile;
-        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
-        outFile << "\ngetMyKey: " << somaKey << std::flush;
-    }
+//    if (debug){
+//        std::ofstream outFile;
+//        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
+//        outFile << "\ngetMyKey: " << somaKey << std::flush;
+//    }
     return somaKey;
 }
 
@@ -1113,10 +1114,12 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                     return;
                 }
                 sentReqsFlag++;
+                pendReqsNum++;
 
                 DHTgetCAPICall* dhtGetMsg = new DHTgetCAPICall();
                 dhtGetMsg->setKey(key);
                 RECORD_STATS(numSent++; numGetSent++);
+                RECORD_STATS(sentReqsFlag);
 
                 sendInternalRpcCall(TIER1_COMP, dhtGetMsg,
                         new DHTStatsContext(globalStatistics->isMeasuring(),
@@ -1168,7 +1171,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                                     trust.isItTrusted = itAcc->second.isItTrusted; // true/false
                                     trust.timestmpSend = it->timestmpSend;
                                     trust.timestmpRcv = simTime();
-                                    trust.rtt = simTime() - it->timestmpSend; // no request is made
+                                    trust.rtt = simTime() - it->timestmpSend + certVerficationDelay; // no request is made
 
                                     // Check if it is the last node in the childPendingNodes. if yes, decide the Trust of the level1 node and put it in the accessedNodes
                                     if (itAcc->second.isItTrusted) {
@@ -1186,8 +1189,6 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                                             }
                                         }
                                         pendingReqs.erase(it);  // remove it from the pendingReqs since we found a trust
-//                                        brk = true;
-//                                        break;
                                     }
                                     else{
                                         outFile << "\n Child node : " << itCh->nodeKey << " is not Trusted" << std::flush;
@@ -1217,8 +1218,6 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                                                 }
                                             }
                                             pendingReqs.erase(it);  // remove it from the pendingReqs since we found a trust
-//                                            brk = true;
-//                                            break;
                                         }
                                     }
                                     scheduleAt(simTime(),  msg); // reschedule the msg with no retard since we have not make any request
@@ -1236,9 +1235,6 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                                 return; // remove the return if you want to make the requests without scheduled event
                             }
                         }
-//                        if (brk) {
-//                            break;
-//                        }
                     }
                 }
             }
@@ -1391,6 +1387,10 @@ void DHTTestApp::finishApp()
         globalStatistics->addStdDev("DHTTestApp: Successful PUT Requests/s",
                                     numPutSuccess / time);
 
+
+        // SOMA Statistics
+        globalStatistics->addStdDev("DHTTestApp: Num of sent Requests:/s",
+                sentReqsFlag);
  //       globalStatistics->addStdDev("DHTTestApp: Total SOMA keys",
   //                                  numSomaKeys);
 
@@ -1403,6 +1403,7 @@ void DHTTestApp::finishApp()
         std::ofstream outFile;
         outFile.open("/home/xubuntu/sim/OverSim/simulations/results/stats.txt", std::ios_base::app);
         outFile << "\n\nNode: " << thisNode.getIp()  << " started Level 1 Requests for " << pendReqsNum << " nodes";
+        outFile << "\nTotal Requests: " << sentReqsFlag;
         // TrustChain Results
         if (accessedNodes.size() > 0){
 
@@ -1420,9 +1421,9 @@ void DHTTestApp::finishApp()
                         outFile << "-Found Trust at Level: " << it->second.foundTrustAtLevel << endl;
                     cnter++;
                 }
-                else{
-                    outFile << "--key: " << it->first << " - no Trust" << endl;
-                }
+//                else{
+//                    outFile << "--key: " << it->first << " - no Trust" << endl;
+//                }
             }
 
             double trustPercentOverRequests = ((double)cnter / pendReqsNum) *100;
@@ -1430,7 +1431,7 @@ void DHTTestApp::finishApp()
 
         }
         else {
-            outFile << "\n--Found no Trust \ntrustPercentOverRequests: 0%" << endl;
+            outFile << "\n--Found no Trust \ntrust Percent Over Level1 Requests: 0%" << endl;
         }
 
         outFile.close();
