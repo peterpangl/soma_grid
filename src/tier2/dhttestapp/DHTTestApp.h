@@ -217,6 +217,7 @@ private:
     int globalTrustLevel;
     int sentReqsFlag;
     double certVerficationDelay;
+    simtime_t successDelay;
     std::map<OverlayKey, TrustNodeLvlOne> accessedNodes;
     std::vector<childNodeInfo> pendingChildNodes; /**< this vector is associated with every level1 node for which we have started the process of finding trust. Will keep the "child" nodes for the node of level1 */
     std::vector<TrustNode> pendingReqs;  /**< this vector will keep the requests that are made till we find trust regarding the globalTrustLevel */
