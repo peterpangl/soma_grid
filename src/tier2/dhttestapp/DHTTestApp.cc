@@ -106,6 +106,7 @@ void DHTTestApp::initializeApp(int stage)
     numPutError = 0;
     numPutSuccess = 0;
 
+    successDelay = 0.0;
     numSomaKeys = 0;
     sentReqsFlag = 0;
     soma_init_timer  = simTime();
@@ -543,9 +544,12 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                                                 "\n  foundTrustAtLevel: " << nodeLvlOne.foundTrustAtLevel <<
                                                 "\n  isTheNodeTrusted: " << nodeLvlOne.isItTrusted <<
                                                 "\n  rtt: " << nodeLvlOne.rtt << std::flush;
+                                        outFile << "\nSuccess found with delay: " << nodeLvlOne.rtt << std::flush;
                                     }
                                     OverlayKey k = it->nodeKey;
                                     accessedNodes.insert(std::make_pair(k, nodeLvlOne));   // store the node in the accessedNodes
+                                    successDelay += nodeLvlOne.rtt;
+
                                     if(debug){
                                         std::ofstream outFile;
                                         outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
@@ -654,8 +658,11 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                                     "\n  foundTrustAtLevel: " << nodeLvlOne.foundTrustAtLevel <<
                                     "\n  isTheNodeTrusted: " << nodeLvlOne.isItTrusted <<
                                     "\n  rtt: " << nodeLvlOne.rtt << std::flush;
+                            outFile << "\nSuccess found with delay: " << nodeLvlOne.rtt << std::flush;
                         }
                         accessedNodes.insert(std::make_pair(it->nodeKey, nodeLvlOne));   // store the node in the accessedNodes
+                        successDelay += nodeLvlOne.rtt;
+
                         if(debug){
                             std::ofstream outFile;
                             outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
@@ -908,7 +915,6 @@ void DHTTestApp::handleTraceMessage(cMessage* msg)
 void DHTTestApp::doTheCertRequest(const OverlayKey& key)
 {
     sentReqsFlag++;
-    RECORD_STATS(sentReqsFlag++);
     DHTgetCAPICall* dhtGetMsg = new DHTgetCAPICall();
     dhtGetMsg->setKey(key);
     RECORD_STATS(numSent++; numGetSent++);
@@ -1113,18 +1119,10 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                                            << endl;
                     return;
                 }
-                sentReqsFlag++;
+
                 pendReqsNum++;
 
-                DHTgetCAPICall* dhtGetMsg = new DHTgetCAPICall();
-                dhtGetMsg->setKey(key);
-                RECORD_STATS(numSent++; numGetSent++);
-                RECORD_STATS(sentReqsFlag);
-
-                sendInternalRpcCall(TIER1_COMP, dhtGetMsg,
-                        new DHTStatsContext(globalStatistics->isMeasuring(),
-                                simTime(), key));
-
+                doTheCertRequest(key);
                 scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
 
             }
@@ -1178,6 +1176,9 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                                         // Put it in the accessedNodes and remove the entry from pendingReqs
                                         outFile << "\n Child node : " << itCh->nodeKey << " is Trusted from the KeyRing" << std::flush;
                                         accessedNodes.insert(std::make_pair(it->nodeKey, trust));   // store the node in the accessedNodes
+                                        outFile << "\nSuccess found with delay: " << trust.rtt << std::flush;
+                                        successDelay += trust.rtt;
+
                                         if(debug){
                                             std::ofstream outFile;
                                             outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
@@ -1387,9 +1388,6 @@ void DHTTestApp::finishApp()
                                     numPutSuccess / time);
 
 
-        // SOMA Statistics
-        globalStatistics->addStdDev("DHTTestApp: Num of sent Requests:/s",
-                sentReqsFlag);
  //       globalStatistics->addStdDev("DHTTestApp: Total SOMA keys",
   //                                  numSomaKeys);
 
@@ -1400,7 +1398,7 @@ void DHTTestApp::finishApp()
                                         / (double) (numGetSuccess + numGetError));
         }
         std::ofstream outFile;
-        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/stats.txt", std::ios_base::app);
+        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/experiments/stats.txt", std::ios_base::app);
         outFile << "\n\nNode: " << thisNode.getIp()  << " started Level 1 Requests for " << pendReqsNum << " nodes";
         outFile << "\nTotal Requests: " << sentReqsFlag;
         // TrustChain Results
@@ -1434,6 +1432,18 @@ void DHTTestApp::finishApp()
         }
 
         outFile.close();
+
+        // write total requests in the network of each node
+        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/experiments/totalReqs.txt", std::ios_base::app);
+        outFile  <<thisNode.getIp()<< ":" << sentReqsFlag << endl;
+        outFile.close();
+
+        // write successful Trust delay of each node
+        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/experiments/successDelay.txt", std::ios_base::app);
+        outFile  <<thisNode.getIp()<< ":" << successDelay << endl;
+        outFile.close();
+
+
     }
 }
 
