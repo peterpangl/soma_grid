@@ -431,6 +431,8 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                 //            EV << "timestmpRcv: " << it->second.timestmpRcv << endl;
 
                 it->second.rtt = it->second.timestmpRcv - it->second.timestmpSend + certVerficationDelay;
+                it->second.foundTrustAtLevel = LevelOne;
+
                 EV << "timestmpRTT: " << it->second.rtt << endl;
                 //--
             }
@@ -1443,7 +1445,33 @@ void DHTTestApp::finishApp()
         outFile  <<thisNode.getIp()<< ":" << successDelay << endl;
         outFile.close();
 
+        // write total Chain Length upon trust for each node
+        if (accessedNodes.size() > 0) {
 
+            outFile.open("/home/xubuntu/sim/OverSim/simulations/results/experiments/chainLength.txt", std::ios_base::app);
+
+            std::map<OverlayKey, TrustNodeLvlOne>::iterator it;
+
+            int total_ch_len = 0;
+            bool foundTrust = false;
+            int success_trust_cnter = 0;
+            for (it = accessedNodes.begin(); it != accessedNodes.end(); it++) {
+                if (it->second.isItTrusted) {
+                    foundTrust = true;
+                    total_ch_len = total_ch_len  + it->second.foundTrustAtLevel;
+                    success_trust_cnter += 1;
+                }
+            }
+            if (foundTrust){
+                outFile  << thisNode.getIp() << ":" << total_ch_len << endl;
+                outFile.close();
+
+                // use the result to count the successfull trusts
+                outFile.open("/home/xubuntu/sim/OverSim/simulations/results/experiments/successfulTrusts.txt", std::ios_base::app);
+                outFile  << thisNode.getIp() << ":" << success_trust_cnter << endl;
+                outFile.close();
+            }
+        }
     }
 }
 
