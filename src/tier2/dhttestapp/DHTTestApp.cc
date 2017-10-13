@@ -108,7 +108,9 @@ void DHTTestApp::initializeApp(int stage)
 
     successDelay = 0.0;
     numSomaKeys = 0;
-    sentReqsFlag = 0;
+    sentNumChecks = 0;
+    respNumChecks = 0;
+
     soma_init_timer  = simTime();
     soma_total_time  = 0;
     soma_keyputtime = -1;
@@ -117,7 +119,7 @@ void DHTTestApp::initializeApp(int stage)
     certVerficationDelay = 0.005;
     timeVector.setName("SomaJoinTime");
     debug = true;
-    pendReqsNum = 0;
+    numRequests = 0;
     //initRpcs();
     WATCH(numSent);
     WATCH(numGetSent);
@@ -406,7 +408,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
     EV << "DHTTestApp::handleDHTreturnSignedCert myIP:" << thisNode.getIp() << endl;
     EV << "SOMASigned Cert Value: "  << msg->getSignedCert() <<
             "\nother node's key: " << msg->getNodeKey() << endl;
-
+    respNumChecks++;
     //    dumpAccessedNodes();
     if (globalTrustLevel == LevelOne) {
 
@@ -538,6 +540,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                                     nodeLvlOne.timestmpSend = it->timestmpSend;
                                     nodeLvlOne.timestmpRcv = simTime();
                                     nodeLvlOne.rtt = nodeLvlOne.timestmpRcv - nodeLvlOne.timestmpSend + certVerficationDelay;
+                                    nodeLvlOne.numOfChecks = it->numOfChecks;
 
                                     if(debug){
                                         std::ofstream outFile;
@@ -583,7 +586,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                                         // Check if is the last node and trust has not been found and no other requests are going to happen
                                         std::vector<childNodeInfo>::iterator itCh2 = it->pendingChildNodes.begin();
                                         bool lastOne = false;
-                                        if(sentReqsFlag >= numSomaTrustReqs){
+                                        if(numRequests >= numSomaTrustReqs){
                                             lastOne = true;
 
                                             for (; itCh2 != it->pendingChildNodes.end(); itCh2++) {
@@ -604,6 +607,7 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                                             nodeLvlOne.timestmpSend = it->timestmpSend;
                                             nodeLvlOne.timestmpRcv = simTime();
                                             nodeLvlOne.rtt = nodeLvlOne.timestmpRcv - nodeLvlOne.timestmpSend + certVerficationDelay;
+                                            nodeLvlOne.numOfChecks = it->numOfChecks;
 
                                             if(debug){
                                                 std::ofstream outFile;
@@ -653,6 +657,8 @@ void DHTTestApp::handleDHTreturnSignedCert(DHTreturnSignedCertCall* msg)
                         nodeLvlOne.timestmpSend = it->timestmpSend;
                         nodeLvlOne.timestmpRcv = simTime();
                         nodeLvlOne.rtt = nodeLvlOne.timestmpRcv - nodeLvlOne.timestmpSend + certVerficationDelay;
+                        nodeLvlOne.numOfChecks = it->numOfChecks;
+
                         if(debug){
                             std::ofstream outFile;
                             outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
@@ -916,7 +922,7 @@ void DHTTestApp::handleTraceMessage(cMessage* msg)
 
 void DHTTestApp::doTheCertRequest(const OverlayKey& key)
 {
-    sentReqsFlag++;
+    sentNumChecks++;
     DHTgetCAPICall* dhtGetMsg = new DHTgetCAPICall();
     dhtGetMsg->setKey(key);
     RECORD_STATS(numSent++; numGetSent++);
@@ -1061,7 +1067,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
         if (globalTrustLevel == LevelOne) {
 
             //-- SOMA send the request to other node
-            if (sentReqsFlag < numSomaTrustReqs) {
+            if (numRequests < numSomaTrustReqs) {
 
                 const OverlayKey& key = globalDhtTestMap->getRandomKey();
 
@@ -1122,9 +1128,10 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                     return;
                 }
 
-                pendReqsNum++;
-
+                numRequests++;
+                it->second.numOfChecks++;
                 doTheCertRequest(key);
+
                 scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
 
             }
@@ -1171,6 +1178,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                                     trust.timestmpSend = it->timestmpSend;
                                     trust.timestmpRcv = simTime();
                                     trust.rtt = simTime() - it->timestmpSend + certVerficationDelay; // no request is made
+                                    trust.numOfChecks = it->numOfChecks;
 
                                     // Check if it is the last node in the childPendingNodes. if yes, decide the Trust of the level1 node and put it in the accessedNodes
                                     if (itAcc->second.isItTrusted) {
@@ -1201,7 +1209,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                                         // check if this is the last one node in the pendingChild nodes , all the other nodes have received a Response and this is the last one
                                         std::vector<childNodeInfo>::iterator itCh2 = it->pendingChildNodes.begin();
                                         bool lastOne = false;
-                                        if(sentReqsFlag >= numSomaTrustReqs){
+                                        if(numRequests >= numSomaTrustReqs){
                                             lastOne = true;
                                             for (; itCh2 != it->pendingChildNodes.end(); itCh2++) {
                                                 if (!itCh2->responseRcved) {
@@ -1230,6 +1238,8 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                                     if (itCh->nodeKey != getMyKey()){
                                         itCh->sentReq = true;
                                         itCh->responseRcved = false;
+                                        it->numOfChecks++;
+
                                         doTheCertRequest(itCh->nodeKey);
                                     }
                                     scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
@@ -1241,7 +1251,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                 }
             }
             // pendingReqs do not exist or all the nodes in pendingChildNodes have been requested, (itCh->sentReq) is true
-            if (sentReqsFlag <= numSomaTrustReqs) {
+            if (numRequests <= numSomaTrustReqs) {
                 const OverlayKey& key = globalDhtTestMap->getRandomKey();
 
                 if (key.isUnspecified()){
@@ -1278,6 +1288,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                 tN.timestmpRcv = 0;
                 tN.rtt = 0;
                 tN.trustAtLevel = 0;
+                tN.numOfChecks++;
 
                 pendingReqs.push_back(tN);
                 if (debug){
@@ -1285,7 +1296,7 @@ void DHTTestApp::handleTimerEvent(cMessage* msg)
                     outFile.open("/home/xubuntu/sim/OverSim/simulations/results/logs.txt", std::ios_base::app);
                     outFile << "\n " << thisNode.getIp() << " **Insert node in pendingReqs: " << tN.nodeKey << std::flush;
                 }
-                pendReqsNum++;
+                numRequests++;
                 // do the Request
                 doTheCertRequest(tN.nodeKey);
                 scheduleAt(simTime() + GET_REQ_INTERVAL,  msg); // reschedule the msg
@@ -1399,11 +1410,19 @@ void DHTTestApp::finishApp()
                                         (double) numGetSuccess
                                         / (double) (numGetSuccess + numGetError));
         }
-        std::ofstream outFile;
-        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/experiments/stats.txt", std::ios_base::app);
-        outFile << "\n\nNode: " << thisNode.getIp()  << " started Level 1 Requests for " << pendReqsNum << " nodes";
-        outFile << "\nTotal Requests: " << sentReqsFlag;
+
         // TrustChain Results
+        if (numRequests == numSomaTrustReqs+1) {
+            numRequests = numSomaTrustReqs;
+        }
+
+        std::ofstream outFile;
+        std::ofstream outFile2;
+        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/experiments/stats.txt", std::ios_base::app);
+        outFile << "\n\nNode: " << thisNode.getIp()  << " started Level 1 Requests for " << numRequests << " nodes";
+        outFile << "\nTotal Checks: " << sentNumChecks;
+        outFile << "\nTotal Responses of checks: " << respNumChecks;
+
         if (accessedNodes.size() > 0){
 
             std::map<OverlayKey, TrustNodeLvlOne>::iterator it;
@@ -1414,8 +1433,8 @@ void DHTTestApp::finishApp()
             int cnter = 0;
             for(it = accessedNodes.begin(); it != accessedNodes.end(); it++){
                 if(it->second.isItTrusted){
-                    outFile << "--key: " << it->first << " - Trust" << endl;
-                    outFile << "--SimTime Delay for response: " << it->second.rtt << endl;
+                    //outFile << "--key: " << it->first << " - Trust" << endl;
+                    outFile << "--SimTime Delay for response : " << it->second.rtt << endl;
                     if (globalTrustLevel > LevelOne)
                         outFile << "-Found Trust at Level: " << it->second.foundTrustAtLevel << endl;
                     cnter++;
@@ -1425,22 +1444,33 @@ void DHTTestApp::finishApp()
 //                }
             }
 
-            double trustPercentOverRequests = ((double)cnter / pendReqsNum) *100;
-            outFile << "trust Percent Over Level1 Requests: " << trustPercentOverRequests << "%" << endl;
-
+            double trustPercentOverRequests = ((double)cnter / numRequests) *100;
+            outFile2.open("/home/xubuntu/sim/OverSim/simulations/results/experiments/trustPercentage.txt", std::ios_base::app);
+            outFile2 << thisNode.getIp()<< " - Trust Over Total Requests:" << trustPercentOverRequests << "%" << endl;
+            outFile2.close();
+            outFile << "access nodes size: " << accessedNodes.size() << endl;
+            outFile << "number of requests: " << numRequests << endl;
         }
         else {
+            outFile2.open("/home/xubuntu/sim/OverSim/simulations/results/experiments/trustPercentage.txt", std::ios_base::app);
+            outFile2 << thisNode.getIp()<< " - Trust Over Total Requests:0%" << endl;
+            outFile2.close();
             outFile << "\n--Found no Trust \ntrust Percent Over Level1 Requests: 0%" << endl;
         }
 
         outFile.close();
 
         // write total requests in the network of each node
-        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/experiments/totalReqs.txt", std::ios_base::app);
-        outFile  <<thisNode.getIp()<< ":" << sentReqsFlag << endl;
+        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/experiments/totalRequests.txt", std::ios_base::app);
+        outFile  <<thisNode.getIp()<< ":" << numRequests << endl;
         outFile.close();
 
-        // write successful Trust delay of each node
+        // write total checks in the network of each node
+        outFile.open("/home/xubuntu/sim/OverSim/simulations/results/experiments/totalChecks.txt", std::ios_base::app);
+        outFile  <<thisNode.getIp()<< ":" << sentNumChecks << endl;
+        outFile.close();
+
+        // write the sum of time delay of successful Trust for each node
         outFile.open("/home/xubuntu/sim/OverSim/simulations/results/experiments/successDelay.txt", std::ios_base::app);
         outFile  <<thisNode.getIp()<< ":" << successDelay << endl;
         outFile.close();
@@ -1449,6 +1479,7 @@ void DHTTestApp::finishApp()
         if (accessedNodes.size() > 0) {
 
             outFile.open("/home/xubuntu/sim/OverSim/simulations/results/experiments/chainLength.txt", std::ios_base::app);
+            outFile2.open("/home/xubuntu/sim/OverSim/simulations/results/experiments/numChecksForEachTrust.txt", std::ios_base::app);
 
             std::map<OverlayKey, TrustNodeLvlOne>::iterator it;
 
@@ -1457,16 +1488,20 @@ void DHTTestApp::finishApp()
             int success_trust_cnter = 0;
             for (it = accessedNodes.begin(); it != accessedNodes.end(); it++) {
                 if (it->second.isItTrusted) {
-                    foundTrust = true;
-                    total_ch_len = total_ch_len  + it->second.foundTrustAtLevel;
+                    if (!foundTrust)
+                        foundTrust = true;
+
+                    outFile2  <<thisNode.getIp()<< ":" << it->second.numOfChecks << endl;
+                    total_ch_len = total_ch_len + it->second.foundTrustAtLevel;
                     success_trust_cnter += 1;
                 }
             }
+            outFile2.close();
             if (foundTrust){
-                outFile  << thisNode.getIp() << ":" << total_ch_len << endl;
+                outFile  << thisNode.getIp() << ":" << total_ch_len/success_trust_cnter << endl;
                 outFile.close();
 
-                // use the result to count the successfull trusts
+                // use the result to count the successful trusts
                 outFile.open("/home/xubuntu/sim/OverSim/simulations/results/experiments/successfulTrusts.txt", std::ios_base::app);
                 outFile  << thisNode.getIp() << ":" << success_trust_cnter << endl;
                 outFile.close();

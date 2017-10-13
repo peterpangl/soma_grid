@@ -59,19 +59,23 @@ struct TrustNode
     OverlayKey nodeKey;
     bool isItTrusted;
     int trustAtLevel;
+    int numOfChecks;
     simtime_t timestmpSend;
     simtime_t timestmpRcv;
     simtime_t rtt;
     std::vector<childNodeInfo> pendingChildNodes;
+    TrustNode() : numOfChecks(0) {}
 };
 
 struct TrustNodeLvlOne
 {
     bool isItTrusted;
     int foundTrustAtLevel;
+    int numOfChecks;
     simtime_t timestmpSend;
     simtime_t timestmpRcv;
     simtime_t rtt;
+    TrustNodeLvlOne() : numOfChecks(0) {}
 };
 
 /**
@@ -215,7 +219,10 @@ private:
     int numSomaKeys; /**< number of SOMA keys signed*/
     int numSomaTrustReqs; /**< number of requests for signed certifications from other nodes in order to build the trust chain */
     int globalTrustLevel;
-    int sentReqsFlag;
+    int sentNumChecks; /**<number of total sent checks*/
+    int respNumChecks; /**<number of total response checks*/
+    int numRequests;  /**<number of total request checks*/
+
     double certVerficationDelay;
     simtime_t successDelay;
     std::map<OverlayKey, TrustNodeLvlOne> accessedNodes;
@@ -244,7 +251,7 @@ private:
     cMessage *timerMsg;
     int i;
     bool debug;
-    int pendReqsNum;
+
 
 public:
     DHTTestApp();
