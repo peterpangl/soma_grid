@@ -58,11 +58,9 @@ for line in in_file.readlines():
 
     num += float(val[0])
 
-
-final = num/cnter
-
-
-out_file.write('Mean Delay for Successful Trust(sim seconds): ' + str(final)) #if you want to use commas to seperate the files, else use something like \n to write a new line.
+if cnter > 0:
+    final = num/cnter
+    out_file.write('Mean Delay for Successful Trust(sim seconds): ' + str(final)) #if you want to use commas to seperate the files, else use something like \n to write a new line.
 
 in_file.close()
 out_file.close()
