@@ -222,12 +222,22 @@ private:
     int sentNumChecks; /**<number of total sent checks*/
     int respNumChecks; /**<number of total response checks*/
     int numRequests;  /**<number of total request checks*/
+    bool gotDhtStoredKeys;
+    bool extensiveSearch; /**flag, if false getRandomKey will be used to retrieve a key and make a requests
+                            * if true, retrieve all the stored keys in the DHT and make request one by one
+                            * set it manual to T if **.tier2*.dhtTestApp.somaTrustReqs is very close to the number of nodes
+                            **/
+    int numOfNodes;
 
     double certVerficationDelay;
     simtime_t successDelay;
+
     std::map<OverlayKey, TrustNodeLvlOne> accessedNodes;
     std::vector<childNodeInfo> pendingChildNodes; /**< this vector is associated with every level1 node for which we have started the process of finding trust. Will keep the "child" nodes for the node of level1 */
     std::vector<TrustNode> pendingReqs;  /**< this vector will keep the requests that are made till we find trust regarding the globalTrustLevel */
+    std::vector<OverlayKey> DHTStoredKeys;
+    std::vector<OverlayKey>::iterator itDHTStoredKeys;
+
 
     void dumpAccessedNodes();
     bool haveSignedOtherNodeCert(std::string, std::string reqstdNodeSCert);
@@ -245,7 +255,7 @@ private:
     bool nodeIsLeavingSoon; //!< true if the node is going to be killed shortly
 
     static const int DHTTESTAPP_VALUE_LEN = 20;
-    static const int GET_REQ_INTERVAL = 2;
+    static const int GET_REQ_INTERVAL = 1;
 
     // our timer
     cMessage *timerMsg;
