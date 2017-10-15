@@ -94,8 +94,16 @@ public:
      */
     const OverlayKey& getRandomKey();
 
+
+    /*
+     * Returns the currently stored DHT records.
+     *
+     */
+    std::vector<OverlayKey> getDataMapKeys();
+
     size_t size() { return dataMap.size(); };
     uint32_t p2pnsNameCount;
+    int nodeSentSomaKeyCnter;
 
 private:
     void initialize();

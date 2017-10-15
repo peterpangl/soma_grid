@@ -42,6 +42,7 @@ std::ostream& operator<<(std::ostream& stream, const DHTEntry entry)
 GlobalDhtTestMap::GlobalDhtTestMap()
 {
     periodicTimer = NULL;
+    nodeSentSomaKeyCnter = 0;
 }
 
 GlobalDhtTestMap::~GlobalDhtTestMap()
@@ -151,4 +152,15 @@ void GlobalDhtTestMap::dumpDHTTestMap()
         EV << " value: " << it->second.value << endl;
     }
 
+}
+
+std::vector<OverlayKey> GlobalDhtTestMap::getDataMapKeys()
+{
+    std::vector<OverlayKey> dhtStoredKeys;
+    std::map<OverlayKey, DHTEntry>::iterator itDataMapKeys;
+
+    for (itDataMapKeys = dataMap.begin(); itDataMapKeys != dataMap.end(); itDataMapKeys++){
+        dhtStoredKeys.push_back(itDataMapKeys->first);
+    }
+    return dhtStoredKeys;
 }
