@@ -35,6 +35,9 @@ simple DHTTestApp extends BaseApp
         bool p2pnsTraffic; // model p2pns application traffic
         int somaTrustReqs;   // period parameter for the Trust Chain needs.
         int globalTrustLevel; // level of depth that will reach in the search of Trust	
+        int numberOfNodes;		// number of the nodes that exist in the network
+        bool extensiveSearch; 	// set to true if we want each node to request almost all the nodes of the network
+        bool debug;				// DHTTestApp debugs output to log.txt enable or disable
 }
 
 
